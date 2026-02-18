@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1771099781701-1" author="Nils-WItt">
+        <createTable tableName="map_base_layer">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mapbaselayer"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-2" author="Nils-WItt">
+        <createTable tableName="map_group">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mapgroup"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-3" author="Nils-WItt">
+        <createTable tableName="map_item">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mapitem"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="map_group_id" type="UUID"/>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="altitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-4" author="Nils-WItt">
+        <createTable tableName="map_overlay">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mapoverlay"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="base_url" type="VARCHAR(100)"/>
+            <column name="base_path" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tile_path_pattern" type="VARCHAR(255)"/>
+            <column name="layer_version" type="INT"/>
+            <column name="map_group_id" type="UUID"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-5" author="Nils-WItt">
+        <createTable tableName="map_overlay_security_group">
+            <column name="group_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_map_overlay_security_group"/>
+            </column>
+            <column name="overlay_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_map_overlay_security_group"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-6" author="Nils-WItt">
+        <createTable tableName="position">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_position"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="altitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-7" author="Nils-WItt">
+        <createTable tableName="security_group">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_securitygroup"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sso_group_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="roles" type="text[]"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-8" author="Nils-WItt">
+        <createTable tableName="security_group_permission">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_securitygrouppermission"/>
+            </column>
+            <column name="scope" type="SMALLINT"/>
+            <column name="map_overlay_id" type="UUID"/>
+            <column name="map_item_id" type="UUID"/>
+            <column name="unit_id" type="UUID"/>
+            <column name="map_base_layer_id" type="UUID"/>
+            <column name="entity_user_id" type="UUID"/>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-9" author="Nils-WItt">
+        <createTable tableName="unit">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_unit"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="speak_request" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="show_on_map" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="grundzeichen" type="VARCHAR(255)"/>
+            <column name="organisation" type="VARCHAR(255)"/>
+            <column name="fachaufgabe" type="VARCHAR(255)"/>
+            <column name="einheit" type="VARCHAR(255)"/>
+            <column name="verwaltungsstufe" type="VARCHAR(255)"/>
+            <column name="funktion" type="VARCHAR(255)"/>
+            <column name="symbol" type="VARCHAR(255)"/>
+            <column name="tactical_icon_text" type="VARCHAR(255)"/>
+            <column name="tactical_icon_typ" type="VARCHAR(255)"/>
+            <column name="tactical_icon_name" type="VARCHAR(255)"/>
+            <column name="tactical_icon_organisation_name" type="VARCHAR(255)"/>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="altitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-10" author="Nils-WItt">
+        <createTable tableName="user_permission">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_userpermission"/>
+            </column>
+            <column name="scope" type="SMALLINT"/>
+            <column name="map_overlay_id" type="UUID"/>
+            <column name="map_item_id" type="UUID"/>
+            <column name="unit_id" type="UUID"/>
+            <column name="map_base_layer_id" type="UUID"/>
+            <column name="entity_user_id" type="UUID"/>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-11" author="Nils-WItt">
+        <createTable tableName="user_security_group">
+            <column name="group_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_security_group"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_security_group"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-12" author="Nils-WItt">
+        <createTable tableName="users">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_users"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_enabled" type="BOOLEAN"/>
+            <column name="is_locked" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771099781701-13" author="Nils-WItt">
+        <addUniqueConstraint columnNames="email" constraintName="uc_74165e195b2f7b25de690d14a" tableName="users"/>
+    </changeSet>
+    <changeSet id="1771099781701-14" author="Nils-WItt">
+        <addUniqueConstraint columnNames="username" constraintName="uc_77584fbe74cc86922be2a3560" tableName="users"/>
+    </changeSet>
+    <changeSet id="1771099781701-15" author="Nils-WItt">
+        <addUniqueConstraint columnNames="name" constraintName="uc_mapgroup_name" tableName="map_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-16" author="Nils-WItt">
+        <addUniqueConstraint columnNames="base_url" constraintName="uc_mapoverlay_baseurl" tableName="map_overlay"/>
+    </changeSet>
+    <changeSet id="1771099781701-17" author="Nils-WItt">
+        <addUniqueConstraint columnNames="name" constraintName="uc_securitygroup_name" tableName="security_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-18" author="Nils-WItt">
+        <createIndex indexName="idx_users_email" tableName="users">
+            <column name="email"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1771099781701-19" author="Nils-WItt">
+        <createIndex indexName="idx_users_username" tableName="users">
+            <column name="username"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1771099781701-20" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_group_id" baseTableName="map_item"
+                                 constraintName="FK_MAPITEM_ON_MAP_GROUP" referencedColumnNames="id"
+                                 referencedTableName="map_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-21" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_group_id" baseTableName="map_overlay"
+                                 constraintName="FK_MAPOVERLAY_ON_MAP_GROUP" referencedColumnNames="id"
+                                 referencedTableName="map_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-22" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="entity_user_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_ENTITY_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1771099781701-23" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="group_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_GROUP" referencedColumnNames="id"
+                                 referencedTableName="security_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-24" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_base_layer_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_MAP_BASELAYER" referencedColumnNames="id"
+                                 referencedTableName="map_base_layer"/>
+    </changeSet>
+    <changeSet id="1771099781701-25" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_item_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_MAP_ITEM" referencedColumnNames="id"
+                                 referencedTableName="map_item"/>
+    </changeSet>
+    <changeSet id="1771099781701-26" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_overlay_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_MAP_OVERLAY" referencedColumnNames="id"
+                                 referencedTableName="map_overlay"/>
+    </changeSet>
+    <changeSet id="1771099781701-27" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="unit_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_UNIT" referencedColumnNames="id"
+                                 referencedTableName="unit"/>
+    </changeSet>
+    <changeSet id="1771099781701-28" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="entity_user_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_ENTITY_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1771099781701-29" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_base_layer_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_MAP_BASELAYER" referencedColumnNames="id"
+                                 referencedTableName="map_base_layer"/>
+    </changeSet>
+    <changeSet id="1771099781701-30" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_item_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_MAP_ITEM" referencedColumnNames="id"
+                                 referencedTableName="map_item"/>
+    </changeSet>
+    <changeSet id="1771099781701-31" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="map_overlay_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_MAP_OVERLAY" referencedColumnNames="id"
+                                 referencedTableName="map_overlay"/>
+    </changeSet>
+    <changeSet id="1771099781701-32" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="unit_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_UNIT" referencedColumnNames="id"
+                                 referencedTableName="unit"/>
+    </changeSet>
+    <changeSet id="1771099781701-33" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1771099781701-34" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="overlay_id" baseTableName="map_overlay_security_group"
+                                 constraintName="fk_mapovesecgro_on_map_overlay" referencedColumnNames="id"
+                                 referencedTableName="map_overlay"/>
+    </changeSet>
+    <changeSet id="1771099781701-35" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="group_id" baseTableName="map_overlay_security_group"
+                                 constraintName="fk_mapovesecgro_on_security_group" referencedColumnNames="id"
+                                 referencedTableName="security_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-36" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="group_id" baseTableName="user_security_group"
+                                 constraintName="fk_usesecgro_on_security_group" referencedColumnNames="id"
+                                 referencedTableName="security_group"/>
+    </changeSet>
+    <changeSet id="1771099781701-37" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_security_group"
+                                 constraintName="fk_usesecgro_on_user" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1771453957995-1" author="Nils-WItt">
+        <createTable tableName="unit_position_log">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_unitpositionlog"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="altitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="accuracy" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1771453957995-2" author="Nils-WItt">
+        <addForeignKeyConstraint baseColumnNames="unit_id" baseTableName="unit_position_log"
+                                 constraintName="FK_UNITPOSITIONLOG_ON_UNIT" referencedColumnNames="id"
+                                 referencedTableName="unit"/>
+    </changeSet>
+
+</databaseChangeLog>
