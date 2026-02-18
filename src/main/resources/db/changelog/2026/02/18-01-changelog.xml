@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1771448218549-1" author="Nils-WItt">
+        <addColumn tableName="map_item">
+            <column name="accuracy" type="DOUBLE"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1771448218549-2" author="Nils-WItt">
+        <addNotNullConstraint columnName="accuracy" tableName="map_item"/>
+    </changeSet>
+    <changeSet id="1771448218549-3" author="Nils-WItt">
+        <addColumn tableName="position">
+            <column name="accuracy" type="DOUBLE"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1771448218549-4" author="Nils-WItt">
+        <addNotNullConstraint columnName="accuracy" tableName="position"/>
+    </changeSet>
+    <changeSet id="1771448218549-5" author="Nils-WItt">
+        <addColumn tableName="unit">
+            <column name="accuracy" type="DOUBLE"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1771448218549-6" author="Nils-WItt">
+        <addNotNullConstraint columnName="accuracy" tableName="unit"/>
+    </changeSet>
+
+</databaseChangeLog>
