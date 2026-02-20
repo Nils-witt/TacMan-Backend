@@ -1,6 +1,5 @@
 package dev.nilswitt.webmap.entities;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import dev.nilswitt.webmap.api.dtos.TacticalIconDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -25,7 +24,7 @@ public class TacticalIcon {
         dto.setTyp(getTyp());
         dto.setText(getText());
         dto.setEinheit(einheit.getId());
-        dto.setFachaufgabe(getFachaufgabeId());
+        dto.setFachaufgabe(fachaufgabe.getId());
         dto.setGrundzeichen(grundzeichen.getId());
         dto.setOrganisation(organisation.getId());
         dto.setSymbol(symbol.getId());
@@ -59,14 +58,6 @@ public class TacticalIcon {
 
     @Enumerated(EnumType.STRING)
     private FachaufgabeId fachaufgabe = FachaufgabeId.OHNE;
-
-    @JsonGetter("fachaufgabe")
-    public String getFachaufgabeId() {
-        if (fachaufgabe == null) {
-            return "";
-        }
-        return fachaufgabe.getId();
-    }
 
     @Enumerated(EnumType.STRING)
     private EinheitId einheit = EinheitId.OHNE;
