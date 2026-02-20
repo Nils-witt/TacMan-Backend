@@ -51,7 +51,7 @@ public class Unit extends AbstractEntity {
         dto.setStatus(getStatus());
         dto.setSpeakRequest(isSpeakRequest());
         dto.setShowOnMap(isShowOnMap());
-        dto.setIcon(getIcon());
+        dto.setIcon(getIcon().toDto());
         EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
         positionDto.setLatitude(getPosition().getLatitude());
         positionDto.setLongitude(getPosition().getLongitude());
@@ -68,7 +68,7 @@ public class Unit extends AbstractEntity {
         unit.setStatus(dto.getStatus());
         unit.setSpeakRequest(dto.isSpeakRequest());
         unit.setShowOnMap(dto.isShowOnMap());
-        unit.setIcon(dto.getIcon());
+        unit.setIcon(TacticalIcon.fromDto(dto.getIcon()));
         if (dto.getPosition() != null) {
             EmbeddedPosition position = new EmbeddedPosition();
             position.setLatitude(dto.getPosition().getLatitude());

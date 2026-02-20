@@ -1,6 +1,7 @@
 package dev.nilswitt.webmap.entities;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import dev.nilswitt.webmap.api.dtos.TacticalIconDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
@@ -17,27 +18,41 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TacticalIcon {
 
+    public TacticalIconDto toDto() {
+        TacticalIconDto dto = new TacticalIconDto();
+        dto.setName(getName());
+        dto.setOrganisationName(getOrganisationName());
+        dto.setTyp(getTyp());
+        dto.setText(getText());
+        dto.setEinheit(einheit.getId());
+        dto.setFachaufgabe(getFachaufgabeId());
+        dto.setGrundzeichen(grundzeichen.getId());
+        dto.setOrganisation(organisation.getId());
+        dto.setSymbol(symbol.getId());
+        dto.setFunktion(funktion.getId());
+        return dto;
+    }
+
+    public static TacticalIcon fromDto(TacticalIconDto dto) {
+        TacticalIcon icon = new TacticalIcon();
+        icon.setName(dto.getName());
+        icon.setOrganisationName(dto.getOrganisationName());
+        icon.setTyp(dto.getTyp());
+        icon.setText(dto.getText());
+        icon.setEinheit(EinheitId.fromId(dto.getEinheit()));
+        icon.setFachaufgabe(FachaufgabeId.fromId(dto.getFachaufgabe()));
+        icon.setGrundzeichen(GrundzeichenId.fromId(dto.getGrundzeichen()));
+        icon.setOrganisation(OrganisationId.fromId(dto.getOrganisation()));
+        icon.setSymbol(SymbolId.fromId(dto.getSymbol()));
+        icon.setFunktion(FunktionId.fromId(dto.getFunktion()));
+        return icon;
+    }
+
     @Enumerated(EnumType.STRING)
     private GrundzeichenId grundzeichen = GrundzeichenId.OHNE;
 
-    @JsonGetter("grundzeichen")
-    public String getGrundzeichenId() {
-        if (grundzeichen == null) {
-            return "";
-        }
-        return grundzeichen.getId();
-    }
-
     @Enumerated(EnumType.STRING)
     private OrganisationId organisation = OrganisationId.OHNE;
-
-    @JsonGetter("organisation")
-    public String getOrganisationId() {
-        if (organisation == null) {
-            return "";
-        }
-        return organisation.getId();
-    }
 
     @Enumerated(EnumType.STRING)
     private FachaufgabeId fachaufgabe = FachaufgabeId.OHNE;
@@ -53,46 +68,14 @@ public class TacticalIcon {
     @Enumerated(EnumType.STRING)
     private EinheitId einheit = EinheitId.OHNE;
 
-    @JsonGetter("einheit")
-    public String getEinheitId() {
-        if (einheit == null) {
-            return "";
-        }
-        return einheit.getId();
-    }
-
     @Enumerated(EnumType.STRING)
     private VerwaltungsstufeId verwaltungsstufe = VerwaltungsstufeId.OHNE;
-
-    @JsonGetter("verwaltungsstufe")
-    public String getVerwaltungsstufeId() {
-        if (verwaltungsstufe == null) {
-            return "";
-        }
-        return verwaltungsstufe.getId();
-    }
 
     @Enumerated(EnumType.STRING)
     private FunktionId funktion = FunktionId.OHNE;
 
-    @JsonGetter("funktion")
-    public String getFunktionId() {
-        if (funktion == null) {
-            return "";
-        }
-        return funktion.getId();
-    }
-
     @Enumerated(EnumType.STRING)
     private SymbolId symbol = SymbolId.OHNE;
-
-    @JsonGetter("symbol")
-    public String getSymbolId() {
-        if (symbol == null) {
-            return "";
-        }
-        return symbol.getId();
-    }
 
     @Column(name = "tactical_icon_text")
     private String text = "";

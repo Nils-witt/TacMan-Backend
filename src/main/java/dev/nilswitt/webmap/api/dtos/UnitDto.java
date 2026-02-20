@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 public class UnitDto extends AbstractEntityDto {
 
     private String name;
-    private TacticalIcon icon = null;
+    private TacticalIconDto icon = null;
     private EmbeddedPositionDto position;
     private int status = 6;
     private boolean speakRequest = false;
