@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Embeddable
 @Getter
 @Setter
@@ -19,16 +21,20 @@ public class TacticalIcon {
 
     public TacticalIconDto toDto() {
         TacticalIconDto dto = new TacticalIconDto();
-        dto.setName(getName());
-        dto.setOrganisationName(getOrganisationName());
-        dto.setTyp(getTyp());
-        dto.setText(getText());
-        dto.setEinheit(einheit.getId());
-        dto.setFachaufgabe(fachaufgabe.getId());
-        dto.setGrundzeichen(grundzeichen.getId());
-        dto.setOrganisation(organisation.getId());
-        dto.setSymbol(symbol.getId());
-        dto.setFunktion(funktion.getId());
+        try {
+            dto.setName(getName());
+            dto.setOrganisationName(getOrganisationName());
+            dto.setTyp(getTyp());
+            dto.setText(getText());
+            dto.setEinheit(einheit.getId());
+            dto.setFachaufgabe(fachaufgabe.getId());
+            dto.setGrundzeichen(grundzeichen.getId());
+            dto.setOrganisation(organisation.getId());
+            dto.setSymbol(symbol.getId());
+            dto.setFunktion(funktion.getId());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
         return dto;
     }
 
