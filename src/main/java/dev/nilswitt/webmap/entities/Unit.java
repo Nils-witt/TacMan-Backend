@@ -1,6 +1,7 @@
 package dev.nilswitt.webmap.entities;
 
 import dev.nilswitt.webmap.api.dtos.EmbeddedPositionDto;
+import dev.nilswitt.webmap.api.dtos.TacticalIconDto;
 import dev.nilswitt.webmap.api.dtos.UnitDto;
 import dev.nilswitt.webmap.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.Column;
@@ -51,7 +52,7 @@ public class Unit extends AbstractEntity {
         dto.setStatus(getStatus());
         dto.setSpeakRequest(isSpeakRequest());
         dto.setShowOnMap(isShowOnMap());
-        dto.setIcon(getIcon().toDto());
+        dto.setIcon(getIcon() != null ? getIcon().toDto() : new TacticalIconDto());
         EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
         positionDto.setLatitude(getPosition().getLatitude());
         positionDto.setLongitude(getPosition().getLongitude());

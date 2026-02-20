@@ -81,11 +81,8 @@ public class UnitEditDialog extends Dialog {
 
         latitudeField.setMin(-90);
         latitudeField.setMax(90);
-        latitudeField.setStep(0.000001);
         longitudeField.setMin(-180);
         longitudeField.setMax(180);
-        longitudeField.setStep(0.000001);
-        altitudeField.setStep(0.1);
     }
 
     private void bindFields() {
