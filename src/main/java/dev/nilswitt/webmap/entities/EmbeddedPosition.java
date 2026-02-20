@@ -8,7 +8,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.Column;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Embeddable
 @Getter
@@ -22,9 +25,9 @@ public class EmbeddedPosition implements PositionInterface {
     private double accuracy = 0.0;
 
     @Column
-    private LocalDateTime timestamp = null;
+    private Instant timestamp = null;
 
-    public EmbeddedPosition(double latitude, double longitude, double accuracy, LocalDateTime timestamp) {
+    public EmbeddedPosition(double latitude, double longitude, double accuracy, Instant timestamp) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;

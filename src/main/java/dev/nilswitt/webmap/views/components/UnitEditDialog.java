@@ -14,10 +14,13 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import dev.nilswitt.webmap.entities.Unit;
+import lombok.extern.slf4j.Slf4j;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Slf4j
 public class UnitEditDialog extends Dialog {
 
     private Unit unit = new Unit();
@@ -103,12 +106,13 @@ public class UnitEditDialog extends Dialog {
         binder.forField(accuracyField).withNullRepresentation(0.0).bind(unit -> unit.getPosition().getAccuracy(), (unit, value) -> unit.getPosition().setAccuracy(value != null ? value : 0.0));
         binder.bind(posTimePicker, unit -> {
             if (unit.getPosition().getTimestamp() != null) {
-                return unit.getPosition().getTimestamp();
+                return unit.getPosition().getTimestamp().atZone(ZoneId.of("Europe/Berlin")).toLocalDateTime();
             } else {
                 return null;
             }
         }, (unit, value) -> {
-            unit.getPosition().setTimestamp(value);
+            assert value != null;
+            unit.getPosition().setTimestamp(value.atZone(ZoneId.of("Europe/Berlin")).toInstant());
         });
     }
 
