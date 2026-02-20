@@ -34,6 +34,9 @@ public class TacticalIcon {
     }
 
     public static TacticalIcon fromDto(TacticalIconDto dto) {
+        if(dto == null) {
+            return new TacticalIcon();
+        }
         TacticalIcon icon = new TacticalIcon();
         icon.setName(dto.getName());
         icon.setOrganisationName(dto.getOrganisationName());
