@@ -65,7 +65,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: application-artifacts
-          path: target/webmap_backend.jar
+          path: target/
       - name: List Dir
         run: ls -la target/
       # Install the cosign tool except on PR
