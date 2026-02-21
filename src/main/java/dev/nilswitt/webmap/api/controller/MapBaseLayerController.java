@@ -59,7 +59,7 @@ public class MapBaseLayerController {
     @GetMapping("{id}")
     EntityModel<MapBaseLayerDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
         MapBaseLayer entity = this.repository.findById(id).orElseThrow(() -> new MapBaseLayerNotFoundException(id));
-        if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
+        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
         return this.assembler.toModel(entity.toDto());
