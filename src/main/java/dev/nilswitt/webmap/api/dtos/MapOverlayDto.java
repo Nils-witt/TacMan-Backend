@@ -24,6 +24,6 @@ public class MapOverlayDto extends AbstractEntityDto {
 
     @JsonGetter("fullTileUrl")
     public String getFullTileUrl() {
-        return this.baseUrl + "/" + this.basePath + "/" + this.layerVersion + "/" + this.tilePathPattern;
+        return this.baseUrl + "/" + this.basePath + "/" + this.getId() + "/" + this.layerVersion + "/" + this.tilePathPattern;
     }
 }
