@@ -58,6 +58,7 @@ class MapOverlayControllerTests {
 
         assertThat(result).hasStatusOk().bodyJson().extractingPath("$.id").asString().isEqualTo(overlay.getId().toString());
         assertThat(result).bodyJson().extractingPath("$.name").asString().isEqualTo("test-overlay-byid");
+        assertThat(result).bodyJson().extractingPath("$.fullTileUrl").asString().isNotBlank();
 
         mapOverlayRepository.delete(overlay);
     }
