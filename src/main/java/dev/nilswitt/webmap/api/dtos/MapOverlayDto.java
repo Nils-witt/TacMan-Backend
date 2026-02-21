@@ -1,5 +1,6 @@
 package dev.nilswitt.webmap.api.dtos;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -20,4 +21,9 @@ public class MapOverlayDto extends AbstractEntityDto {
     private int layerVersion = 0;
 
     private UUID mapGroupId;
+
+    @JsonGetter("fullTileUrl")
+    public String getFullTileUrl() {
+        return this.baseUrl + "/" + this.basePath + "/" + this.layerVersion + "/" + this.tilePathPattern;
+    }
 }
