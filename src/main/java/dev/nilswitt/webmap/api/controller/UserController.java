@@ -63,8 +63,8 @@ public class UserController {
     @GetMapping("{id}")
     public EntityModel<UserDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
         User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
-            throw new ForbiddenException("User does not have permission to view overlays.");
+        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
+            throw new ForbiddenException("User does not have permission to view users.");
         }
         return this.assembler.toModel(entity.toDto());
     }
