@@ -1,14 +1,4 @@
 services:
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    links:
-      - postgres
-    environment:
-      DB_URL: jdbc:postgresql://postgres:5432/mydatabase
   postgres:
     image: postgres:18
     environment:
@@ -18,6 +8,4 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - pgdata:/var/lib/postgresql
-volumes:
-  pgdata:
+      - ./data/pgdata:/var/lib/postgresql
