@@ -8,7 +8,10 @@ import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.PhotoRepository;
 import dev.nilswitt.webmap.records.PictureConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,8 +20,10 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -110,5 +115,40 @@ public class PhotoController {
             entity.setExpiresAt(Instant.now().plus(1, ChronoUnit.DAYS));
         }
         return this.assembler.toModel(photoRepository.save(entity).toDto());
+    }
+
+    @GetMapping("{id}")
+    EntityModel<PhotoDto> getEntity(@PathVariable UUID id) {
+        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        if (entity.getExpiresAt().isBefore(Instant.now())) {
+            photoRepository.delete(entity);
+            try {
+                Files.deleteIfExists(Path.of(pictureConfig.localPath() + "/" + entity.getPath()));
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+            throw new PhotoNotFoundException(id);
+        }
+        return this.assembler.toModel(entity.toDto());
+    }
+    @GetMapping("{id}/photo")
+    ResponseEntity<Resource> getEntityPhoto(@PathVariable UUID id) throws IOException {
+        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        if (entity.getExpiresAt().isBefore(Instant.now())) {
+            photoRepository.delete(entity);
+            try {
+                Files.deleteIfExists(Path.of(pictureConfig.localPath() + "/" + entity.getPath()));
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+            throw new PhotoNotFoundException(id);
+        }
+
+        Path path = Paths.get(pictureConfig.localPath() + "/" + entity.getPath());
+        // Load the resource
+        String mimeType = Files.probeContentType(path);
+        Resource resource = new UrlResource(path.toUri());
+
+        return ResponseEntity.ok().header("Content-Type", mimeType).body(resource);
     }
 }
