@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1771795266686-2" author="Nils-WItt">
+        <addColumn tableName="photo">
+            <column name="embeddedposition_accuracy" type="DOUBLE"/>
+            <column name="embeddedposition_altimeter" type="DOUBLE"/>
+            <column name="embeddedposition_latitude" type="DOUBLE"/>
+            <column name="embeddedposition_longitude" type="DOUBLE"/>
+            <column name="embeddedposition_timestamp" type="DATETIME"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1771795266686-21" author="Nils-WItt">
+        <renameColumn oldColumnName="accuracy" newColumnName="embeddedposition_accuracy" tableName="map_item"/>
+        <renameColumn oldColumnName="altitude" newColumnName="embeddedposition_altimeter" tableName="map_item"/>
+        <renameColumn oldColumnName="latitude" newColumnName="embeddedposition_latitude" tableName="map_item"/>
+        <renameColumn oldColumnName="longitude" newColumnName="embeddedposition_longitude" tableName="map_item"/>
+        <renameColumn oldColumnName="timestamp" newColumnName="embeddedposition_timestamp" tableName="map_item"/>
+    </changeSet>
+    <changeSet id="1771795266686-22" author="Nils-WItt">
+        <renameColumn oldColumnName="accuracy" newColumnName="embeddedposition_accuracy" tableName="unit"/>
+        <renameColumn oldColumnName="altitude" newColumnName="embeddedposition_altimeter" tableName="unit"/>
+        <renameColumn oldColumnName="latitude" newColumnName="embeddedposition_latitude" tableName="unit"/>
+        <renameColumn oldColumnName="longitude" newColumnName="embeddedposition_longitude" tableName="unit"/>
+        <renameColumn oldColumnName="timestamp" newColumnName="embeddedposition_timestamp" tableName="unit"/>
+    </changeSet>
+    <changeSet id="1771795266686-23" author="Nils-WItt">
+        <renameColumn oldColumnName="accuracy" newColumnName="embeddedposition_accuracy" tableName="unit_position_log"/>
+        <renameColumn oldColumnName="altitude" newColumnName="embeddedposition_altimeter" tableName="unit_position_log"/>
+        <renameColumn oldColumnName="latitude" newColumnName="embeddedposition_latitude" tableName="unit_position_log"/>
+        <renameColumn oldColumnName="longitude" newColumnName="embeddedposition_longitude" tableName="unit_position_log"/>
+        <renameColumn oldColumnName="timestamp" newColumnName="embeddedposition_timestamp" tableName="unit_position_log"/>
+    </changeSet>
+
+</databaseChangeLog>

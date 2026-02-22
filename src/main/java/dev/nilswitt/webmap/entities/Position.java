@@ -17,17 +17,17 @@ import java.time.Instant;
 @NoArgsConstructor
 public class Position extends AbstractEntity implements PositionInterface {
     @Column
-    private double latitude = 0.0;
+    private Double latitude = 0.0;
     @Column
-    private double longitude = 0.0;
+    private Double longitude = 0.0;
     @Column
-    private double altitude = 0.0;
+    private Double altitude = 0.0;
     @Column
-    private double accuracy = 0.0;
+    private Double accuracy = 0.0;
 
     @Column
     private Instant timestamp;
-    public Position(double latitude, double longitude) {
+    public Position(Double latitude, Double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }
