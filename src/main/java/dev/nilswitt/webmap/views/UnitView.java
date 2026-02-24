@@ -6,12 +6,22 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.spring.security.AuthenticationContext;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import dev.nilswitt.webmap.base.ui.ViewToolbar;
 import dev.nilswitt.webmap.entities.SecurityGroup;
 import dev.nilswitt.webmap.entities.Unit;
@@ -74,7 +84,7 @@ public class UnitView extends VerticalLayout {
         this.unitFilter.setUp(this.unitGrid);
 
 
-        this.add(new ViewToolbar("Unit List", ViewToolbar.group(this.createBtn)));
+        this.add(new ViewToolbar("Unit List", ViewToolbar.group(setUpMultiSelect(),this.createBtn)));
         this.add(unitGrid, editDialog);
     }
 
@@ -89,6 +99,67 @@ public class UnitView extends VerticalLayout {
             }
             editDialog.open(null);
         });
+    }
+
+    private static final DateTimeFormatter CSV_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+
+    private Button setUpMultiSelect() {
+        this.unitGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+
+        Popover popover = new Popover();
+        popover.setWidth("200px");
+        popover.setHeight("auto");
+        popover.setPosition(PopoverPosition.BOTTOM);
+
+        Button openPopupButton = new Button("Open Popup");
+        popover.setTarget(openPopupButton);
+        openPopupButton.addClickListener(e -> {
+            if (unitGrid.getSelectedItems().isEmpty()) {
+                Notification.show("Please select at least one unit.");
+                return;
+            }
+            popover.open();
+        });
+
+        DownloadHandler downloadHandler = DownloadHandler.fromInputStream(event -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append("ID,Name,Status,SpeakRequest,ShowOnMap,Latitude,Longitude,Altitude,Accuracy,Timestamp\n");
+            for (Unit unit : unitGrid.getSelectedItems()) {
+                sb.append(unit.getId()).append(",");
+                sb.append(escapeCsvField(unit.getName())).append(",");
+                sb.append(unit.getStatus()).append(",");
+                sb.append(unit.isSpeakRequest()).append(",");
+                sb.append(unit.isShowOnMap()).append(",");
+                sb.append(unit.getPosition().getLatitude()).append(",");
+                sb.append(unit.getPosition().getLongitude()).append(",");
+                sb.append(unit.getPosition().getAltitude()).append(",");
+                sb.append(unit.getPosition().getAccuracy()).append(",");
+                sb.append(unit.getPosition().getTimestamp() != null
+                        ? CSV_TIMESTAMP_FORMAT.format(unit.getPosition().getTimestamp())
+                        : "").append("\n");
+            }
+            byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+            return new DownloadResponse(new ByteArrayInputStream(bytes), "units.csv", "text/csv", bytes.length);
+        });
+
+        Anchor downloadLink = new Anchor(downloadHandler, "");
+        downloadLink.getElement().setAttribute("download", true);
+        Button downloadButton = new Button("Download CSV");
+        downloadLink.add(downloadButton);
+        downloadButton.addClickListener(e -> popover.close());
+
+        popover.add(downloadLink);
+
+        return openPopupButton;
+    }
+
+    private static String escapeCsvField(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 
     public List<Unit> list(Pageable pageable) {

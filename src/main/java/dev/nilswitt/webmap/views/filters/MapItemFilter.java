@@ -30,7 +30,7 @@ public class MapItemFilter extends EntityFilter<MapItem> {
     ExampleMatcher buildMatcher() {
         return ExampleMatcher.matchingAll()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("id");
+                .withIgnorePaths("id","position");
     }
 
     @Override
