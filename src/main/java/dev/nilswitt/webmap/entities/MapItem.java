@@ -48,6 +48,7 @@ public class MapItem extends AbstractEntity {
         positionDto.setAltitude(getPosition().getAltitude());
         positionDto.setTimestamp(getPosition().getTimestamp());
         dto.setPosition(positionDto);
+        dto.setZoomLevel(getZoomLevel());
         dto.setMapGroupId(getMapGroup() != null ? getMapGroup().getId() : null);
         return dto;
     }
