@@ -6,11 +6,13 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import dev.nilswitt.webmap.entities.MapGroup;
 import dev.nilswitt.webmap.entities.MapItem;
+import dev.nilswitt.webmap.entities.Unit;
 import dev.nilswitt.webmap.entities.repositories.MapGroupRepository;
 
 import java.util.function.Consumer;
@@ -26,6 +28,7 @@ public class MapItemEditDialog extends Dialog {
     private final NumberField longitudeField = new NumberField("Longitude");
     private final NumberField altitudeField = new NumberField("Altitude");
     private final ComboBox<MapGroup> mapGroupComboBox = new ComboBox<>("Map Group");
+    private final IntegerField zoomLevelField = new IntegerField("Zoom Level");
 
     public MapItemEditDialog(Consumer<MapItem> editCallback, MapGroupRepository mapGroupRepository) {
         this.editCallback = editCallback;
@@ -49,6 +52,7 @@ public class MapItemEditDialog extends Dialog {
         binder.forField(altitudeField)
                 .withNullRepresentation(0.0)
                 .bind(unit -> unit.getPosition().getAltitude(), (unit, value) -> unit.getPosition().setAltitude(value != null ? value : 0.0));
+        binder.forField(zoomLevelField).withNullRepresentation(0).bind(MapItem::getZoomLevel, MapItem::setZoomLevel);
 
         FormLayout formLayout = new FormLayout();
         formLayout.setAutoResponsive(true);
@@ -56,6 +60,7 @@ public class MapItemEditDialog extends Dialog {
         formLayout.addFormRow(this.mapGroupComboBox);
         formLayout.addFormRow(this.latitudeField, this.longitudeField);
         formLayout.addFormRow(this.altitudeField);
+        formLayout.addFormRow(this.zoomLevelField);
 
 
         Button saveButton = new Button("Save", event -> {

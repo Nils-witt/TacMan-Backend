@@ -61,6 +61,7 @@ public class MapItemController {
         MapItem mapItem = new MapItem();
         mapItem.setName(newEntity.getName());
         mapItem.setPosition(EmbeddedPosition.of(newEntity.getPosition()));
+        mapItem.setZoomLevel(newEntity.getZoomLevel());
 
         return this.assembler.toModel(this.repository.save(mapItem).toDto());
     }
@@ -87,6 +88,7 @@ public class MapItemController {
 
         entity.setName(newEntity.getName());
         entity.setPosition(EmbeddedPosition.of(newEntity.getPosition()));
+        entity.setZoomLevel(newEntity.getZoomLevel());
 
         if (newEntity.getMapGroupId() != null) {
             entity.setMapGroup(mapGroupRepository.findById(newEntity.getMapGroupId()).orElseThrow());

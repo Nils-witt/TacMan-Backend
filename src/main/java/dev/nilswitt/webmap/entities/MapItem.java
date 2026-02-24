@@ -27,6 +27,10 @@ public class MapItem extends AbstractEntity {
     @JoinColumn(name = "map_group_id")
     private MapGroup mapGroup;
 
+
+    @Column(columnDefinition = "integer default 14")
+    private Integer zoomLevel = 14;
+
     public EmbeddedPosition getPosition() {
         if (position == null) {
             position = new EmbeddedPosition();
@@ -44,6 +48,7 @@ public class MapItem extends AbstractEntity {
         positionDto.setAltitude(getPosition().getAltitude());
         positionDto.setTimestamp(getPosition().getTimestamp());
         dto.setPosition(positionDto);
+        dto.setZoomLevel(getZoomLevel());
         dto.setMapGroupId(getMapGroup() != null ? getMapGroup().getId() : null);
         return dto;
     }

@@ -11,4 +11,5 @@ public class MapItemDto extends AbstractEntityDto {
     private String name;
     private EmbeddedPositionDto position;
     private UUID mapGroupId;
+    private Integer zoomLevel;
 }
