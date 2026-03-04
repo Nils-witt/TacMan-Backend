@@ -58,4 +58,14 @@ public class EmbeddedPosition implements PositionInterface {
         return dto;
     }
 
+    @Override
+    public String toString() {
+        return "EmbeddedPosition{" +
+                "latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", altitude=" + altitude +
+                ", accuracy=" + accuracy +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }

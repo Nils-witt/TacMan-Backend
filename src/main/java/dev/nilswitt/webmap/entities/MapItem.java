@@ -52,4 +52,14 @@ public class MapItem extends AbstractEntity {
         dto.setMapGroupId(getMapGroup() != null ? getMapGroup().getId() : null);
         return dto;
     }
+
+    @Override
+    public String toString() {
+        return "MapItem{" +
+                "name='" + name + '\'' +
+                ", position=" + position +
+                ", mapGroup=" + mapGroup +
+                ", zoomLevel=" + zoomLevel +
+                '}';
+    }
 }

@@ -1,32 +1,51 @@
 package dev.nilswitt.webmap.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadEvent;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import dev.nilswitt.webmap.base.ui.ViewToolbar;
-import dev.nilswitt.webmap.entities.MapItem;
-import dev.nilswitt.webmap.entities.SecurityGroup;
-import dev.nilswitt.webmap.entities.User;
+import dev.nilswitt.webmap.entities.*;
 import dev.nilswitt.webmap.entities.repositories.*;
 import dev.nilswitt.webmap.security.PermissionUtil;
 import dev.nilswitt.webmap.views.components.MapItemEditDialog;
 import dev.nilswitt.webmap.views.components.MapItemPermissionsDialog;
 import dev.nilswitt.webmap.views.filters.MapItemFilter;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 import org.springframework.data.domain.Pageable;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
+@Log4j2
 @Route("ui/map/items")
 @Menu(order = 1, icon = "vaadin:map-marker", title = "Map Items")
 @RolesAllowed("MAPITEM_VIEW")
@@ -38,6 +57,7 @@ public class MapItemView extends VerticalLayout {
 
     private final MapItemRepository mapItemRepository;
     private final MapItemFilter mapItemFilter;
+    private final MapGroupRepository mapGroupRepository;
     private final AuthenticationContext authenticationContext;
     private final PermissionUtil permissionUtil;
 
@@ -48,6 +68,7 @@ public class MapItemView extends VerticalLayout {
         this.permissionUtil = permissionUtil;
         this.mapItemRepository = mapItemRepository;
         this.authenticationContext = authenticationContext;
+        this.mapGroupRepository = mapGroupRepository;
         this.editDialog = new MapItemEditDialog(mapItem -> {
             this.mapItemRepository.save(mapItem);
             this.mapItemGrid.getDataProvider().refreshAll();
@@ -65,7 +86,8 @@ public class MapItemView extends VerticalLayout {
         this.setSpacing(false);
         this.getStyle().setOverflow(Style.Overflow.HIDDEN);
 
-        this.add(new ViewToolbar("Map Item List", ViewToolbar.group(this.createBtn)));
+
+        this.add(new ViewToolbar("Map Item List", ViewToolbar.group(createImportButton(), configureExportButton(), this.createBtn)));
         this.add(this.mapItemGrid, this.editDialog);
     }
 
@@ -80,6 +102,173 @@ public class MapItemView extends VerticalLayout {
             }
             this.editDialog.open(null);
         });
+    }
+
+    private Anchor configureExportButton() {
+        Button exportButton = new Button("Export");
+        Anchor downloadLink = new Anchor((DownloadEvent event) -> {
+            event.setFileName("items.csv");
+            var anchor = event.getOwningComponent();
+            event.getResponse().setHeader("Cache-Control", "public, max-age=3600");
+            try (OutputStream outputStream = event.getOutputStream()) {
+                StringWriter sw = new StringWriter();
+                String[] HEADERS = {"id", "name", "mapGroup", "latitude", "longitude", "altitude"};
+
+                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setHeader(HEADERS)
+                        .build();
+
+                try (final CSVPrinter printer = new CSVPrinter(sw, csvFormat)) {
+                    this.list(Pageable.unpaged()).forEach(mapItem -> {
+                        try {
+                            printer.printRecord(
+                                    mapItem.getId(),
+                                    mapItem.getName(),
+                                    mapItem.getMapGroup() != null ? mapItem.getMapGroup().getName() : "None",
+                                    mapItem.getPosition().getLatitude(),
+                                    mapItem.getPosition().getLongitude(),
+                                    mapItem.getPosition().getAltitude()
+                            );
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                outputStream.write(sw.toString().getBytes());
+            }
+            event.getUI().access(() -> { /* UI updates */});
+        }, "");
+        downloadLink.add(exportButton);
+        return downloadLink;
+    }
+
+    private Button createImportButton() {
+        Button importButton = new Button("Import");
+        importButton.addClickListener(event -> {
+            Dialog importDialog = new Dialog();
+            importDialog.setHeaderTitle("Import Map Items");
+            ComboBox<String> mapGroupComboBox = new ComboBox<>("Map Group");
+            ComboBox<String> nameComboBox = new ComboBox<>("Name");
+            ComboBox<String> latitudeComboBox = new ComboBox<>("Latitude");
+            ComboBox<String> longitudeComboBox = new ComboBox<>("Longitude");
+
+
+            AtomicReference<String> strData = new AtomicReference<>("");
+            InMemoryUploadHandler inMemoryHandler = UploadHandler
+                    .inMemory((metadata, data) -> {
+                        strData.set(new String(data));
+                        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                                .setDelimiter(";")
+                                .build();
+                        Iterable<CSVRecord> records = csvFormat.parse(new StringReader(new String(data)));
+                        CSVRecord header = records.iterator().next();
+                        UI.getCurrent().access(() -> {
+                            HashSet<String> columnNames = new HashSet<>();
+
+                            for (int i = 0; i < header.size(); i++) {
+                                String columnName = header.get(i);
+                                columnNames.add(columnName);
+                            }
+                            mapGroupComboBox.setItems(columnNames);
+                            nameComboBox.setItems(columnNames);
+                            latitudeComboBox.setItems(columnNames);
+                            longitudeComboBox.setItems(columnNames);
+                        });
+                    });
+            Upload upload = new Upload(inMemoryHandler);
+            upload.setMaxFiles(1);
+
+            importDialog.add(upload);
+            FormLayout formLayout = new FormLayout();
+            formLayout.add(mapGroupComboBox);
+            formLayout.add(nameComboBox);
+            formLayout.add(latitudeComboBox);
+            formLayout.add(longitudeComboBox);
+
+            importDialog.add(formLayout);
+
+
+            Button startimportButton = new Button("Import", e -> {
+                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setDelimiter(";")
+                        .build();
+                try {
+                    Iterable<CSVRecord> records = csvFormat.parse(new StringReader(strData.get()));
+                    Iterator<CSVRecord> iterator = records.iterator();
+                    CSVRecord header = iterator.next();
+
+                    if (nameComboBox.isEmpty()) {
+                        log.warn("No name column selected, skipping import");
+                        return;
+                    }
+                    int nameRow = -1;
+                    int mapGroupRow = -1;
+                    int latitudeRow = -1;
+                    int longitudeRow = -1;
+
+                    for (int i = 0; i < header.size(); i++) {
+                        String columnName = header.get(i);
+                        if (columnName.equals(nameComboBox.getValue())) {
+                            nameRow = i;
+                        }
+                        if (columnName.equals(mapGroupComboBox.getValue())) {
+                            mapGroupRow = i;
+                        }
+                        if (columnName.equals(latitudeComboBox.getValue())) {
+                            latitudeRow = i;
+                        }
+                        if (columnName.equals(longitudeComboBox.getValue())) {
+                            longitudeRow = i;
+                        }
+                    }
+                    int finalNameRow = nameRow;
+                    int finalLongitudeRow = longitudeRow;
+                    int finalLatitudeRow = latitudeRow;
+                    int finalMapGroupRow = mapGroupRow;
+                    iterator.forEachRemaining(record -> {
+                        try {
+                            MapItem mapItem = new MapItem();
+                            mapItem.setName(record.get(finalNameRow));
+                            if (record.get(finalMapGroupRow) != null) {
+                                String groupName = record.get(finalMapGroupRow);
+                                if (groupName != null && !groupName.isEmpty()) {
+                                    MapGroup mapGroup = mapGroupRepository.findByName(groupName).orElse(null);
+
+                                    if (mapGroup == null) {
+                                        mapGroup = new MapGroup();
+                                        mapGroup.setName(groupName);
+                                        mapGroup = mapGroupRepository.save(mapGroup);
+                                    }
+
+                                    mapItem.setMapGroup(mapGroup);
+                                }
+                            }
+                            mapItem.setPosition(new EmbeddedPosition());
+                            mapItem.getPosition().setLatitude(Double.valueOf(record.get(finalLatitudeRow)));
+                            mapItem.getPosition().setLongitude(Double.valueOf(record.get(finalLongitudeRow)));
+                            mapItemRepository.save(mapItem);
+                            log.info(mapItem.toString());
+                        } catch (Exception ex) {
+                            UI.getCurrent().access(() -> Notification.show("Import of row " + record.getRecordNumber() + " failed: " + ex.getMessage()));
+                        }
+                    });
+
+                    mapItemGrid.getDataProvider().refreshAll();
+                    Notification.show("Import successful");
+                } catch (IOException ex) {
+                    Notification.show("Import failed: " + ex.getMessage());
+                }
+            });
+            importDialog.add(startimportButton);
+
+            Button closeButton = new Button("Close", e -> importDialog.close());
+            importDialog.add(closeButton);
+            importDialog.setWidth("400px");
+            importDialog.open();
+        });
+        return importButton;
     }
 
     private void configureGrid() {
