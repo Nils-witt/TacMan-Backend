@@ -22,7 +22,8 @@ public class MapController {
         return CollectionModel.of(new ArrayList<>(),
                 linkTo(methodOn(MapBaseLayerController.class).all(null)).withRel("baselayers"),
                 linkTo(methodOn(MapOverlayController.class).all(null)).withRel("overlays"),
-                linkTo(methodOn(MapItemController.class).all(null)).withRel("items")
+                linkTo(methodOn(MapItemController.class).all(null)).withRel("items"),
+                linkTo(methodOn(MapGroupController.class).all(null)).withRel("groups")
         );
     }
 }

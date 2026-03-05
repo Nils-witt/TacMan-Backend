@@ -29,6 +29,12 @@ public abstract class AbstractPermission extends AbstractEntity {
     private MapItem mapItem;
 
     @ManyToOne
+    @JoinColumn(name = "map_group_id")
+    @Getter
+    @Setter
+    private MapGroup mapGroup;
+
+    @ManyToOne
     @JoinColumn(name = "unit_id")
     @Getter
     @Setter
