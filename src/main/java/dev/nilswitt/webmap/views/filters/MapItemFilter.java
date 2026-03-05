@@ -8,8 +8,6 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import dev.nilswitt.webmap.entities.MapGroup;
 import dev.nilswitt.webmap.entities.MapItem;
 import dev.nilswitt.webmap.entities.repositories.MapGroupRepository;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 
@@ -30,7 +28,7 @@ public class MapItemFilter extends EntityFilter<MapItem> {
     ExampleMatcher buildMatcher() {
         return ExampleMatcher.matchingAll()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("id","position");
+                .withIgnorePaths("id", "position", "zoomLevel");
     }
 
     @Override
