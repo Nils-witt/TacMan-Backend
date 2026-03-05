@@ -24,6 +24,8 @@ public interface SecurityGroupPermissionsRepository extends JpaRepository<Securi
 
     List<SecurityGroupPermission> findBySecurityGroupAndMapItemNotNull(SecurityGroup securityGroup);
 
+    List<SecurityGroupPermission> findBySecurityGroupAndMapGroupNotNull(SecurityGroup securityGroup);
+
     List<SecurityGroupPermission> findBySecurityGroupAndBaseLayerNotNull(SecurityGroup securityGroup);
 
     List<SecurityGroupPermission> findBySecurityGroupAndUnitNotNull(SecurityGroup securityGroup);
@@ -31,6 +33,8 @@ public interface SecurityGroupPermissionsRepository extends JpaRepository<Securi
     List<SecurityGroupPermission> findBySecurityGroupAndEntityUserNotNull(SecurityGroup securityGroup);
 
     Optional<SecurityGroupPermission> findBySecurityGroupAndMapItem(SecurityGroup securityGroup, MapItem mapItem);
+
+    Optional<SecurityGroupPermission> findBySecurityGroupAndMapGroup(SecurityGroup securityGroup, MapGroup mapGroup);
 
     Optional<SecurityGroupPermission> findBySecurityGroupAndMapOverlay(SecurityGroup securityGroup, MapOverlay mapOverlay);
 

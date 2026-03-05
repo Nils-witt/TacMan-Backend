@@ -114,6 +114,33 @@ public final class PermissionUtil {
         return false;
     }
 
+    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapGroup mapGroup) {
+        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPITEM,
+                SecurityGroup.UserRoleScopeEnum.VIEW,
+                SecurityGroup.UserRoleScopeEnum.EDIT,
+                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+            return true;
+        }
+
+        Optional<UserPermission> userPermission = userPermissionsRepository.findByUserAndMapGroup(user, mapGroup);
+        if (userPermission.isPresent()) {
+            if (testScope(requiredScope, userPermission.get().getScope())) {
+                return true;
+            }
+        } else {
+            for (SecurityGroup sg : user.getSecurityGroups()) {
+                Optional<SecurityGroupPermission> sgPermission =
+                        securityGroupPermissionsRepository.findBySecurityGroupAndMapGroup(sg, mapGroup);
+                if (sgPermission.isPresent()) {
+                    if (testScope(requiredScope, sgPermission.get().getScope())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapBaseLayer mapBaseLayer) {
         if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPBASELAYER,
                 SecurityGroup.UserRoleScopeEnum.VIEW,
@@ -253,6 +280,13 @@ public final class PermissionUtil {
         return permittedOverlays.stream().distinct().toList();
     }
 
+    public List<MapGroup> getMapGroupsForUser(User userDetails) {
+        ArrayList<MapGroup> permittedGroups = new ArrayList<>(this.userPermissionsRepository.findByUserAndMapGroupNotNull(userDetails).stream().map(UserPermission::getMapGroup).toList());
+        for (SecurityGroup sg : userDetails.getSecurityGroups()) {
+            permittedGroups.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapGroupNotNull(sg).stream().map(SecurityGroupPermission::getMapGroup).toList());
+        }
+        return permittedGroups.stream().distinct().toList();
+    }
     public List<MapBaseLayer> getMapBaseLayersForUser(User userDetails) {
         ArrayList<MapBaseLayer> permittedOverlays = new ArrayList<>(this.userPermissionsRepository.findByUserAndBaseLayerNotNull(userDetails).stream().map(UserPermission::getBaseLayer).toList());
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
