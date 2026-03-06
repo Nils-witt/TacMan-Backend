@@ -42,15 +42,16 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        try {
-            User user = jwtUtil.getUserFromToken(token);
+        if (token != null) {
+            try {
+                User user = jwtUtil.getUserFromToken(token);
 
-            AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(auth);
-        } catch (Exception e) {
-            log.warn("JWT validation failed: {}", e.getMessage());
+                AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (Exception e) {
+                log.warn("JWT validation failed: {}", e.getMessage());
+            }
         }
-
         filterChain.doFilter(request, response);
     }
 }
