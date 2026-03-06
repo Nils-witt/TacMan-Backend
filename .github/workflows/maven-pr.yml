@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Maven Tests
+name: Maven Tests PR
 
 on:
   pull_request:
@@ -23,10 +23,6 @@ jobs:
   build:
     permissions:
       contents: read
-      packages: read
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
-      id-token: read
 
     runs-on: ubuntu-latest
 
