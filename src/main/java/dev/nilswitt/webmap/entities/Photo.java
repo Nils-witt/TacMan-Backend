@@ -1,10 +1,7 @@
 package dev.nilswitt.webmap.entities;
 
-import dev.nilswitt.webmap.api.dtos.AbstractEntityDto;
 import dev.nilswitt.webmap.api.dtos.PhotoDto;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +22,10 @@ public class Photo extends AbstractEntity {
     @Embedded
     private EmbeddedPosition position;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
     public Photo() {
     }
 
@@ -42,6 +43,9 @@ public class Photo extends AbstractEntity {
         dto.setPath(this.getPath());
         dto.setExpiresAt(this.getExpiresAt());
         dto.setPosition(this.getPosition() != null ? this.getPosition().toDto() : null);
+        dto.setCreatedAt(this.getCreatedAt());
+        dto.setUpdatedAt(this.getUpdatedAt());
+
         return dto;
     }
 

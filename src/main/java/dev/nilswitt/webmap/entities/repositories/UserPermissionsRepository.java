@@ -32,6 +32,8 @@ public interface UserPermissionsRepository extends JpaRepository<UserPermission,
 
     List<UserPermission> findByUserAndEntityUserNotNull(User user);
 
+    List<UserPermission> findByUserAndPhotoNotNull(User user);
+
     Optional<UserPermission> findByUserAndMapItem(User user, MapItem mapItem);
 
     Optional<UserPermission> findByUserAndMapGroup(User user, MapGroup mapGroup);
@@ -43,6 +45,8 @@ public interface UserPermissionsRepository extends JpaRepository<UserPermission,
     Optional<UserPermission> findByUserAndUnit(User user, Unit unit);
 
     Optional<UserPermission> findByUserAndEntityUser(User user, User entityUser);
+
+    Optional<UserPermission> findByUserAndPhoto(User user, Photo photo);
 
 
 }
