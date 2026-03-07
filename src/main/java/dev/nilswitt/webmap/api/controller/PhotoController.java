@@ -3,6 +3,7 @@ package dev.nilswitt.webmap.api.controller;
 import dev.nilswitt.webmap.api.dtos.PhotoDto;
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.api.exceptions.PhotoNotFoundException;
+import dev.nilswitt.webmap.api.exceptions.UnitNotFoundException;
 import dev.nilswitt.webmap.entities.*;
 import dev.nilswitt.webmap.entities.repositories.PhotoRepository;
 import dev.nilswitt.webmap.records.PictureConfig;
@@ -188,5 +189,20 @@ public class PhotoController {
 
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @DeleteMapping("{id}")
+    void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
+        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+
+        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
+            throw new ForbiddenException("User does not have permission to delete photos.");
+        }
+        try {
+            Files.deleteIfExists(Path.of(pictureConfig.localPath() + "/" + entity.getPath()));
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        this.photoRepository.deleteById(id);
     }
 }
