@@ -115,7 +115,7 @@ public final class PermissionUtil {
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapGroup mapGroup) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPITEM,
+        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPGROUP,
                 SecurityGroup.UserRoleScopeEnum.VIEW,
                 SecurityGroup.UserRoleScopeEnum.EDIT,
                 SecurityGroup.UserRoleScopeEnum.ADMIN)) {
@@ -158,6 +158,33 @@ public final class PermissionUtil {
             for (SecurityGroup sg : user.getSecurityGroups()) {
                 Optional<SecurityGroupPermission> sgPermission =
                         securityGroupPermissionsRepository.findBySecurityGroupAndBaseLayer(sg, mapBaseLayer);
+                if (sgPermission.isPresent()) {
+                    if (testScope(requiredScope, sgPermission.get().getScope())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, Photo photo) {
+        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.PHOTO,
+                SecurityGroup.UserRoleScopeEnum.VIEW,
+                SecurityGroup.UserRoleScopeEnum.EDIT,
+                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+            return true;
+        }
+
+        Optional<UserPermission> userPermission = userPermissionsRepository.findByUserAndPhoto(user, photo);
+        if (userPermission.isPresent()) {
+            if (testScope(requiredScope, userPermission.get().getScope())) {
+                return true;
+            }
+        } else {
+            for (SecurityGroup sg : user.getSecurityGroups()) {
+                Optional<SecurityGroupPermission> sgPermission =
+                        securityGroupPermissionsRepository.findBySecurityGroupAndPhoto(sg, photo);
                 if (sgPermission.isPresent()) {
                     if (testScope(requiredScope, sgPermission.get().getScope())) {
                         return true;
@@ -300,5 +327,12 @@ public final class PermissionUtil {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndEntityUserNotNull(sg).stream().map(SecurityGroupPermission::getEntityUser).toList());
         }
         return permittedOverlays.stream().distinct().toList();
+    }
+    public List<Photo> getPhotosForUser(User userDetails) {
+        ArrayList<Photo> permittedPhotos = new ArrayList<>(this.userPermissionsRepository.findByUserAndPhotoNotNull(userDetails).stream().map(UserPermission::getPhoto).toList());
+        for (SecurityGroup sg : userDetails.getSecurityGroups()) {
+            permittedPhotos.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndPhotoNotNull(sg).stream().map(SecurityGroupPermission::getPhoto).toList());
+        }
+        return permittedPhotos.stream().distinct().toList();
     }
 }

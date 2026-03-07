@@ -26,7 +26,7 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Configure Vaadin's security using VaadinSecurityConfigurer
-        http.securityMatcher("/ui/**","/login","/", "/VAADIN/**").with(VaadinSecurityConfigurer.vaadin(), configurer -> {
+        http.securityMatcher("/ui/**", "/login", "/", "/VAADIN/**").with(VaadinSecurityConfigurer.vaadin(), configurer -> {
             configurer.loginView(LoginView.class, "/");
             configurer.defaultSuccessUrl("/ui");
         });

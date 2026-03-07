@@ -1,15 +1,16 @@
 package dev.nilswitt.webmap.api.controller;
 
 import dev.nilswitt.webmap.api.dtos.PhotoDto;
+import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.api.exceptions.PhotoNotFoundException;
-import dev.nilswitt.webmap.entities.EmbeddedPosition;
-import dev.nilswitt.webmap.entities.Photo;
-import dev.nilswitt.webmap.entities.User;
+import dev.nilswitt.webmap.entities.*;
 import dev.nilswitt.webmap.entities.repositories.PhotoRepository;
 import dev.nilswitt.webmap.records.PictureConfig;
+import dev.nilswitt.webmap.security.PermissionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,29 +28,53 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Slf4j
 @RestController
 @RequestMapping("api/photos")
 public class PhotoController {
-    //private final UnitRepository repository;
     private final PhotoModelAssembler assembler;
     private final PhotoRepository photoRepository;
     private final PictureConfig pictureConfig;
+    private final PermissionUtil permissionUtil;
 
 
-    public PhotoController(PhotoModelAssembler assembler, PhotoRepository photoRepository, PictureConfig pictureConfig) {
+    public PhotoController(PhotoModelAssembler assembler, PhotoRepository photoRepository, PictureConfig pictureConfig, PermissionUtil permissionUtil) {
         this.assembler = assembler;
         this.photoRepository = photoRepository;
         this.pictureConfig = pictureConfig;
+        this.permissionUtil = permissionUtil;
+    }
+
+    @GetMapping("")
+    CollectionModel<EntityModel<PhotoDto>> all(@AuthenticationPrincipal User userDetails) {
+        if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
+            List<EntityModel<PhotoDto>> entities = this.photoRepository.findAll().stream()
+                    .map(Photo::toDto)
+                    .map(this.assembler::toModel)
+                    .collect(Collectors.toList());
+            return CollectionModel.of(entities, linkTo(methodOn(PhotoController.class).all(null)).withSelfRel());
+        }
+
+        return CollectionModel.of(this.permissionUtil.getPhotosForUser(userDetails).stream().map(Photo::toDto).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(PhotoController.class).all(null)).withSelfRel());
     }
 
     @PostMapping("")
     EntityModel<PhotoDto> newEntity(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal User userDetails) {
+        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
+            throw new ForbiddenException("User does not have permission to create photos.");
+        }
+
         Photo newPhoto = new Photo();
-        newPhoto.setExpiresAt(Instant.now().plusSeconds(600));
+        newPhoto.setExpiresAt(Instant.now().plusSeconds(600000));
+        newPhoto.setAuthor(userDetails);
         newPhoto = this.photoRepository.save(newPhoto);
         String fileExtension = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
         try {
@@ -118,8 +143,12 @@ public class PhotoController {
     }
 
     @GetMapping("{id}")
-    EntityModel<PhotoDto> getEntity(@PathVariable UUID id) {
+    EntityModel<PhotoDto> getEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
         Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
+            throw new ForbiddenException("User does not have permission to view photos.");
+        }
+
         if (entity.getExpiresAt().isBefore(Instant.now())) {
             photoRepository.delete(entity);
             try {
@@ -131,9 +160,13 @@ public class PhotoController {
         }
         return this.assembler.toModel(entity.toDto());
     }
-    @GetMapping("{id}/photo")
-    ResponseEntity<Resource> getEntityPhoto(@PathVariable UUID id) throws IOException {
+
+    @GetMapping("{id}/image")
+    ResponseEntity<Resource> getEntityPhoto(@PathVariable UUID id,@AuthenticationPrincipal User userDetails) {
         Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
+            throw new ForbiddenException("User does not have permission to view photos.");
+        }
         if (entity.getExpiresAt().isBefore(Instant.now())) {
             photoRepository.delete(entity);
             try {
@@ -144,11 +177,16 @@ public class PhotoController {
             throw new PhotoNotFoundException(id);
         }
 
-        Path path = Paths.get(pictureConfig.localPath() + "/" + entity.getPath());
-        // Load the resource
-        String mimeType = Files.probeContentType(path);
-        Resource resource = new UrlResource(path.toUri());
+        try {
+            Path path = Paths.get(pictureConfig.localPath() + "/" + entity.getPath());
+            String mimeType = Files.probeContentType(path);
+            Resource resource = new UrlResource(path.toUri());
 
-        return ResponseEntity.ok().header("Content-Type", mimeType).body(resource);
+            return ResponseEntity.ok().header("Content-Type", mimeType).body(resource);
+        } catch (Exception e) {
+            log.error("Error loading photo: {}", "Not Found in Filesystem");
+
+            return ResponseEntity.notFound().build();
+        }
     }
 }
