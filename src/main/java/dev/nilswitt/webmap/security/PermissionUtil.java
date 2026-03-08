@@ -3,11 +3,13 @@ package dev.nilswitt.webmap.security;
 import dev.nilswitt.webmap.entities.*;
 import dev.nilswitt.webmap.entities.repositories.SecurityGroupPermissionsRepository;
 import dev.nilswitt.webmap.entities.repositories.UserPermissionsRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Slf4j
 @Component
 public final class PermissionUtil {
 
@@ -300,11 +302,15 @@ public final class PermissionUtil {
     }
 
     public List<MapItem> getMapItemsForUser(User userDetails) {
-        ArrayList<MapItem> permittedOverlays = new ArrayList<>(this.userPermissionsRepository.findByUserAndMapItemNotNull(userDetails).stream().map(UserPermission::getMapItem).toList());
+        ArrayList<MapItem> permittedItems = new ArrayList<>(this.userPermissionsRepository.findByUserAndMapItemNotNull(userDetails).stream().map(UserPermission::getMapItem).toList());
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
-            permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapItemNotNull(sg).stream().map(SecurityGroupPermission::getMapItem).toList());
+            permittedItems.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapItemNotNull(sg).stream().map(SecurityGroupPermission::getMapItem).toList());
         }
-        return permittedOverlays.stream().distinct().toList();
+        List<MapGroup> permittedGroups = getMapGroupsForUser(userDetails);
+        for (MapGroup mg : permittedGroups) {
+            permittedItems.addAll(mg.getMapItems());
+        }
+        return permittedItems.stream().distinct().toList();
     }
 
     public List<MapGroup> getMapGroupsForUser(User userDetails) {

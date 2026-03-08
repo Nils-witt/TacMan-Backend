@@ -14,6 +14,8 @@ public interface UserPermissionsRepository extends JpaRepository<UserPermission,
 
     List<UserPermission> findByMapItem(MapItem mapItem);
 
+    List<UserPermission> findByMapGroup(MapGroup mapGroup);
+
     List<UserPermission> findByBaseLayer(MapBaseLayer mapBaseLayer);
 
     List<UserPermission> findByUnit(Unit unit);
