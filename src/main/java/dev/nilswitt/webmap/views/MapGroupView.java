@@ -17,9 +17,11 @@ import dev.nilswitt.webmap.base.ui.ViewToolbar;
 import dev.nilswitt.webmap.entities.MapGroup;
 import dev.nilswitt.webmap.entities.SecurityGroup;
 import dev.nilswitt.webmap.entities.User;
-import dev.nilswitt.webmap.entities.repositories.MapGroupRepository;
+import dev.nilswitt.webmap.entities.repositories.*;
 import dev.nilswitt.webmap.security.PermissionUtil;
 import dev.nilswitt.webmap.views.components.MapGroupEditDialog;
+import dev.nilswitt.webmap.views.components.MapGroupPermissionsDialog;
+import dev.nilswitt.webmap.views.components.MapItemPermissionsDialog;
 import dev.nilswitt.webmap.views.filters.MapGroupFilter;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,7 @@ public class MapGroupView extends VerticalLayout {
     private final Grid<MapGroup> mapGroupGrid;
     private final Button createBtn;
     private final MapGroupEditDialog editDialog;
+    private final MapGroupPermissionsDialog permissionsDialog;
 
 
     private final MapGroupRepository mapGroupRepository;
@@ -41,7 +44,10 @@ public class MapGroupView extends VerticalLayout {
     private final AuthenticationContext authenticationContext;
     private final PermissionUtil permissionUtil ;
 
-    public MapGroupView(MapGroupRepository repository, AuthenticationContext authenticationContext, PermissionUtil permissionUtil) {
+    public MapGroupView(MapGroupRepository repository, AuthenticationContext authenticationContext, PermissionUtil permissionUtil, SecurityGroupRepository securityGroupRepository,
+                        SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
+                        UserPermissionsRepository userPermissionsRepository,
+                        UserRepository userRepository) {
         this.permissionUtil = permissionUtil;
         this.mapGroupRepository = repository;
         this.authenticationContext = authenticationContext;
@@ -71,6 +77,7 @@ public class MapGroupView extends VerticalLayout {
         this.mapGroupGrid.setEmptyStateText("There are no map groups");
         this.mapGroupGrid.setSizeFull();
         this.mapGroupGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        this.permissionsDialog = new MapGroupPermissionsDialog(userPermissionsRepository, userRepository, securityGroupRepository, securityGroupPermissionsRepository);
 
         new MapGroupContextMenu(this.mapGroupGrid);
         this.mapGroupFilter = new MapGroupFilter((securityGroupExample -> {
@@ -99,6 +106,18 @@ public class MapGroupView extends VerticalLayout {
     private class MapGroupContextMenu extends GridContextMenu<MapGroup> {
         public MapGroupContextMenu(Grid<MapGroup> target) {
             super(target);
+
+
+            this.addItem("Permissions", event -> {
+                event.getItem().ifPresent(mapOverlay -> {
+                    User user = currentUser();
+                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPITEM)) {
+                        Notification.show("You cannot edit overlay permissions");
+                        return;
+                    }
+                    permissionsDialog.open(mapOverlay);
+                });
+            });
             this.addItem("Edit", event -> {
                 event.getItem().ifPresent(mapGroup -> {
                     User user = currentUser();

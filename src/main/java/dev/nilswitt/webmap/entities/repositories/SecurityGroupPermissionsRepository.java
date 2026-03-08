@@ -14,6 +14,8 @@ public interface SecurityGroupPermissionsRepository extends JpaRepository<Securi
 
     List<SecurityGroupPermission> findByMapItem(MapItem mapItem);
 
+    List<SecurityGroupPermission> findByMapGroup(MapGroup mapGroup);
+
     List<SecurityGroupPermission> findByBaseLayer(MapBaseLayer mapBaseLayer);
 
     List<SecurityGroupPermission> findByUnit(Unit unit);
