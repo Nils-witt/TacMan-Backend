@@ -24,12 +24,16 @@ public class MapBaseLayer extends AbstractEntity {
     @Column(nullable = false, unique = false, length = 100)
     private String url;
 
+    @Column
+    private String cacheUrl;
+
 
     public MapBaseLayerDto toDto() {
         MapBaseLayerDto dto = new MapBaseLayerDto();
         dto.setId(getId());
         dto.setName(getName());
         dto.setUrl(getUrl());
+        dto.setCacheUrl(getCacheUrl());
         return dto;
     }
 
@@ -37,6 +41,7 @@ public class MapBaseLayer extends AbstractEntity {
         MapBaseLayer layer = new MapBaseLayer();
         layer.setName(dto.getName());
         layer.setUrl(dto.getUrl());
+        layer.setCacheUrl(dto.getCacheUrl());
         return layer;
     }
 
