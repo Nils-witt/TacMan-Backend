@@ -17,17 +17,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.streams.DownloadHandler;
 import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.spring.security.AuthenticationContext;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import dev.nilswitt.webmap.base.ui.ViewToolbar;
 import dev.nilswitt.webmap.entities.SecurityGroup;
 import dev.nilswitt.webmap.entities.Unit;
 import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.*;
 import dev.nilswitt.webmap.security.PermissionUtil;
+import dev.nilswitt.webmap.views.components.UnitAssignmentDialog;
 import dev.nilswitt.webmap.views.components.UnitEditDialog;
 import dev.nilswitt.webmap.views.components.UnitIconEditDialog;
 import dev.nilswitt.webmap.views.components.UnitPermissionsDialog;
@@ -35,6 +31,10 @@ import dev.nilswitt.webmap.views.filters.UnitFilter;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.Pageable;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,6 +47,7 @@ public class UnitView extends VerticalLayout {
     private final UnitEditDialog editDialog;
     private final UnitIconEditDialog iconEditDialog;
     private final UnitPermissionsDialog permissionsDialog;
+    private final UnitAssignmentDialog unitAssignmentDialog;
 
     private final PermissionUtil permissionUtil;
 
@@ -57,7 +58,7 @@ public class UnitView extends VerticalLayout {
     public UnitView(UnitRepository unitRepository, AuthenticationContext authenticationContext, SecurityGroupRepository securityGroupRepository,
                     SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
                     UserPermissionsRepository userPermissionsRepository,
-                    UserRepository userRepository, PermissionUtil permissionUtil) {
+                    UserRepository userRepository, PermissionUtil permissionUtil, UserUnitAssignmentRepository userUnitAssignmentRepository) {
         this.permissionUtil = permissionUtil;
         this.unitRepository = unitRepository;
         this.authenticationContext = authenticationContext;
@@ -70,6 +71,7 @@ public class UnitView extends VerticalLayout {
             this.refresh();
         });
         this.permissionsDialog = new UnitPermissionsDialog(userPermissionsRepository, userRepository, securityGroupRepository, securityGroupPermissionsRepository);
+        this.unitAssignmentDialog = new UnitAssignmentDialog(userUnitAssignmentRepository, userRepository   );
         this.configureCreateButton();
         this.configureGrid();
         this.setSizeFull();
@@ -247,6 +249,15 @@ public class UnitView extends VerticalLayout {
                 }
                 UnitView.this.openDeleteDialog(unit);
             }));
+            this.addItem("Assign users", event -> event.getItem().ifPresent(unit -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.UNIT)) {
+                    Notification.show("You cannot edit units");
+                    return;
+                }
+                unitAssignmentDialog.open(unit);
+            }));
+
             this.setDynamicContentHandler(Objects::nonNull);
         }
     }

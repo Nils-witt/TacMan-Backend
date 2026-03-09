@@ -4,14 +4,14 @@ import dev.nilswitt.webmap.api.dtos.EmbeddedPositionDto;
 import dev.nilswitt.webmap.api.dtos.TacticalIconDto;
 import dev.nilswitt.webmap.api.dtos.UnitDto;
 import dev.nilswitt.webmap.entities.eventListeners.EntityEventListener;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @EntityListeners(EntityEventListener.class)

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1773075407259-1" author="nilswitt">
+        <createTable tableName="user_unit_assignment">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_userunitassignment"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1773075407259-2" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="unit_id" baseTableName="user_unit_assignment"
+                                 constraintName="FK_USERUNITASSIGNMENT_ON_UNIT" referencedColumnNames="id"
+                                 referencedTableName="unit"/>
+    </changeSet>
+    <changeSet id="1773075407259-3" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_unit_assignment"
+                                 constraintName="FK_USERUNITASSIGNMENT_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+</databaseChangeLog>
