@@ -83,6 +83,18 @@ public final class PermissionUtil {
         return false;
     }
 
+    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MissionGroup missionGroup) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MISSIONGROUP, requiredScope)) {
+            return true;
+        }
+        if (requiredScope == SecurityGroup.UserRoleScopeEnum.VIEW) {
+            if (user.getUnit() != null) {
+                return missionGroup.getUnits().stream().anyMatch(unit -> unit.getId().equals(user.getUnit().getId()));
+            }
+        }
+        return false;
+    }
+
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapItem mapItem) {
         if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MAPITEM, requiredScope)) {
             return true;
@@ -313,5 +325,13 @@ public final class PermissionUtil {
             permittedPhotos.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndPhotoNotNull(sg).stream().map(SecurityGroupPermission::getPhoto).toList());
         }
         return permittedPhotos.stream().distinct().toList();
+    }
+
+    public List<MissionGroup> getMissionGroupsForUser(User userDetails) {
+        ArrayList<MissionGroup> permittedMissionGroups = new ArrayList<>(this.userPermissionsRepository.findByUserAndMissionGroupNotNull(userDetails).stream().map(UserPermission::getMissionGroup).toList());
+        for (SecurityGroup sg : userDetails.getSecurityGroups()) {
+            permittedMissionGroups.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMissionGroupNotNull(sg).stream().map(SecurityGroupPermission::getMissionGroup).toList());
+        }
+        return permittedMissionGroups.stream().distinct().toList();
     }
 }

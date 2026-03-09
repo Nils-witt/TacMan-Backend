@@ -10,9 +10,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 @Entity
 @EntityListeners(EntityEventListener.class)
 @Getter
@@ -39,6 +36,9 @@ public class Unit extends AbstractEntity {
     @Column(nullable = false)
     private boolean showOnMap = false;
 
+    @ManyToOne
+    @JoinColumn(name = "mission_group_id")
+    private MissionGroup missionGroup;
 
     public EmbeddedPosition getPosition() {
         if (position == null) {

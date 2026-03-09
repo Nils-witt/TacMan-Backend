@@ -70,7 +70,8 @@ public class SecurityGroup extends AbstractEntity {
         UNIT,
         MAPITEM,
         GLOBAL,
-        PHOTO
+        PHOTO,
+        MISSIONGROUP
     }
 
     public static List<String> availableRoles() {

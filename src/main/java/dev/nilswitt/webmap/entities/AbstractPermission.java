@@ -58,6 +58,12 @@ public abstract class AbstractPermission extends AbstractEntity {
     @Setter
     private Photo photo;
 
+    @ManyToOne
+    @JoinColumn(name = "mission_group_id")
+    @Getter
+    @Setter
+    private MissionGroup missionGroup;
+
     public AbstractPermission() {
 
     }
