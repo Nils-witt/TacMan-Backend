@@ -30,7 +30,7 @@ public class MainView extends VerticalLayout {
         H2 title = new H2("Home");
         add(title);
         authContext.getAuthenticatedUser(User.class).ifPresent(user -> {
-            add(new H2("Welcome, " + user.getUsername() + "!"));
+            add(new H2("Welcome, " + user.getDisplayName() + "!"));
         });
     }
 }

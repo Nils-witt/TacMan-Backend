@@ -16,6 +16,7 @@ import dev.nilswitt.webmap.base.ui.ViewToolbar;
 import dev.nilswitt.webmap.entities.SecurityGroup;
 import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.SecurityGroupRepository;
+import dev.nilswitt.webmap.entities.repositories.UnitRepository;
 import dev.nilswitt.webmap.entities.repositories.UserRepository;
 import dev.nilswitt.webmap.security.PermissionUtil;
 import dev.nilswitt.webmap.views.components.PasswordChangeDialog;
@@ -38,11 +39,12 @@ public class UserView extends VerticalLayout {
     private final PasswordChangeDialog passwordChangeDialog;
     private final UserRepository userRepository;
     private final UserFilter userFilter;
+    private final UnitRepository unitRepository;
 
     private AuthenticationContext authenticationContext;
 
 
-    public UserView(UserRepository userRepository, SecurityGroupRepository securityGroupRepository, PasswordEncoder passwordEncoder, AuthenticationContext authenticationContext) {
+    public UserView(UserRepository userRepository, SecurityGroupRepository securityGroupRepository, PasswordEncoder passwordEncoder, AuthenticationContext authenticationContext, UnitRepository unitRepository) {
         this.userGrid = new Grid<>();
         this.userRepository = userRepository;
         this.authenticationContext = authenticationContext;
@@ -51,7 +53,7 @@ public class UserView extends VerticalLayout {
         this.editDialog = new UserEditDialog((user) -> {
             this.userRepository.save(user);
             this.userGrid.getDataProvider().refreshAll();
-        }, securityGroupRepository);
+        }, securityGroupRepository, unitRepository);
 
 
         this.createBtn = new Button("Create", event -> {
@@ -83,6 +85,7 @@ public class UserView extends VerticalLayout {
         this.add(editDialog);
 
         new PersonContextMenu(userGrid);
+        this.unitRepository = unitRepository;
     }
 
     private void setUpGrid() {

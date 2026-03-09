@@ -52,7 +52,7 @@ public class AuthController {
             User user = userOpt.get();
             if (passwordEncoder.matches(authRequest.password, user.getPassword())) {
                 String token = this.jwtHandler.generateToken(user);
-                return Map.of("token", token);
+                return Map.of("token", token, "userId", user.getId());
             }
         }
         return Map.of("error", "User not found");

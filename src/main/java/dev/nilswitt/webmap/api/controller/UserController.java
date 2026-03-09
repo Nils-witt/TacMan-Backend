@@ -55,8 +55,6 @@ public class UserController {
         }
         User newUser = User.of(newEntity);
 
-
-
         return this.assembler.toModel(this.repository.save(newUser).toDto());
     }
 

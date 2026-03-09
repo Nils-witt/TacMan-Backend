@@ -39,12 +39,14 @@ public class Unit extends AbstractEntity {
     @Column(nullable = false)
     private boolean showOnMap = false;
 
+
     public EmbeddedPosition getPosition() {
         if (position == null) {
             position = new EmbeddedPosition();
         }
         return position;
     }
+
     public UnitDto toDto() {
         UnitDto dto = new UnitDto();
         dto.setId(getId());

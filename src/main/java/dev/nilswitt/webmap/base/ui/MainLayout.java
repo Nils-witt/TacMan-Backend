@@ -83,7 +83,7 @@ public final class MainLayout extends AppLayout {
             MenuItem userName = userMenu.addItem("");
             Div div = new Div();
             div.add(avatar);
-            div.add(user.getLastName() + ", " + user.getFirstName());
+            div.add(user.getDisplayName());
             div.add(new Icon("lumo", "dropdown"));
 
             userName.add(div);

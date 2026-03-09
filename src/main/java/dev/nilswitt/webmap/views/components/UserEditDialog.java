@@ -4,6 +4,7 @@ import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -11,11 +12,15 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import dev.nilswitt.webmap.entities.SecurityGroup;
+import dev.nilswitt.webmap.entities.Unit;
 import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.SecurityGroupRepository;
+import dev.nilswitt.webmap.entities.repositories.UnitRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
 
+@Slf4j
 public class UserEditDialog extends Dialog {
 
     private User user = new User();
@@ -29,8 +34,9 @@ public class UserEditDialog extends Dialog {
     private final Checkbox enabledCheckbox = new Checkbox("Enabled");
     private final Checkbox lockedCheckbox = new Checkbox("Locked");
     private final MultiSelectComboBox<SecurityGroup> rolesField = new MultiSelectComboBox<>("Roles");
+    private final ComboBox<Unit> unitField = new ComboBox<>("Is Unit-User");
 
-    public UserEditDialog(Consumer<User> editCallback, SecurityGroupRepository securityGroupRepository) {
+    public UserEditDialog(Consumer<User> editCallback, SecurityGroupRepository securityGroupRepository, UnitRepository unitRepository) {
         this.editCallback = editCallback;
         this.setModality(ModalityMode.STRICT);
         this.setCloseOnOutsideClick(false);
@@ -52,8 +58,27 @@ public class UserEditDialog extends Dialog {
         this.binder.bind(enabledCheckbox, User::isEnabled, User::setEnabled);
         this.binder.bind(lockedCheckbox, (user) -> !user.isAccountNonLocked(), User::setLocked);
 
+        this.unitField.setItemLabelGenerator(Unit::getName);
+        this.unitField.setItems(unitRepository.findAll());
+        this.binder.bind(unitField, User::getUnit, User::setUnit);
+/*
+        this.unitField.addValueChangeListener(event -> {
+            Unit unit = event.getValue();
+            if (unit != null) {
+                if (unit.getUnitUser() != null && !unit.getUnitUser().equals(this.user)) {
+                    this.setError("This unit is already assigned to another user.");
+                } else {
+                    log.info("Assigning unit {} to user {}", unit, this.user);
+                    this.setError(null);
+                    firstNameField.setValue(unit.getName());
+                    lastNameField.setValue(unit.getName());
+                }
+            }
+        });
+*/
         FormLayout formLayout = new FormLayout();
         formLayout.setAutoResponsive(true);
+        formLayout.addFormRow(this.unitField);
         formLayout.addFormRow(this.firstNameField, this.lastNameField);
         formLayout.addFormRow(this.usernameField, this.emailField);
         formLayout.addFormRow(this.rolesField);
