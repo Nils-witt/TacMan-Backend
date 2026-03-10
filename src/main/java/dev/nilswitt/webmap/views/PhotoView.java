@@ -102,7 +102,6 @@ public class PhotoView extends VerticalLayout {
         InMemoryUploadHandler uploadHandler = UploadHandler.inMemory((metadata, data) -> {
             User user = currentUser();
             Photo newPhoto = new Photo();
-            newPhoto.setExpiresAt(Instant.now().plusSeconds(600000));
             newPhoto.setAuthor(user);
             newPhoto = photoRepository.save(newPhoto);
 
@@ -167,8 +166,6 @@ public class PhotoView extends VerticalLayout {
                         sb.append(",,,");
                     }
                     sb.append(",");
-                    sb.append(photo.getExpiresAt() != null
-                            ? DISPLAY_FORMAT.format(photo.getExpiresAt()) : "");
                     sb.append("\n");
                 });
                 outputStream.write(sb.toString().getBytes());
@@ -190,8 +187,6 @@ public class PhotoView extends VerticalLayout {
                 ? photo.getPosition().getLongitude() : "").setHeader("Longitude");
         photoGrid.addColumn(photo -> photo.getPosition() != null
                 ? photo.getPosition().getAltitude() : "").setHeader("Altitude");
-        photoGrid.addColumn(photo -> photo.getExpiresAt() != null
-                ? DISPLAY_FORMAT.format(photo.getExpiresAt()) : "").setHeader("Expires At");
 
         photoGrid.setEmptyStateText("There are no photos");
         photoGrid.setSizeFull();

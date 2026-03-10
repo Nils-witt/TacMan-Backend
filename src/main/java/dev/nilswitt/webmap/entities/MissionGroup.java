@@ -47,6 +47,9 @@ public class MissionGroup extends AbstractEntity {
     @OneToMany(mappedBy = "missionGroup", fetch =  FetchType.EAGER)
     private Set<Unit> units = new LinkedHashSet<>();
 
+    @OneToMany(mappedBy = "missionGroup")
+    private Set<Photo> photos = new LinkedHashSet<>();
+
     @Override
     public MissionGroupDto toDto() {
         MissionGroupDto dto = new MissionGroupDto();
@@ -58,13 +61,15 @@ public class MissionGroup extends AbstractEntity {
         dto.setEndTime(endTime);
         dto.setUnitIds(units.stream().map(Unit::getId).collect(Collectors.toSet()));
         dto.setMapGroupIds(mapGroups.stream().map(MapGroup::getId).collect(Collectors.toSet()));
-        EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
-        positionDto.setLatitude(getPosition().getLatitude());
-        positionDto.setLongitude(getPosition().getLongitude());
-        positionDto.setAltitude(getPosition().getAltitude());
-        positionDto.setAccuracy(getPosition().getAccuracy());
-        positionDto.setTimestamp(getPosition().getTimestamp());
-        dto.setPosition(positionDto);
+        if (this.getPosition() != null) {
+            EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
+            positionDto.setLatitude(getPosition().getLatitude());
+            positionDto.setLongitude(getPosition().getLongitude());
+            positionDto.setAltitude(getPosition().getAltitude());
+            positionDto.setAccuracy(getPosition().getAccuracy());
+            positionDto.setTimestamp(getPosition().getTimestamp());
+            dto.setPosition(positionDto);
+        }
         return dto;
     }
 

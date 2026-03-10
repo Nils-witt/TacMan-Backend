@@ -11,17 +11,19 @@ import java.util.UUID;
 public class PhotoDto extends AbstractEntityDto {
 
     private String name;
-    private String path;
-    private Instant expiresAt;
     private EmbeddedPositionDto position;
+    private UUID authorId;
+    private UUID missionGroupId;
 
     public PhotoDto() {
     }
 
-    public PhotoDto(UUID id, String name, String path) {
+    public PhotoDto(UUID id, String name,  EmbeddedPositionDto position, UUID authorId, UUID missionGroupId) {
         this.id = id;
         this.name = name;
-        this.path = path;
+        this.position = position;
+        this.authorId = authorId;
+        this.missionGroupId = missionGroupId;
     }
 
 }

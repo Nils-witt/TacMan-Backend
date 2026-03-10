@@ -1,6 +1,8 @@
 package dev.nilswitt.webmap.security;
 
 import dev.nilswitt.webmap.entities.*;
+import dev.nilswitt.webmap.entities.repositories.MapOverlayRepository;
+import dev.nilswitt.webmap.entities.repositories.PhotoRepository;
 import dev.nilswitt.webmap.entities.repositories.SecurityGroupPermissionsRepository;
 import dev.nilswitt.webmap.entities.repositories.UserPermissionsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +17,19 @@ public final class PermissionUtil {
 
     private final UserPermissionsRepository userPermissionsRepository;
     private final SecurityGroupPermissionsRepository securityGroupPermissionsRepository;
+    private final MapOverlayRepository mapOverlayRepository;
+    private final PhotoRepository photoRepository;
 
-    private PermissionUtil(UserPermissionsRepository userPermissionsRepository, SecurityGroupPermissionsRepository securityGroupPermissionsRepository) {
+    private PermissionUtil(
+            UserPermissionsRepository userPermissionsRepository,
+            SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
+            MapOverlayRepository mapOverlayRepository,
+            PhotoRepository photoRepository
+    ) {
         this.userPermissionsRepository = userPermissionsRepository;
         this.securityGroupPermissionsRepository = securityGroupPermissionsRepository;
+        this.mapOverlayRepository = mapOverlayRepository;
+        this.photoRepository = photoRepository;
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, SecurityGroup.UserRoleTypeEnum type) {
@@ -186,6 +197,9 @@ public final class PermissionUtil {
                 }
             }
         }
+        if (requiredScope == SecurityGroup.UserRoleScopeEnum.VIEW &&user.getUnit() != null && photo.getMissionGroup().getUnits().stream().anyMatch(unit -> unit.getId().equals(user.getUnit().getId()))){
+            return true;
+        }
         return false;
     }
 
@@ -275,6 +289,13 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapOverlayNotNull(sg).stream().map(SecurityGroupPermission::getMapOverlay).toList());
         }
+        if (userDetails.getUnit() != null) {
+            if (userDetails.getUnit().getMissionGroup() != null) {
+                userDetails.getUnit().getMissionGroup().getMapGroups().stream().forEach(group -> {
+                    permittedOverlays.addAll(mapOverlayRepository.findByMapGroup(group));
+                });
+            }
+        }
         return permittedOverlays.stream().distinct().toList();
     }
 
@@ -282,6 +303,9 @@ public final class PermissionUtil {
         ArrayList<Unit> permittedOverlays = new ArrayList<>(this.userPermissionsRepository.findByUserAndUnitNotNull(userDetails).stream().map(UserPermission::getUnit).toList());
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndUnitNotNull(sg).stream().map(SecurityGroupPermission::getUnit).toList());
+        }
+        if (userDetails.getUnit() != null) {
+            permittedOverlays.add(userDetails.getUnit());
         }
         return permittedOverlays.stream().distinct().toList();
     }
@@ -303,6 +327,11 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedGroups.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapGroupNotNull(sg).stream().map(SecurityGroupPermission::getMapGroup).toList());
         }
+        if (userDetails.getUnit() != null) {
+            if (userDetails.getUnit().getMissionGroup() != null) {
+                permittedGroups.addAll(userDetails.getUnit().getMissionGroup().getMapGroups());
+            }
+        }
         return permittedGroups.stream().distinct().toList();
     }
     public List<MapBaseLayer> getMapBaseLayersForUser(User userDetails) {
@@ -317,6 +346,7 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndEntityUserNotNull(sg).stream().map(SecurityGroupPermission::getEntityUser).toList());
         }
+        permittedOverlays.add(userDetails);
         return permittedOverlays.stream().distinct().toList();
     }
     public List<Photo> getPhotosForUser(User userDetails) {
@@ -324,6 +354,10 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedPhotos.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndPhotoNotNull(sg).stream().map(SecurityGroupPermission::getPhoto).toList());
         }
+
+        getMissionGroupsForUser(userDetails).forEach(group -> {
+            permittedPhotos.addAll(photoRepository.findByMissionGroup(group));
+        });
         return permittedPhotos.stream().distinct().toList();
     }
 
@@ -331,6 +365,11 @@ public final class PermissionUtil {
         ArrayList<MissionGroup> permittedMissionGroups = new ArrayList<>(this.userPermissionsRepository.findByUserAndMissionGroupNotNull(userDetails).stream().map(UserPermission::getMissionGroup).toList());
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedMissionGroups.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMissionGroupNotNull(sg).stream().map(SecurityGroupPermission::getMissionGroup).toList());
+        }
+        if (userDetails.getUnit() != null) {
+            if (userDetails.getUnit().getMissionGroup() != null) {
+                permittedMissionGroups.add(userDetails.getUnit().getMissionGroup());
+            }
         }
         return permittedMissionGroups.stream().distinct().toList();
     }
