@@ -76,6 +76,7 @@ public class MissionGroupEditDialog extends Dialog {
         this.mapGroupsComboBox.setItemLabelGenerator(MapGroup::getName);
         this.mapGroupsComboBox.setItems(mapGroupRepository.findAll());
 
+        binder.bind(mapGroupsComboBox, MissionGroup::getMapGroups, MissionGroup::setMapGroups);
         this.nameField.setRequired(true);
         this.startDatePicker.setRequiredIndicatorVisible(true);
 
@@ -92,7 +93,6 @@ public class MissionGroupEditDialog extends Dialog {
                 this.missionGroup = new MissionGroup();
             }
             if (this.binder.writeBeanIfValid(missionGroup)) {
-                log.info("Saving mission group {}", missionGroup);
                 if (this.editCallback != null) {
                     this.editCallback.accept(missionGroup);
                 }
