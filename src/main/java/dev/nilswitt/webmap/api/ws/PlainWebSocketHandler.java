@@ -2,6 +2,7 @@ package dev.nilswitt.webmap.api.ws;
 
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.entities.SecurityGroup;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     private final ArrayList<String> availableEntityTopics = new ArrayList<>(Arrays.stream(SecurityGroup.UserRoleTypeEnum.values()).map(r -> r.name().toLowerCase()).toList());
 
     @Override
-    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    public void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         if (payload.startsWith("SUBSCRIBE ")) {
             String topic = payload.substring(10).trim().toLowerCase();
@@ -62,7 +63,7 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(@NonNull WebSocketSession session) throws Exception {
         sessionRegistry.add(session);
         log.info("WebSocket connection established: {} {}", session.getPrincipal(), session.getId());
         if (session.getAttributes().containsKey("user")) {
@@ -71,7 +72,7 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         sessionRegistry.remove(session);
     }
 }

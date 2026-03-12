@@ -3,8 +3,8 @@ package dev.nilswitt.webmap.api.controller;
 import dev.nilswitt.webmap.api.dtos.PhotoDto;
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.api.exceptions.PhotoNotFoundException;
-import dev.nilswitt.webmap.api.exceptions.UnitNotFoundException;
 import dev.nilswitt.webmap.entities.*;
+import dev.nilswitt.webmap.entities.repositories.MissionGroupRepository;
 import dev.nilswitt.webmap.entities.repositories.PhotoRepository;
 import dev.nilswitt.webmap.records.PictureConfig;
 import dev.nilswitt.webmap.security.PermissionUtil;
@@ -22,13 +22,11 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -45,13 +43,15 @@ public class PhotoController {
     private final PhotoRepository photoRepository;
     private final PictureConfig pictureConfig;
     private final PermissionUtil permissionUtil;
+    private final MissionGroupRepository missionGroupRepository;
 
 
-    public PhotoController(PhotoModelAssembler assembler, PhotoRepository photoRepository, PictureConfig pictureConfig, PermissionUtil permissionUtil) {
+    public PhotoController(PhotoModelAssembler assembler, PhotoRepository photoRepository, PictureConfig pictureConfig, PermissionUtil permissionUtil, MissionGroupRepository missionGroupRepository) {
         this.assembler = assembler;
         this.photoRepository = photoRepository;
         this.pictureConfig = pictureConfig;
         this.permissionUtil = permissionUtil;
+        this.missionGroupRepository = missionGroupRepository;
     }
 
     @GetMapping("")
@@ -68,14 +68,37 @@ public class PhotoController {
     }
 
     @PostMapping("")
-    EntityModel<PhotoDto> newEntity(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal User userDetails) {
-        if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
-            throw new ForbiddenException("User does not have permission to create photos.");
+    EntityModel<PhotoDto> newEntity(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude,
+            @RequestParam("missionGroupId") UUID missionGroupId,
+            @AuthenticationPrincipal User userDetails) {
+
+        MissionGroup missionGroup = this.missionGroupRepository.findById(missionGroupId).orElseThrow(() ->new PhotoNotFoundException(missionGroupId));
+
+        if (userDetails.getUnit() != null){
+            if (!userDetails.getUnit().getMissionGroup().getId().equals(missionGroup.getId())) {
+                if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
+                    throw new ForbiddenException("User does not have permission to create photos.");
+                }
+            }
+        }else {
+            if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
+                throw new ForbiddenException("User does not have permission to create photos.");
+            }
         }
 
+        EmbeddedPosition position = new EmbeddedPosition();
+        position.setLatitude(latitude);
+        position.setLongitude(longitude);
+        position.setAccuracy(0.0);
+        position.setTimestamp(Instant.now());
+
         Photo newPhoto = new Photo();
-        newPhoto.setExpiresAt(Instant.now().plusSeconds(600000));
         newPhoto.setAuthor(userDetails);
+        newPhoto.setMissionGroup(missionGroupRepository.findById(missionGroupId).orElse(null));
+        newPhoto.setPosition(position);
         newPhoto = this.photoRepository.save(newPhoto);
         String fileExtension = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
         try {
@@ -101,12 +124,6 @@ public class PhotoController {
     @PatchMapping("{id}")
     EntityModel<PhotoDto> updateEntity(@PathVariable UUID id, @RequestBody String rawBody, @AuthenticationPrincipal User userDetails) throws IOException {
         Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
-
-        if (entity.getExpiresAt().isBefore(Instant.now())) {
-            photoRepository.delete(entity);
-            Files.deleteIfExists(Path.of(pictureConfig.localPath() + "/" + entity.getPath()));
-            throw new PhotoNotFoundException(id);
-        }
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode data = mapper.readTree(rawBody);
@@ -137,9 +154,6 @@ public class PhotoController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        if (entity.getPosition() != null && entity.getPosition().getTimestamp() != null && entity.getPosition().getLongitude() != null && entity.getPosition().getLatitude() != null) {
-            entity.setExpiresAt(Instant.now().plus(1, ChronoUnit.DAYS));
-        }
         return this.assembler.toModel(photoRepository.save(entity).toDto());
     }
 
@@ -150,15 +164,6 @@ public class PhotoController {
             throw new ForbiddenException("User does not have permission to view photos.");
         }
 
-        if (entity.getExpiresAt().isBefore(Instant.now())) {
-            photoRepository.delete(entity);
-            try {
-                Files.deleteIfExists(Path.of(pictureConfig.localPath() + "/" + entity.getPath()));
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-            throw new PhotoNotFoundException(id);
-        }
         return this.assembler.toModel(entity.toDto());
     }
 
@@ -167,15 +172,6 @@ public class PhotoController {
         Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view photos.");
-        }
-        if (entity.getExpiresAt().isBefore(Instant.now())) {
-            photoRepository.delete(entity);
-            try {
-                Files.deleteIfExists(Path.of(pictureConfig.localPath() + "/" + entity.getPath()));
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-            throw new PhotoNotFoundException(id);
         }
 
         try {

@@ -10,4 +10,6 @@ public class MapBaseLayerDto extends AbstractEntityDto {
     private String name;
 
     private String url;
+
+    private String cacheUrl;
 }

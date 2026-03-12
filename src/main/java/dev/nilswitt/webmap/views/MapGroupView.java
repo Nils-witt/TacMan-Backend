@@ -80,9 +80,7 @@ public class MapGroupView extends VerticalLayout {
         this.permissionsDialog = new MapGroupPermissionsDialog(userPermissionsRepository, userRepository, securityGroupRepository, securityGroupPermissionsRepository);
 
         new MapGroupContextMenu(this.mapGroupGrid);
-        this.mapGroupFilter = new MapGroupFilter((securityGroupExample -> {
-            this.mapGroupGrid.getDataProvider().refreshAll();
-        }));
+        this.mapGroupFilter = new MapGroupFilter((securityGroupExample -> this.mapGroupGrid.getDataProvider().refreshAll()));
         this.mapGroupFilter.setUp(this.mapGroupGrid);
 
         this.setSizeFull();
@@ -108,48 +106,42 @@ public class MapGroupView extends VerticalLayout {
             super(target);
 
 
-            this.addItem("Permissions", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPITEM)) {
-                        Notification.show("You cannot edit overlay permissions");
-                        return;
-                    }
-                    permissionsDialog.open(mapOverlay);
+            this.addItem("Permissions", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPITEM)) {
+                    Notification.show("You cannot edit overlay permissions");
+                    return;
+                }
+                permissionsDialog.open(mapOverlay);
+            }));
+            this.addItem("Edit", event -> event.getItem().ifPresent(mapGroup -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
+                    Notification.show("You cannot edit map groups");
+                    return;
+                }
+                editDialog.open(mapGroup);
+            }));
+            this.addItem("Delete", event -> event.getItem().ifPresent(mapGroup -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
+                    Notification.show("You cannot delete map groups");
+                    return;
+                }
+                ConfirmDialog confirmDialog = new ConfirmDialog();
+                confirmDialog.setHeader("Delete Map Group");
+                confirmDialog.setText("Are you sure you want to delete map groups '" + mapGroup.getName() + "'?");
+                confirmDialog.setCancelable(true);
+                confirmDialog.setConfirmText("Delete");
+                confirmDialog.addConfirmListener(e -> {
+                    mapGroupRepository.delete(mapGroup);
+                    mapGroupGrid.getDataProvider().refreshAll();
+                    confirmDialog.close();
+                    this.remove(confirmDialog);
                 });
-            });
-            this.addItem("Edit", event -> {
-                event.getItem().ifPresent(mapGroup -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
-                        Notification.show("You cannot edit map groups");
-                        return;
-                    }
-                    editDialog.open(mapGroup);
-                });
-            });
-            this.addItem("Delete", event -> {
-                event.getItem().ifPresent(mapGroup -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
-                        Notification.show("You cannot delete map groups");
-                        return;
-                    }
-                    ConfirmDialog confirmDialog = new ConfirmDialog();
-                    confirmDialog.setHeader("Delete Map Group");
-                    confirmDialog.setText("Are you sure you want to delete map groups '" + mapGroup.getName() + "'?");
-                    confirmDialog.setCancelable(true);
-                    confirmDialog.setConfirmText("Delete");
-                    confirmDialog.addConfirmListener(e -> {
-                        mapGroupRepository.delete(mapGroup);
-                        mapGroupGrid.getDataProvider().refreshAll();
-                        confirmDialog.close();
-                        this.remove(confirmDialog);
-                    });
-                    add(confirmDialog);
-                    confirmDialog.open();
-                });
-            });
+                add(confirmDialog);
+                confirmDialog.open();
+            }));
             this.setDynamicContentHandler(Objects::nonNull);
         }
     }

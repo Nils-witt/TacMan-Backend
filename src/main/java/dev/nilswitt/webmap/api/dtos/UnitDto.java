@@ -1,6 +1,5 @@
 package dev.nilswitt.webmap.api.dtos;
 
-import dev.nilswitt.webmap.entities.TacticalIcon;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

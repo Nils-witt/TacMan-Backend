@@ -37,7 +37,7 @@ public abstract class AbstractPermissionsDialog extends Dialog {
         HorizontalLayout layout = new HorizontalLayout();
         add(layout);
         userPermissionGrid = new Grid<>();
-        userPermissionGrid.addColumn(up -> up.getUser().getUsername()).setHeader("User");
+        userPermissionGrid.addColumn(up -> up.getUser().getDisplayName()).setHeader("User");
         userPermissionGrid.addColumn(up -> up.getScope().name()).setHeader("Role Scope");
         userPermissionGrid.addComponentColumn(up -> {
             Button deleteButton = new Button("Delete");
@@ -94,7 +94,7 @@ public abstract class AbstractPermissionsDialog extends Dialog {
             this.setWidth("40%");
             userComboBox = new ComboBox<>("User");
             userComboBox.setItems(userRepository.findAll());
-            userComboBox.setItemLabelGenerator(User::getUsername);
+            userComboBox.setItemLabelGenerator(User::getDisplayName);
             scopeComboBox = new ComboBox<>("Role Scope");
             scopeComboBox.setItems(SecurityGroup.UserRoleScopeEnum.values());
             scopeComboBox.setValue(SecurityGroup.UserRoleScopeEnum.VIEW);

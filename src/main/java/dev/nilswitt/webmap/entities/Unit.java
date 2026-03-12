@@ -4,10 +4,7 @@ import dev.nilswitt.webmap.api.dtos.EmbeddedPositionDto;
 import dev.nilswitt.webmap.api.dtos.TacticalIconDto;
 import dev.nilswitt.webmap.api.dtos.UnitDto;
 import dev.nilswitt.webmap.entities.eventListeners.EntityEventListener;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -39,12 +36,17 @@ public class Unit extends AbstractEntity {
     @Column(nullable = false)
     private boolean showOnMap = false;
 
+    @ManyToOne
+    @JoinColumn(name = "mission_group_id")
+    private MissionGroup missionGroup;
+
     public EmbeddedPosition getPosition() {
         if (position == null) {
             position = new EmbeddedPosition();
         }
         return position;
     }
+
     public UnitDto toDto() {
         UnitDto dto = new UnitDto();
         dto.setId(getId());

@@ -3,6 +3,8 @@ package dev.nilswitt.webmap.api.dtos;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.UUID;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class UserDto extends AbstractEntityDto {
@@ -10,5 +12,7 @@ public class UserDto extends AbstractEntityDto {
     private String email;
     private String firstName;
     private String lastName;
+
+    private UUID unitId;
 
 }

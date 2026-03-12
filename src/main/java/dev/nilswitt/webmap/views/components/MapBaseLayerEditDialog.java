@@ -19,6 +19,7 @@ public class MapBaseLayerEditDialog extends Dialog {
 
     private final TextField nameField = new TextField("Name");
     private final TextField urlField = new TextField("Url");
+    private final TextField cacheUrlField = new TextField("Cache Url");
 
 
     public MapBaseLayerEditDialog(Consumer<MapBaseLayer> editCallback) {
@@ -29,6 +30,7 @@ public class MapBaseLayerEditDialog extends Dialog {
 
         this.binder.bind(nameField, MapBaseLayer::getName, MapBaseLayer::setName);
         this.binder.bind(urlField, MapBaseLayer::getUrl, MapBaseLayer::setUrl);
+        this.binder.bind(cacheUrlField, MapBaseLayer::getCacheUrl, MapBaseLayer::setCacheUrl);
 
         this.nameField.setRequired(true);
 
@@ -36,6 +38,7 @@ public class MapBaseLayerEditDialog extends Dialog {
         formLayout.setAutoResponsive(true);
         formLayout.addFormRow(this.nameField);
         formLayout.addFormRow(this.urlField);
+        formLayout.addFormRow(this.cacheUrlField);
 
 
         Button saveButton = new Button("Save", event -> {
@@ -54,9 +57,7 @@ public class MapBaseLayerEditDialog extends Dialog {
         });
         saveButton.setThemeVariant(ButtonVariant.LUMO_PRIMARY, true);
 
-        Button cancelButton = new Button("Cancel", event -> {
-            close();
-        });
+        Button cancelButton = new Button("Cancel", event -> close());
         cancelButton.setThemeVariant(ButtonVariant.LUMO_WARNING, true);
         this.add(formLayout);
         this.getFooter().add(saveButton);

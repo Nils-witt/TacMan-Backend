@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1773096154098-1" author="nilswitt">
+        <createTable tableName="mission_group">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_missiongroup"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="DATETIME"/>
+            <column name="embeddedposition_latitude" type="DOUBLE"/>
+            <column name="embeddedposition_longitude" type="DOUBLE"/>
+            <column name="embeddedposition_altimeter" type="DOUBLE"/>
+            <column name="embeddedposition_accuracy" type="DOUBLE"/>
+            <column name="embeddedposition_timestamp" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1773096154098-2" author="nilswitt">
+        <createTable tableName="mission_group_map_group">
+            <column name="map_group_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mission_group_map_group"/>
+            </column>
+            <column name="mission_group_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mission_group_map_group"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1773096154098-3" author="nilswitt">
+        <addColumn tableName="security_group_permission">
+            <column name="mission_group_id" type="UUID"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1773096154098-4" author="nilswitt">
+        <addColumn tableName="unit">
+            <column name="mission_group_id" type="UUID"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1773096154098-5" author="nilswitt">
+        <addColumn tableName="user_permission">
+            <column name="mission_group_id" type="UUID"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1773096154098-6" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="mission_group_id" baseTableName="security_group_permission"
+                                 constraintName="FK_SECURITYGROUPPERMISSION_ON_MISSION_GROUP" referencedColumnNames="id"
+                                 referencedTableName="mission_group"/>
+    </changeSet>
+    <changeSet id="1773096154098-7" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="mission_group_id" baseTableName="unit"
+                                 constraintName="FK_UNIT_ON_MISSION_GROUP" referencedColumnNames="id"
+                                 referencedTableName="mission_group"/>
+    </changeSet>
+    <changeSet id="1773096154098-8" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="mission_group_id" baseTableName="user_permission"
+                                 constraintName="FK_USERPERMISSION_ON_MISSION_GROUP" referencedColumnNames="id"
+                                 referencedTableName="mission_group"/>
+    </changeSet>
+    <changeSet id="1773096154098-9" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="map_group_id" baseTableName="mission_group_map_group"
+                                 constraintName="fk_misgromapgro_on_map_group" referencedColumnNames="id"
+                                 referencedTableName="map_group"/>
+    </changeSet>
+    <changeSet id="1773096154098-10" author="nilswitt">
+        <addForeignKeyConstraint baseColumnNames="mission_group_id" baseTableName="mission_group_map_group"
+                                 constraintName="fk_misgromapgro_on_mission_group" referencedColumnNames="id"
+                                 referencedTableName="mission_group"/>
+    </changeSet>
+
+</databaseChangeLog>
