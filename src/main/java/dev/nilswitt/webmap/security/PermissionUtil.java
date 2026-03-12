@@ -291,9 +291,7 @@ public final class PermissionUtil {
         }
         if (userDetails.getUnit() != null) {
             if (userDetails.getUnit().getMissionGroup() != null) {
-                userDetails.getUnit().getMissionGroup().getMapGroups().stream().forEach(group -> {
-                    permittedOverlays.addAll(mapOverlayRepository.findByMapGroup(group));
-                });
+                userDetails.getUnit().getMissionGroup().getMapGroups().stream().forEach(group -> permittedOverlays.addAll(mapOverlayRepository.findByMapGroup(group)));
             }
         }
         return permittedOverlays.stream().distinct().toList();
@@ -355,9 +353,7 @@ public final class PermissionUtil {
             permittedPhotos.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndPhotoNotNull(sg).stream().map(SecurityGroupPermission::getPhoto).toList());
         }
 
-        getMissionGroupsForUser(userDetails).forEach(group -> {
-            permittedPhotos.addAll(photoRepository.findByMissionGroup(group));
-        });
+        getMissionGroupsForUser(userDetails).forEach(group -> permittedPhotos.addAll(photoRepository.findByMissionGroup(group)));
         return permittedPhotos.stream().distinct().toList();
     }
 

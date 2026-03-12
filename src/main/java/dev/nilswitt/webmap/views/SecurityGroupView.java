@@ -72,9 +72,7 @@ public class SecurityGroupView extends VerticalLayout {
         this.securityGroupGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         new SecurityGroupContextMenu(this.securityGroupGrid);
-        this.securityGroupFilter = new SecurityGroupFilter((securityGroupExample -> {
-            this.securityGroupGrid.getDataProvider().refreshAll();
-        }));
+        this.securityGroupFilter = new SecurityGroupFilter((securityGroupExample -> this.securityGroupGrid.getDataProvider().refreshAll()));
         this.securityGroupFilter.setUp(this.securityGroupGrid);
 
         this.setSizeFull();
@@ -98,38 +96,34 @@ public class SecurityGroupView extends VerticalLayout {
     private class SecurityGroupContextMenu extends GridContextMenu<SecurityGroup> {
         public SecurityGroupContextMenu(Grid<SecurityGroup> target) {
             super(target);
-            this.addItem("Edit", event -> {
-                event.getItem().ifPresent(securityGroup -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
-                        Notification.show("You cannot edit roles");
-                        return;
-                    }
-                    editDialog.open(securityGroup);
+            this.addItem("Edit", event -> event.getItem().ifPresent(securityGroup -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
+                    Notification.show("You cannot edit roles");
+                    return;
+                }
+                editDialog.open(securityGroup);
+            }));
+            this.addItem("Delete", event -> event.getItem().ifPresent(userRole -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
+                    Notification.show("You cannot delete roles");
+                    return;
+                }
+                ConfirmDialog confirmDialog = new ConfirmDialog();
+                confirmDialog.setHeader("Delete Group");
+                confirmDialog.setText("Are you sure you want to delete role '" + userRole.getName() + "'?");
+                confirmDialog.setCancelable(true);
+                confirmDialog.setConfirmText("Delete");
+                confirmDialog.addConfirmListener(e -> {
+                    securityGroupRepository.delete(userRole);
+                    securityGroupGrid.getDataProvider().refreshAll();
+                    confirmDialog.close();
+                    this.remove(confirmDialog);
                 });
-            });
-            this.addItem("Delete", event -> {
-                event.getItem().ifPresent(userRole -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.SECURITYGROUP)) {
-                        Notification.show("You cannot delete roles");
-                        return;
-                    }
-                    ConfirmDialog confirmDialog = new ConfirmDialog();
-                    confirmDialog.setHeader("Delete Group");
-                    confirmDialog.setText("Are you sure you want to delete role '" + userRole.getName() + "'?");
-                    confirmDialog.setCancelable(true);
-                    confirmDialog.setConfirmText("Delete");
-                    confirmDialog.addConfirmListener(e -> {
-                        securityGroupRepository.delete(userRole);
-                        securityGroupGrid.getDataProvider().refreshAll();
-                        confirmDialog.close();
-                        this.remove(confirmDialog);
-                    });
-                    add(confirmDialog);
-                    confirmDialog.open();
-                });
-            });
+                add(confirmDialog);
+                confirmDialog.open();
+            }));
             this.setDynamicContentHandler(Objects::nonNull);
         }
     }

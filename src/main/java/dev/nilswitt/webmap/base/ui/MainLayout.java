@@ -87,9 +87,7 @@ public final class MainLayout extends AppLayout {
             div.add(new Icon("lumo", "dropdown"));
 
             userName.add(div);
-            userName.getSubMenu().addItem("Sign out", e -> {
-                this.authContext.logout();
-            });
+            userName.getSubMenu().addItem("Sign out", e -> this.authContext.logout());
 
             layout.add(userMenu);
         } else {

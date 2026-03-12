@@ -215,16 +215,14 @@ public class UnitView extends VerticalLayout {
     private class UnitContextMenu extends GridContextMenu<Unit> {
         public UnitContextMenu(Grid<Unit> target) {
             super(target);
-            this.addItem("Permissions", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.UNIT)) {
-                        Notification.show("You cannot edit overlay permissions");
-                        return;
-                    }
-                    permissionsDialog.open(mapOverlay);
-                });
-            });
+            this.addItem("Permissions", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.UNIT)) {
+                    Notification.show("You cannot edit overlay permissions");
+                    return;
+                }
+                permissionsDialog.open(mapOverlay);
+            }));
             this.addItem("Edit", event -> event.getItem().ifPresent(unit -> {
                 User user = currentUser();
                 if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.UNIT)) {

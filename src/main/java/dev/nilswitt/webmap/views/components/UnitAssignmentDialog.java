@@ -89,7 +89,7 @@ public class UnitAssignmentDialog extends Dialog {
 
         private UserUnitAssignment assignment;
 
-        private Consumer<UserUnitAssignment> saveCallback;
+        private final Consumer<UserUnitAssignment> saveCallback;
 
         private final ComboBox<User> userComboBox = new ComboBox<>("User");
         private final Binder<UserUnitAssignment> binder = new Binder<>(UserUnitAssignment.class);

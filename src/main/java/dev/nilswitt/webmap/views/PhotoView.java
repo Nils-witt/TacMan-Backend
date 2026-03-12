@@ -260,7 +260,7 @@ public class PhotoView extends VerticalLayout {
     private class PhotoContextMenu extends GridContextMenu<Photo> {
         public PhotoContextMenu(Grid<Photo> target) {
             super(target);
-            addItem("Preview", event -> event.getItem().ifPresent(photo -> openPreviewDialog(photo)));
+            addItem("Preview", event -> event.getItem().ifPresent(PhotoView.this::openPreviewDialog));
             addItem("Delete", event -> event.getItem().ifPresent(photo -> {
                 User user = currentUser();
                 if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {

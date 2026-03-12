@@ -41,7 +41,7 @@ public class UserView extends VerticalLayout {
     private final UserFilter userFilter;
     private final UnitRepository unitRepository;
 
-    private AuthenticationContext authenticationContext;
+    private final AuthenticationContext authenticationContext;
 
 
     public UserView(UserRepository userRepository, SecurityGroupRepository securityGroupRepository, PasswordEncoder passwordEncoder, AuthenticationContext authenticationContext, UnitRepository unitRepository) {
@@ -69,9 +69,7 @@ public class UserView extends VerticalLayout {
 
         this.setUpGrid();
 
-        this.userFilter = new UserFilter((userExample -> {
-            this.userGrid.getDataProvider().refreshAll();
-        }));
+        this.userFilter = new UserFilter((userExample -> this.userGrid.getDataProvider().refreshAll()));
         this.userFilter.setUp(userGrid);
 
         this.setSizeFull();
@@ -117,40 +115,36 @@ public class UserView extends VerticalLayout {
         public PersonContextMenu(Grid<User> target) {
 
             super(target);
-            this.addItem("Edit", event -> {
-                event.getItem().ifPresent(user -> {
-                    User actingUser = currentUser();
-                    if (!PermissionUtil.hasAnyScope(actingUser, SecurityGroup.UserRoleTypeEnum.USER,
-                            SecurityGroup.UserRoleScopeEnum.EDIT)) {
-                        Notification.show("You cannot edit users");
-                        return;
-                    }
-                    editDialog.open(user);
+            this.addItem("Edit", event -> event.getItem().ifPresent(user -> {
+                User actingUser = currentUser();
+                if (!PermissionUtil.hasAnyScope(actingUser, SecurityGroup.UserRoleTypeEnum.USER,
+                        SecurityGroup.UserRoleScopeEnum.EDIT)) {
+                    Notification.show("You cannot edit users");
+                    return;
+                }
+                editDialog.open(user);
+            }));
+            this.addItem("Delete", event -> event.getItem().ifPresent(user -> {
+                User actingUser = currentUser();
+                if (!PermissionUtil.hasAnyScope(actingUser, SecurityGroup.UserRoleTypeEnum.USER,
+                        SecurityGroup.UserRoleScopeEnum.DELETE)) {
+                    Notification.show("You cannot delete users");
+                    return;
+                }
+                ConfirmDialog confirmDialog = new ConfirmDialog();
+                confirmDialog.setHeader("Delete User");
+                confirmDialog.setText("Are you sure you want to delete user '" + user.getUsername() + "'?");
+                confirmDialog.setCancelable(true);
+                confirmDialog.setConfirmText("Delete");
+                confirmDialog.addConfirmListener(e -> {
+                    userRepository.delete(user);
+                    userGrid.getDataProvider().refreshAll();
+                    confirmDialog.close();
+                    this.remove(confirmDialog);
                 });
-            });
-            this.addItem("Delete", event -> {
-                event.getItem().ifPresent(user -> {
-                    User actingUser = currentUser();
-                    if (!PermissionUtil.hasAnyScope(actingUser, SecurityGroup.UserRoleTypeEnum.USER,
-                            SecurityGroup.UserRoleScopeEnum.DELETE)) {
-                        Notification.show("You cannot delete users");
-                        return;
-                    }
-                    ConfirmDialog confirmDialog = new ConfirmDialog();
-                    confirmDialog.setHeader("Delete User");
-                    confirmDialog.setText("Are you sure you want to delete user '" + user.getUsername() + "'?");
-                    confirmDialog.setCancelable(true);
-                    confirmDialog.setConfirmText("Delete");
-                    confirmDialog.addConfirmListener(e -> {
-                        userRepository.delete(user);
-                        userGrid.getDataProvider().refreshAll();
-                        confirmDialog.close();
-                        this.remove(confirmDialog);
-                    });
-                    add(confirmDialog);
-                    confirmDialog.open();
-                });
-            });
+                add(confirmDialog);
+                confirmDialog.open();
+            }));
 
             this.addItem("Change Password", event -> event.getItem().ifPresent(user -> {
                 User actingUser = currentUser();

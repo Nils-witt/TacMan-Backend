@@ -2,6 +2,7 @@ package dev.nilswitt.webmap.security;
 
 import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.UserRepository;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +23,7 @@ public class LocalUserDetailsManager implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
 
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {

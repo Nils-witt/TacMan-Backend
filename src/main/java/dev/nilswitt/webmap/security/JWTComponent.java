@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
@@ -24,13 +25,12 @@ public class JWTComponent {
     private final long EXPIRATION_MS;
 
     private final UserRepository userRepository;
-    private final String SECRET_KEY;
+    private final SecretKey secretKey ;
 
     public JWTComponent(UserRepository userRepository, @Value("${application.security.jwt_secret}") String secret, @Value("${application.security.jwt_expiration_ms:10}") long expirationMs) {
         this.userRepository = userRepository;
-        this.SECRET_KEY = secret;
         this.EXPIRATION_MS = expirationMs;
-
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
 
@@ -42,16 +42,18 @@ public class JWTComponent {
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .claims(claims)
-                .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), Jwts.SIG.HS512)
+                .signWith(this.secretKey, Jwts.SIG.HS512)
                 .compact();
     }
 
     public UUID extractUserId(String token) {
+
+
         return UUID.fromString(Jwts.parser()
-                .setSigningKey(SECRET_KEY.getBytes())
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject());
     }
 

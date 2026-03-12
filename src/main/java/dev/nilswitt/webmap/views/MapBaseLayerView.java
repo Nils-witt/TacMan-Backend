@@ -81,16 +81,14 @@ public class MapBaseLayerView extends VerticalLayout {
         mapBaseLayerGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         GridContextMenu<MapBaseLayer> menu = mapBaseLayerGrid.addContextMenu();
-        menu.addItem("Permissions", event -> {
-            event.getItem().ifPresent(mapOverlay -> {
-                User user = currentUser();
-                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPBASELAYER)) {
-                    Notification.show("You cannot edit overlay permissions");
-                    return;
-                }
-                permissionsDialog.open(mapOverlay);
-            });
-        });
+        menu.addItem("Permissions", event -> event.getItem().ifPresent(mapOverlay -> {
+            User user = currentUser();
+            if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPBASELAYER)) {
+                Notification.show("You cannot edit overlay permissions");
+                return;
+            }
+            permissionsDialog.open(mapOverlay);
+        }));
         menu.addItem("Edit", event -> event.getItem().ifPresent(mapBaseLayer -> {
             User user = currentUser();
             if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.MAPBASELAYER)) {

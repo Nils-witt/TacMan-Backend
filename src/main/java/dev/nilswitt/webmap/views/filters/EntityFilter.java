@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 @Slf4j
 public abstract class EntityFilter<T extends AbstractEntity> {
 
-    private T entityProbe;
+    private final T entityProbe;
     private Consumer<Example<T>> filter;
 
     public EntityFilter(Consumer<Example<T>> filter) {

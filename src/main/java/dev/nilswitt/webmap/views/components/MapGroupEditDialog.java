@@ -57,9 +57,7 @@ public class MapGroupEditDialog extends Dialog {
         });
         saveButton.setThemeVariant(ButtonVariant.LUMO_PRIMARY, true);
 
-        Button cancelButton = new Button("Cancel", event -> {
-            close();
-        });
+        Button cancelButton = new Button("Cancel", event -> close());
         cancelButton.setThemeVariant(ButtonVariant.LUMO_WARNING, true);
         this.add(formLayout);
         this.getFooter().add(saveButton);

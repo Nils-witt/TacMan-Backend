@@ -42,9 +42,7 @@ class SecurityConfig {
     SecurityFilterChain wsFilterChain(HttpSecurity http) throws Exception {
 
         return http.securityMatcher("/api/ws/**")
-                .authorizeHttpRequests(auth -> {
-                    auth.anyRequest().permitAll();
-                })
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
     }
 

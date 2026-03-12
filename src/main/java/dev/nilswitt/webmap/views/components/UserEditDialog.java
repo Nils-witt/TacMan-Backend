@@ -61,21 +61,7 @@ public class UserEditDialog extends Dialog {
         this.unitField.setItemLabelGenerator(Unit::getName);
         this.unitField.setItems(unitRepository.findAll());
         this.binder.bind(unitField, User::getUnit, User::setUnit);
-/*
-        this.unitField.addValueChangeListener(event -> {
-            Unit unit = event.getValue();
-            if (unit != null) {
-                if (unit.getUnitUser() != null && !unit.getUnitUser().equals(this.user)) {
-                    this.setError("This unit is already assigned to another user.");
-                } else {
-                    log.info("Assigning unit {} to user {}", unit, this.user);
-                    this.setError(null);
-                    firstNameField.setValue(unit.getName());
-                    lastNameField.setValue(unit.getName());
-                }
-            }
-        });
-*/
+
         FormLayout formLayout = new FormLayout();
         formLayout.setAutoResponsive(true);
         formLayout.addFormRow(this.unitField);
@@ -101,9 +87,7 @@ public class UserEditDialog extends Dialog {
         });
         saveButton.setThemeVariant(ButtonVariant.LUMO_PRIMARY, true);
 
-        Button cancelButton = new Button("Cancel", event -> {
-            close();
-        });
+        Button cancelButton = new Button("Cancel", event -> close());
         cancelButton.setThemeVariant(ButtonVariant.LUMO_WARNING, true);
         this.add(formLayout);
         this.getFooter().add(saveButton);
