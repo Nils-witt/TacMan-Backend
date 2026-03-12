@@ -1,6 +1,8 @@
 package dev.nilswitt.webmap.security;
 
 import dev.nilswitt.webmap.entities.*;
+import dev.nilswitt.webmap.entities.repositories.MapOverlayRepository;
+import dev.nilswitt.webmap.entities.repositories.PhotoRepository;
 import dev.nilswitt.webmap.entities.repositories.SecurityGroupPermissionsRepository;
 import dev.nilswitt.webmap.entities.repositories.UserPermissionsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +17,19 @@ public final class PermissionUtil {
 
     private final UserPermissionsRepository userPermissionsRepository;
     private final SecurityGroupPermissionsRepository securityGroupPermissionsRepository;
+    private final MapOverlayRepository mapOverlayRepository;
+    private final PhotoRepository photoRepository;
 
-    private PermissionUtil(UserPermissionsRepository userPermissionsRepository, SecurityGroupPermissionsRepository securityGroupPermissionsRepository) {
+    private PermissionUtil(
+            UserPermissionsRepository userPermissionsRepository,
+            SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
+            MapOverlayRepository mapOverlayRepository,
+            PhotoRepository photoRepository
+    ) {
         this.userPermissionsRepository = userPermissionsRepository;
         this.securityGroupPermissionsRepository = securityGroupPermissionsRepository;
+        this.mapOverlayRepository = mapOverlayRepository;
+        this.photoRepository = photoRepository;
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, SecurityGroup.UserRoleTypeEnum type) {
@@ -36,10 +47,7 @@ public final class PermissionUtil {
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapOverlay mapOverlay) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY, requiredScope)) {
             return true;
         }
 
@@ -63,22 +71,19 @@ public final class PermissionUtil {
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, Unit unit) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.UNIT,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.UNIT, requiredScope)) {
+            return true;
+        }
+        if (requiredScope == SecurityGroup.UserRoleScopeEnum.VIEW && user.getUnit().getId().equals(unit.getId())) {
             return true;
         }
 
         Optional<UserPermission> userPermission = userPermissionsRepository.findByUserAndUnit(user, unit);
         if (userPermission.isPresent()) {
-            if (testScope(requiredScope, userPermission.get().getScope())) {
-                return true;
-            }
+            return testScope(requiredScope, userPermission.get().getScope());
         } else {
             for (SecurityGroup sg : user.getSecurityGroups()) {
-                Optional<SecurityGroupPermission> sgPermission =
-                        securityGroupPermissionsRepository.findBySecurityGroupAndUnit(sg, unit);
+                Optional<SecurityGroupPermission> sgPermission = securityGroupPermissionsRepository.findBySecurityGroupAndUnit(sg, unit);
                 if (sgPermission.isPresent()) {
                     if (testScope(requiredScope, sgPermission.get().getScope())) {
                         return true;
@@ -89,19 +94,26 @@ public final class PermissionUtil {
         return false;
     }
 
+    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MissionGroup missionGroup) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MISSIONGROUP, requiredScope)) {
+            return true;
+        }
+        if (requiredScope == SecurityGroup.UserRoleScopeEnum.VIEW) {
+            if (user.getUnit() != null) {
+                return missionGroup.getUnits().stream().anyMatch(unit -> unit.getId().equals(user.getUnit().getId()));
+            }
+        }
+        return false;
+    }
+
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapItem mapItem) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPITEM,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MAPITEM, requiredScope)) {
             return true;
         }
 
         Optional<UserPermission> userPermission = userPermissionsRepository.findByUserAndMapItem(user, mapItem);
         if (userPermission.isPresent()) {
-            if (testScope(requiredScope, userPermission.get().getScope())) {
-                return true;
-            }
+            return testScope(requiredScope, userPermission.get().getScope());
         } else {
             for (SecurityGroup sg : user.getSecurityGroups()) {
                 Optional<SecurityGroupPermission> sgPermission =
@@ -117,10 +129,7 @@ public final class PermissionUtil {
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapGroup mapGroup) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPGROUP,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MAPGROUP, requiredScope)) {
             return true;
         }
 
@@ -144,10 +153,7 @@ public final class PermissionUtil {
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, MapBaseLayer mapBaseLayer) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPBASELAYER,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.MAPBASELAYER, requiredScope)) {
             return true;
         }
 
@@ -171,10 +177,7 @@ public final class PermissionUtil {
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, Photo photo) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.PHOTO,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.PHOTO, requiredScope)) {
             return true;
         }
 
@@ -194,14 +197,14 @@ public final class PermissionUtil {
                 }
             }
         }
+        if (requiredScope == SecurityGroup.UserRoleScopeEnum.VIEW &&user.getUnit() != null && photo.getMissionGroup().getUnits().stream().anyMatch(unit -> unit.getId().equals(user.getUnit().getId()))){
+            return true;
+        }
         return false;
     }
 
     public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, User checkUser) {
-        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.USER,
-                SecurityGroup.UserRoleScopeEnum.VIEW,
-                SecurityGroup.UserRoleScopeEnum.EDIT,
-                SecurityGroup.UserRoleScopeEnum.ADMIN)) {
+        if (hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.USER, SecurityGroup.UserRoleScopeEnum.ADMIN)) {
             return true;
         }
 
@@ -259,15 +262,11 @@ public final class PermissionUtil {
         return Arrays.stream(scopes).anyMatch(scope -> hasScope(user, type, scope));
     }
 
-    private static boolean hasScope(User user, SecurityGroup.UserRoleTypeEnum type,
-                                    SecurityGroup.UserRoleScopeEnum scope) {
+    private static boolean hasScope(User user, SecurityGroup.UserRoleTypeEnum type, SecurityGroup.UserRoleScopeEnum scope) {
         if (user == null || type == null || scope == null) {
             return false;
         }
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
-        if (authorities == null) {
-            return false;
-        }
         String requiredRole = buildRole(type, scope);
         String typeAdminRole = buildRole(type, SecurityGroup.UserRoleScopeEnum.ADMIN);
         String globalScopeRole = buildRole(SecurityGroup.UserRoleTypeEnum.GLOBAL, scope);
@@ -290,6 +289,11 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapOverlayNotNull(sg).stream().map(SecurityGroupPermission::getMapOverlay).toList());
         }
+        if (userDetails.getUnit() != null) {
+            if (userDetails.getUnit().getMissionGroup() != null) {
+                userDetails.getUnit().getMissionGroup().getMapGroups().stream().forEach(group -> permittedOverlays.addAll(mapOverlayRepository.findByMapGroup(group)));
+            }
+        }
         return permittedOverlays.stream().distinct().toList();
     }
 
@@ -297,6 +301,9 @@ public final class PermissionUtil {
         ArrayList<Unit> permittedOverlays = new ArrayList<>(this.userPermissionsRepository.findByUserAndUnitNotNull(userDetails).stream().map(UserPermission::getUnit).toList());
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndUnitNotNull(sg).stream().map(SecurityGroupPermission::getUnit).toList());
+        }
+        if (userDetails.getUnit() != null) {
+            permittedOverlays.add(userDetails.getUnit());
         }
         return permittedOverlays.stream().distinct().toList();
     }
@@ -318,6 +325,11 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedGroups.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMapGroupNotNull(sg).stream().map(SecurityGroupPermission::getMapGroup).toList());
         }
+        if (userDetails.getUnit() != null) {
+            if (userDetails.getUnit().getMissionGroup() != null) {
+                permittedGroups.addAll(userDetails.getUnit().getMissionGroup().getMapGroups());
+            }
+        }
         return permittedGroups.stream().distinct().toList();
     }
     public List<MapBaseLayer> getMapBaseLayersForUser(User userDetails) {
@@ -332,6 +344,7 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndEntityUserNotNull(sg).stream().map(SecurityGroupPermission::getEntityUser).toList());
         }
+        permittedOverlays.add(userDetails);
         return permittedOverlays.stream().distinct().toList();
     }
     public List<Photo> getPhotosForUser(User userDetails) {
@@ -339,6 +352,21 @@ public final class PermissionUtil {
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedPhotos.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndPhotoNotNull(sg).stream().map(SecurityGroupPermission::getPhoto).toList());
         }
+
+        getMissionGroupsForUser(userDetails).forEach(group -> permittedPhotos.addAll(photoRepository.findByMissionGroup(group)));
         return permittedPhotos.stream().distinct().toList();
+    }
+
+    public List<MissionGroup> getMissionGroupsForUser(User userDetails) {
+        ArrayList<MissionGroup> permittedMissionGroups = new ArrayList<>(this.userPermissionsRepository.findByUserAndMissionGroupNotNull(userDetails).stream().map(UserPermission::getMissionGroup).toList());
+        for (SecurityGroup sg : userDetails.getSecurityGroups()) {
+            permittedMissionGroups.addAll(this.securityGroupPermissionsRepository.findBySecurityGroupAndMissionGroupNotNull(sg).stream().map(SecurityGroupPermission::getMissionGroup).toList());
+        }
+        if (userDetails.getUnit() != null) {
+            if (userDetails.getUnit().getMissionGroup() != null) {
+                permittedMissionGroups.add(userDetails.getUnit().getMissionGroup());
+            }
+        }
+        return permittedMissionGroups.stream().distinct().toList();
     }
 }

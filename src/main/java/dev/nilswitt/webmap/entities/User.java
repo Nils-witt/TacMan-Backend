@@ -36,6 +36,7 @@ public class User extends AbstractEntity implements UserDetails {
     @Size(max = 100)
     @Column(nullable = false, unique = false, length = 100)
     private String firstName;
+
     @NotBlank
     @Size(max = 100)
     @Column(nullable = false, unique = false, length = 100)
@@ -68,6 +69,10 @@ public class User extends AbstractEntity implements UserDetails {
 
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     private Set<UserPermission> userPermissions = new LinkedHashSet<>();
+
+    @OneToOne
+    @JoinColumn(name = "unit_id", unique = true)
+    private Unit unit;
 
     public User() {
     }
@@ -130,6 +135,32 @@ public class User extends AbstractEntity implements UserDetails {
         return this.getId() != null && Objects.equals(this.getId(), user.getId());
     }
 
+
+    public String getDisplayName() {
+        if (this.unit == null) {
+            return this.lastName + ", " + this.firstName;
+        }else {
+            return this.unit.getName();
+        }
+    }
+
+    public String getFirstName() {
+        if (this.unit == null) {
+            return firstName;
+        }else {
+            return this.unit.getName();
+        }
+    }
+    public String getLastName() {
+        if (this.unit == null) {
+            return lastName;
+        }else {
+            return this.unit.getName();
+        }
+    }
+
+
+
     @Override
     public int hashCode() {
         return this.getId() != null ? Objects.hash(this.getId()) : System.identityHashCode(this);
@@ -162,6 +193,7 @@ public class User extends AbstractEntity implements UserDetails {
         dto.setEmail(this.email);
         dto.setFirstName(this.firstName);
         dto.setLastName(this.lastName);
+        dto.setUnitId(this.unit != null ? this.unit.getId() : null);
         return dto;
     }
 

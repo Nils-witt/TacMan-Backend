@@ -96,9 +96,7 @@ public class OverlayView extends VerticalLayout {
 
 
         new SecurityGroupContextMenu(this.mapOverlayGrid);
-        this.overlayFilter = new OverlayFilter((mapOverlayExample -> {
-            this.mapOverlayGrid.getDataProvider().refreshAll();
-        }));
+        this.overlayFilter = new OverlayFilter((mapOverlayExample -> this.mapOverlayGrid.getDataProvider().refreshAll()));
         this.overlayFilter.setUp(this.mapOverlayGrid);
 
         this.setSizeFull();
@@ -123,88 +121,78 @@ public class OverlayView extends VerticalLayout {
     private class SecurityGroupContextMenu extends GridContextMenu<MapOverlay> {
         public SecurityGroupContextMenu(Grid<MapOverlay> target) {
             super(target);
-            this.addItem("upload", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
-                        Notification.show("You cannot upload for overlays");
-                        return;
-                    }
-                    UploadOverlayDialog uploadOverlayDialog = new UploadOverlayDialog(mapOverlayRepository, mapOverlay, overlayConfig);
-                    add(uploadOverlayDialog);
-                    uploadOverlayDialog.open();
+            this.addItem("upload", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
+                    Notification.show("You cannot upload for overlays");
+                    return;
+                }
+                UploadOverlayDialog uploadOverlayDialog = new UploadOverlayDialog(mapOverlayRepository, mapOverlay, overlayConfig);
+                add(uploadOverlayDialog);
+                uploadOverlayDialog.open();
+            }));
+            this.addItem("Permissions", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
+                    Notification.show("You cannot edit overlay permissions");
+                    return;
+                }
+                permissionsDialog.open(mapOverlay);
+            }));
+            this.addItem("Edit", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
+                    Notification.show("You cannot edit overlays");
+                    return;
+                }
+                editDialog.open(mapOverlay);
+            }));
+            this.addItem("Delete", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
+                    Notification.show("You cannot delete overlays");
+                    return;
+                }
+                ConfirmDialog confirmDialog = new ConfirmDialog();
+                confirmDialog.setHeader("Delete Overlay");
+                confirmDialog.setText("Are you sure you want to delete overlay '" + mapOverlay.getName() + "'?");
+                confirmDialog.setCancelable(true);
+                confirmDialog.setConfirmText("Delete");
+                confirmDialog.addConfirmListener(e -> {
+                    mapOverlayRepository.delete(mapOverlay);
+                    mapOverlayGrid.getDataProvider().refreshAll();
+                    confirmDialog.close();
+                    this.remove(confirmDialog);
                 });
-            });
-            this.addItem("Permissions", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
-                        Notification.show("You cannot edit overlay permissions");
-                        return;
-                    }
-                    permissionsDialog.open(mapOverlay);
-                });
-            });
-            this.addItem("Edit", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
-                        Notification.show("You cannot edit overlays");
-                        return;
-                    }
-                    editDialog.open(mapOverlay);
-                });
-            });
-            this.addItem("Delete", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
-                        Notification.show("You cannot delete overlays");
-                        return;
-                    }
-                    ConfirmDialog confirmDialog = new ConfirmDialog();
-                    confirmDialog.setHeader("Delete Overlay");
-                    confirmDialog.setText("Are you sure you want to delete overlay '" + mapOverlay.getName() + "'?");
-                    confirmDialog.setCancelable(true);
-                    confirmDialog.setConfirmText("Delete");
-                    confirmDialog.addConfirmListener(e -> {
-                        mapOverlayRepository.delete(mapOverlay);
-                        mapOverlayGrid.getDataProvider().refreshAll();
-                        confirmDialog.close();
-                        this.remove(confirmDialog);
-                    });
-                    add(confirmDialog);
-                    confirmDialog.open();
-                });
-            });
-            this.addItem("Delete old Versions", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
-                        Notification.show("You cannot delete overlay versions");
-                        return;
-                    }
-                    // Call method to delete old file versions
-                    File baseOverlayDir = Path.of(overlayConfig.basePath(), mapOverlay.getId().toString()).toFile();
-                    if (baseOverlayDir.exists() && baseOverlayDir.isDirectory()) {
-                        File[] versionDirs = baseOverlayDir.listFiles(File::isDirectory);
-                        if (versionDirs != null) {
-                            for (File versionDir : versionDirs) {
-                                try {
-                                    int version = Integer.parseInt(versionDir.getName());
-                                    if (version < mapOverlay.getLayerVersion()) {
-                                        FileUtils.deleteDirectory(versionDir);
-                                    }
-                                } catch (NumberFormatException e) {
-                                    // Ignore directories that are not version numbers
-                                } catch (IOException e) {
-                                    // Handle deletion error
+                add(confirmDialog);
+                confirmDialog.open();
+            }));
+            this.addItem("Delete old Versions", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.DELETE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
+                    Notification.show("You cannot delete overlay versions");
+                    return;
+                }
+                // Call method to delete old file versions
+                File baseOverlayDir = Path.of(overlayConfig.basePath(), mapOverlay.getId().toString()).toFile();
+                if (baseOverlayDir.exists() && baseOverlayDir.isDirectory()) {
+                    File[] versionDirs = baseOverlayDir.listFiles(File::isDirectory);
+                    if (versionDirs != null) {
+                        for (File versionDir : versionDirs) {
+                            try {
+                                int version = Integer.parseInt(versionDir.getName());
+                                if (version < mapOverlay.getLayerVersion()) {
+                                    FileUtils.deleteDirectory(versionDir);
                                 }
+                            } catch (NumberFormatException e) {
+                                // Ignore directories that are not version numbers
+                            } catch (IOException e) {
+                                // Handle deletion error
                             }
                         }
                     }
-                });
-            });
+                }
+            }));
 
             this.setDynamicContentHandler(Objects::nonNull);
         }

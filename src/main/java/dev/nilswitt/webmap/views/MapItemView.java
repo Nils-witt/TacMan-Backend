@@ -76,9 +76,7 @@ public class MapItemView extends VerticalLayout {
         this.permissionsDialog = new MapItemPermissionsDialog(userPermissionsRepository, userRepository, securityGroupRepository, securityGroupPermissionsRepository);
         this.configureCreateButton();
         this.configureGrid();
-        this.mapItemFilter = new MapItemFilter(securityGroupExample -> {
-            this.mapItemGrid.getDataProvider().refreshAll();
-        }, mapGroupRepository);
+        this.mapItemFilter = new MapItemFilter(securityGroupExample -> this.mapItemGrid.getDataProvider().refreshAll(), mapGroupRepository);
         this.mapItemFilter.setUp(this.mapItemGrid);
 
         this.setSizeFull();
@@ -115,8 +113,7 @@ public class MapItemView extends VerticalLayout {
                 String[] HEADERS = {"id", "name", "mapGroup", "latitude", "longitude", "altitude"};
 
                 CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                        .setHeader(HEADERS)
-                        .build();
+                        .setHeader(HEADERS).get();
 
                 try (final CSVPrinter printer = new CSVPrinter(sw, csvFormat)) {
                     this.list(Pageable.unpaged()).forEach(mapItem -> {
@@ -130,11 +127,11 @@ public class MapItemView extends VerticalLayout {
                                     mapItem.getPosition().getAltitude()
                             );
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            log.error("Error while exporting map items", e);
                         }
                     });
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Error while exporting map items", e);
                 }
                 outputStream.write(sw.toString().getBytes());
             }
@@ -160,8 +157,7 @@ public class MapItemView extends VerticalLayout {
                     .inMemory((metadata, data) -> {
                         strData.set(new String(data));
                         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                                .setDelimiter(";")
-                                .build();
+                                .setDelimiter(";").get();
                         Iterable<CSVRecord> records = csvFormat.parse(new StringReader(new String(data)));
                         CSVRecord header = records.iterator().next();
                         UI.getCurrent().access(() -> {
@@ -192,8 +188,7 @@ public class MapItemView extends VerticalLayout {
 
             Button startimportButton = new Button("Import", e -> {
                 CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                        .setDelimiter(";")
-                        .build();
+                        .setDelimiter(";").get();
                 try {
                     Iterable<CSVRecord> records = csvFormat.parse(new StringReader(strData.get()));
                     Iterator<CSVRecord> iterator = records.iterator();
@@ -313,16 +308,14 @@ public class MapItemView extends VerticalLayout {
     private class MapItemContextMenu extends GridContextMenu<MapItem> {
         public MapItemContextMenu(Grid<MapItem> target) {
             super(target);
-            this.addItem("Permissions", event -> {
-                event.getItem().ifPresent(mapOverlay -> {
-                    User user = currentUser();
-                    if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPITEM)) {
-                        Notification.show("You cannot edit overlay permissions");
-                        return;
-                    }
-                    permissionsDialog.open(mapOverlay);
-                });
-            });
+            this.addItem("Permissions", event -> event.getItem().ifPresent(mapOverlay -> {
+                User user = currentUser();
+                if (!permissionUtil.hasAccess(user, SecurityGroup.UserRoleScopeEnum.ADMIN, SecurityGroup.UserRoleTypeEnum.MAPITEM)) {
+                    Notification.show("You cannot edit overlay permissions");
+                    return;
+                }
+                permissionsDialog.open(mapOverlay);
+            }));
             this.addItem("Edit", event -> event.getItem().ifPresent(mapItem -> {
                 User user = currentUser();
                 if (!PermissionUtil.hasAnyScope(user, SecurityGroup.UserRoleTypeEnum.MAPITEM, SecurityGroup.UserRoleScopeEnum.EDIT, SecurityGroup.UserRoleScopeEnum.CREATE)) {

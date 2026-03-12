@@ -16,8 +16,6 @@ public class Photo extends AbstractEntity {
     private String name;
     @Column
     private String path;
-    @Column(name = "expires_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Instant expiresAt;
 
     @Embedded
     private EmbeddedPosition position;
@@ -25,6 +23,10 @@ public class Photo extends AbstractEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "mission_group_id", nullable = false)
+    private MissionGroup missionGroup;
 
     public Photo() {
     }
@@ -40,20 +42,17 @@ public class Photo extends AbstractEntity {
         PhotoDto dto = new PhotoDto();
         dto.setId(this.getId());
         dto.setName(this.getName());
-        dto.setPath(this.getPath());
-        dto.setExpiresAt(this.getExpiresAt());
         dto.setPosition(this.getPosition() != null ? this.getPosition().toDto() : null);
         dto.setCreatedAt(this.getCreatedAt());
         dto.setUpdatedAt(this.getUpdatedAt());
-
+        dto.setAuthorId(this.author.getId());
+        dto.setMissionGroupId(this.missionGroup.getId());
         return dto;
     }
 
     public static Photo fromDto(PhotoDto dto) {
         Photo photo = new Photo();
         photo.setName(dto.getName());
-        photo.setPath(dto.getPath());
-        photo.setExpiresAt(dto.getExpiresAt());
         photo.setPosition(dto.getPosition() != null ? EmbeddedPosition.of(dto.getPosition()) : null);
         return photo;
     }

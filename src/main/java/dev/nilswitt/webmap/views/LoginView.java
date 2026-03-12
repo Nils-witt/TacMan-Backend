@@ -27,9 +27,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         login.setDescription("Admin");
         Paragraph text = new Paragraph("Version: " + applicationInfo.version());
         text.getStyle().set("text-align", "center");
-        login.getFooter().add(new Button("SSO", event -> {
-            getUI().ifPresent(ui -> ui.navigate("/oauth2/login"));
-        }));
+        login.getFooter().add(new Button("SSO", event -> getUI().ifPresent(ui -> ui.navigate("/oauth2/login"))));
         login.getFooter().add(text);
 
         login.setAction("login");

@@ -69,12 +69,10 @@ public class OAuthCallbackView extends VerticalLayout implements BeforeEnterObse
             return;
         }
 
-        log.info("TestView initialized with session ID: " + this.httpSession.getAttribute("state"));
 
         Optional<String> state = event.getLocation()
                 .getQueryParameters().getSingleParameter("state");
         Optional<String> code = event.getLocation().getQueryParameters().getSingleParameter("code");
-        log.info(state.toString());
 
         if (state.isEmpty() || code.isEmpty()) {
             UI.getCurrent().navigate(LoginView.class);
