@@ -5,6 +5,7 @@ import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.UserRepository;
 import dev.nilswitt.webmap.security.JWTComponent;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+@Log4j2
 @RestController
 @RequestMapping("api/token")
 public class AuthController {
@@ -40,7 +42,7 @@ public class AuthController {
             User user = this.jwtHandler.getUserFromToken(token);
             return Map.of("valid", true, "user", user);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("Token validation failed: {}", e.getMessage());
             throw new UnauthorizedException();
         }
     }
@@ -55,7 +57,7 @@ public class AuthController {
                 return Map.of("token", token, "userId", user.getId());
             }
         }
-        return Map.of("error", "User not found");
+        throw new UnauthorizedException();
     }
 
 
