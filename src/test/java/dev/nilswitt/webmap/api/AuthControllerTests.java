@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
@@ -73,7 +74,7 @@ class AuthControllerTests {
 
         var result = mockMvcTester.post().contentType(MediaType.APPLICATION_JSON).content(payload).uri("/api/token").exchange();
 
-        assertThat(result).hasStatusOk().bodyJson().extractingPath("$.error").asString().isNotBlank();
+        assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
