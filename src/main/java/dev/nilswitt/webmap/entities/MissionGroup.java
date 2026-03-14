@@ -53,6 +53,8 @@ public class MissionGroup extends AbstractEntity {
     @Override
     public MissionGroupDto toDto() {
         MissionGroupDto dto = new MissionGroupDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(getId());
         dto.setCreatedAt(getCreatedAt());
         dto.setUpdatedAt(getUpdatedAt());

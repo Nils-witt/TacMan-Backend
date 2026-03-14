@@ -78,6 +78,8 @@ public class MapOverlay extends AbstractEntity {
 
     public MapOverlayDto toDto() {
         MapOverlayDto dto = new MapOverlayDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(getId());
         dto.setName(getName());
         dto.setBaseUrl(getBaseUrl());

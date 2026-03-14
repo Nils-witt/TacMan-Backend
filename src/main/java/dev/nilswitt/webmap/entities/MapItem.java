@@ -40,6 +40,8 @@ public class MapItem extends AbstractEntity {
 
     public MapItemDto toDto() {
         MapItemDto dto = new MapItemDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(getId());
         dto.setName(getName());
         EmbeddedPositionDto positionDto = new EmbeddedPositionDto();

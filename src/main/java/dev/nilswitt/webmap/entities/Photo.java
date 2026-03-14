@@ -40,6 +40,8 @@ public class Photo extends AbstractEntity {
     @Override
     public PhotoDto toDto() {
         PhotoDto dto = new PhotoDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(this.getId());
         dto.setName(this.getName());
         dto.setPosition(this.getPosition() != null ? this.getPosition().toDto() : null);

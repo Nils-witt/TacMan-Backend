@@ -2,6 +2,9 @@ package dev.nilswitt.webmap.api.ws;
 
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.entities.SecurityGroup;
+import dev.nilswitt.webmap.entities.Unit;
+import dev.nilswitt.webmap.entities.repositories.UnitRepository;
+import dev.nilswitt.webmap.events.ChangeType;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +13,12 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectWriter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class PlainWebSocketHandler extends AbstractWebSocketHandler {
@@ -21,11 +27,15 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     private static final String PONG_PAYLOAD = "pong";
 
     private final WebSocketSessionRegistry sessionRegistry;
+    private final UnitRepository unitRepository;
+
+    private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     private final Logger log = LoggerFactory.getLogger(PlainWebSocketHandler.class);
 
-    public PlainWebSocketHandler(WebSocketSessionRegistry sessionRegistry) {
+    public PlainWebSocketHandler(WebSocketSessionRegistry sessionRegistry, UnitRepository unitRepository) {
         this.sessionRegistry = sessionRegistry;
+        this.unitRepository = unitRepository;
     }
     private final ArrayList<String> availableEntityTopics = new ArrayList<>(Arrays.stream(SecurityGroup.UserRoleTypeEnum.values()).map(r -> r.name().toLowerCase()).toList());
 
@@ -55,6 +65,29 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
             }
 
             return;
+        }else if(payload.startsWith("UNSUBSCRIBE ")) {
+            String topic = payload.substring(12).trim().toLowerCase();
+        }else if(payload.startsWith("GET ")) {
+            String topic = payload.substring(4).trim().toLowerCase();
+
+            if (topic.equals("/units")) {
+                List<Unit> units = unitRepository.findAll();
+                for (Unit unit : units) {
+                    EntityUpdateNotifier.DownstreamMessage downstreamMessage = new EntityUpdateNotifier.DownstreamMessage();
+                    downstreamMessage.topic = topic;
+                    EntityUpdateNotifier.Payload dpayload = new EntityUpdateNotifier.Payload();
+                    dpayload.entityType = unit.getClass().getSimpleName();
+                    dpayload.entityId = unit.getId();
+                    dpayload.changeType = ChangeType.RETRANSMIT;
+                    dpayload.entity = unit.toDto();
+                    downstreamMessage.payload = dpayload;
+
+                    session.sendMessage(new TextMessage( ow.writeValueAsString(downstreamMessage)));
+                }
+            } else {
+                session.sendMessage(new TextMessage("Unknown topic: " + topic));
+            }
+            log.info("Session {} requested data for topic {}", session.getId(), topic);
         } else if (payload.equals(PING_PAYLOAD)) {
             session.sendMessage(new TextMessage(PONG_PAYLOAD));
             return;

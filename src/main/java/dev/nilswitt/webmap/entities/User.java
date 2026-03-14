@@ -188,6 +188,8 @@ public class User extends AbstractEntity implements UserDetails {
 
     public UserDto toDto() {
         UserDto dto = new UserDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(this.getId());
         dto.setUsername(this.username);
         dto.setEmail(this.email);

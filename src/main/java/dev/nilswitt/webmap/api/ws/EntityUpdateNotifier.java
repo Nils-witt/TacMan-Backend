@@ -95,7 +95,6 @@ public class EntityUpdateNotifier {
         payload.changeType = event.changeType();
         payload.entity = event.entity().toDto();
         return payload;
-
     }
 
     private String escape(String value) {

@@ -30,6 +30,8 @@ public class MapBaseLayer extends AbstractEntity {
 
     public MapBaseLayerDto toDto() {
         MapBaseLayerDto dto = new MapBaseLayerDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(getId());
         dto.setName(getName());
         dto.setUrl(getUrl());

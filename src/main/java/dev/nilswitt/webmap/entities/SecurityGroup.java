@@ -93,6 +93,8 @@ public class SecurityGroup extends AbstractEntity {
 
     public SecurityGroupDto toDto() {
         SecurityGroupDto dto = new SecurityGroupDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(this.getId());
         dto.setName(this.getName());
         dto.setSsoGroupName(this.getSsoGroupName());
