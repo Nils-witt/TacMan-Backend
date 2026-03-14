@@ -49,6 +49,8 @@ public class Unit extends AbstractEntity {
 
     public UnitDto toDto() {
         UnitDto dto = new UnitDto();
+        dto.setCreatedAt(getCreatedAt());
+        dto.setUpdatedAt(getUpdatedAt());
         dto.setId(getId());
         dto.setName(getName());
         dto.setStatus(getStatus());
