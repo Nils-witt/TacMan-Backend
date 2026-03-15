@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Set;
-import java.util.UUID;
 
 @Setter
 @Getter
@@ -67,26 +66,15 @@ public class MapOverlay extends AbstractEntity {
             tilePathPattern = "/" + tilePathPattern;
         }
 
-        StringBuilder fullUrl = new StringBuilder();
-        fullUrl.append(baseUrl);
-        fullUrl.append(basePath);
-        fullUrl.append(this.getId()).append("/");
-        fullUrl.append(this.layerVersion);
-        fullUrl.append(tilePathPattern);
-        return fullUrl.toString();
+        return baseUrl +
+                basePath +
+                this.getId() + "/" +
+                this.layerVersion +
+                tilePathPattern;
     }
 
     public MapOverlayDto toDto() {
-        MapOverlayDto dto = new MapOverlayDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(getId());
-        dto.setName(getName());
-        dto.setBaseUrl(getBaseUrl());
-        dto.setBasePath(getBasePath());
-        dto.setTilePathPattern(getTilePathPattern());
-        dto.setLayerVersion(getLayerVersion());
-        dto.setMapGroupId(getMapGroup() != null ? getMapGroup().getId() : null);
-        return dto;
+
+        return new MapOverlayDto(this.getId(), this.getCreatedAt(), this.getUpdatedAt(), this.getName(), this.getBaseUrl(), this.getBasePath(), this.getTilePathPattern(), this.getLayerVersion(), this.getMapGroup() != null ? this.getMapGroup().getId() : null);
     }
 }

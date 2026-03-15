@@ -1,6 +1,5 @@
 package dev.nilswitt.webmap.api.controller;
 
-import dev.nilswitt.webmap.api.dtos.EmbeddedPositionDto;
 import dev.nilswitt.webmap.api.dtos.TacticalIconDto;
 import dev.nilswitt.webmap.api.dtos.UnitDto;
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
@@ -18,10 +17,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -51,13 +46,21 @@ public class UnitController {
         if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.UNIT)) {
 
             List<EntityModel<UnitDto>> entities = this.repository.findAll().stream()
-                    .map(Unit::toDto)
+                    .map(unit -> {
+                        UnitDto dto = unit.toDto();
+                        dto.setPermissions(this.permissionUtil.getScopes(unit, userDetails));
+                        return dto;
+                    })
                     .map(this.assembler::toModel)
                     .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(UnitController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionUtil.getUnitsForUser(userDetails).stream().map(Unit::toDto).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(UnitController.class).all(null)).withSelfRel());
+        return CollectionModel.of(this.permissionUtil.getUnitsForUser(userDetails).stream().map(unit -> {
+            UnitDto dto = unit.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(unit, userDetails));
+            return dto;
+        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(UnitController.class).all(null)).withSelfRel());
     }
 
     @PostMapping("")
@@ -65,7 +68,11 @@ public class UnitController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.UNIT)) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        return this.assembler.toModel(this.repository.save(Unit.of(newEntity)).toDto());
+
+        Unit unit = this.repository.save(Unit.of(newEntity));
+        UnitDto dto = unit.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(unit, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -74,10 +81,11 @@ public class UnitController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
-        return this.assembler.toModel(
-                (this.repository.findById(id)
-                        .orElseThrow(() -> new UnitNotFoundException(id))).toDto()
-        );
+
+        Unit unit = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
+        UnitDto dto = unit.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(unit, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @PutMapping("{id}")
@@ -93,7 +101,10 @@ public class UnitController {
         entity.setStatus(newEntity.getStatus());
         entity.setSpeakRequest(newEntity.isSpeakRequest());
 
-        return this.assembler.toModel(this.repository.save(entity).toDto());
+        Unit unit = this.repository.save(entity);
+        UnitDto dto = unit.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(unit, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @PatchMapping("{id}")
@@ -134,7 +145,7 @@ public class UnitController {
             if (data.has("showOnMap")) {
                 entity.setShowOnMap(data.get("showOnMap").asBoolean());
             }
-            if (data.has("icon")){
+            if (data.has("icon")) {
                 TacticalIconDto iconDto = mapper.treeToValue(data.get("icon"), TacticalIconDto.class);
                 entity.setIcon(TacticalIcon.fromDto(iconDto));
             }
@@ -142,7 +153,10 @@ public class UnitController {
         } catch (Exception e) {
             log.error("Failed to parse JSON body: {}", e.getMessage(), e);
         }
-        return this.assembler.toModel(this.repository.save(entity).toDto());
+        Unit unit = this.repository.save(entity);
+        UnitDto dto = unit.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(unit, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @DeleteMapping("{id}")

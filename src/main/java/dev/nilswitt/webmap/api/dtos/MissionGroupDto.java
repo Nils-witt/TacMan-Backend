@@ -17,4 +17,15 @@ public class MissionGroupDto extends AbstractEntityDto {
     private Set<UUID> unitIds = new HashSet<>();
     private Set<UUID> mapGroupIds = new HashSet<>();
     private EmbeddedPositionDto position;
+
+
+    public MissionGroupDto(UUID id, Instant createdAt, Instant updatedAt, String name, Instant startTime, Instant endTime, Set<UUID> unitIds, Set<UUID> mapGroupIds, EmbeddedPositionDto position) {
+        super(id, createdAt, updatedAt);
+        this.name = name;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.unitIds = unitIds;
+        this.mapGroupIds = mapGroupIds;
+        this.position = position;
+    }
 }

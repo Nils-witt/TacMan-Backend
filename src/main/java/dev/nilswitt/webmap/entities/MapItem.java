@@ -39,20 +39,14 @@ public class MapItem extends AbstractEntity {
     }
 
     public MapItemDto toDto() {
-        MapItemDto dto = new MapItemDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(getId());
-        dto.setName(getName());
+
         EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
         positionDto.setLatitude(getPosition().getLatitude());
         positionDto.setLongitude(getPosition().getLongitude());
         positionDto.setAltitude(getPosition().getAltitude());
         positionDto.setTimestamp(getPosition().getTimestamp());
-        dto.setPosition(positionDto);
-        dto.setZoomLevel(getZoomLevel());
-        dto.setMapGroupId(getMapGroup() != null ? getMapGroup().getId() : null);
-        return dto;
+
+        return new MapItemDto(this.getId(), this.getCreatedAt(), this.getUpdatedAt(), this.getName(), positionDto, this.getMapGroup() != null ? this.getMapGroup().getId() : null, this.getZoomLevel());
     }
 
     @Override

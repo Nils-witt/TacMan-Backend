@@ -1,7 +1,6 @@
 package dev.nilswitt.webmap.api.controller;
 
 import dev.nilswitt.webmap.api.dtos.UnitDto;
-import dev.nilswitt.webmap.entities.Unit;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;

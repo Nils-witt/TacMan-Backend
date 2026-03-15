@@ -44,7 +44,7 @@ public class MissionGroup extends AbstractEntity {
     )
     private Set<MapGroup> mapGroups = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "missionGroup", fetch =  FetchType.EAGER)
+    @OneToMany(mappedBy = "missionGroup", fetch = FetchType.EAGER)
     private Set<Unit> units = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "missionGroup")
@@ -52,27 +52,27 @@ public class MissionGroup extends AbstractEntity {
 
     @Override
     public MissionGroupDto toDto() {
-        MissionGroupDto dto = new MissionGroupDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(getId());
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setName(name);
-        dto.setStartTime(startTime);
-        dto.setEndTime(endTime);
-        dto.setUnitIds(units.stream().map(Unit::getId).collect(Collectors.toSet()));
-        dto.setMapGroupIds(mapGroups.stream().map(MapGroup::getId).collect(Collectors.toSet()));
+        EmbeddedPositionDto positionDto = null;
         if (this.getPosition() != null) {
-            EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
+            positionDto = new EmbeddedPositionDto();
             positionDto.setLatitude(getPosition().getLatitude());
             positionDto.setLongitude(getPosition().getLongitude());
             positionDto.setAltitude(getPosition().getAltitude());
             positionDto.setAccuracy(getPosition().getAccuracy());
             positionDto.setTimestamp(getPosition().getTimestamp());
-            dto.setPosition(positionDto);
         }
-        return dto;
+
+
+        return new MissionGroupDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getName(), this.getStartTime(),
+                this.getEndTime(),
+                units.stream().map(Unit::getId).collect(Collectors.toSet()),
+                mapGroups.stream().map(MapGroup::getId).collect(Collectors.toSet()),
+                positionDto
+        );
     }
 
     public static MissionGroup of(MissionGroupDto dto) {

@@ -58,13 +58,21 @@ public class PhotoController {
     CollectionModel<EntityModel<PhotoDto>> all(@AuthenticationPrincipal User userDetails) {
         if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
             List<EntityModel<PhotoDto>> entities = this.photoRepository.findAll().stream()
-                    .map(Photo::toDto)
+                    .map(photo -> {
+                        PhotoDto dto = photo.toDto();
+                        dto.setPermissions(this.permissionUtil.getScopes(photo, userDetails));
+                        return dto;
+                    })
                     .map(this.assembler::toModel)
                     .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(PhotoController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionUtil.getPhotosForUser(userDetails).stream().map(Photo::toDto).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(PhotoController.class).all(null)).withSelfRel());
+        return CollectionModel.of(this.permissionUtil.getPhotosForUser(userDetails).stream().map(entity -> {
+            PhotoDto dto = entity.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+            return dto;
+        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(PhotoController.class).all(null)).withSelfRel());
     }
 
     @PostMapping("")
@@ -75,15 +83,15 @@ public class PhotoController {
             @RequestParam("missionGroupId") UUID missionGroupId,
             @AuthenticationPrincipal User userDetails) {
 
-        MissionGroup missionGroup = this.missionGroupRepository.findById(missionGroupId).orElseThrow(() ->new PhotoNotFoundException(missionGroupId));
+        MissionGroup missionGroup = this.missionGroupRepository.findById(missionGroupId).orElseThrow(() -> new PhotoNotFoundException(missionGroupId));
 
-        if (userDetails.getUnit() != null){
+        if (userDetails.getUnit() != null) {
             if (!userDetails.getUnit().getMissionGroup().getId().equals(missionGroup.getId())) {
                 if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
                     throw new ForbiddenException("User does not have permission to create photos.");
                 }
             }
-        }else {
+        } else {
             if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.PHOTO)) {
                 throw new ForbiddenException("User does not have permission to create photos.");
             }
@@ -114,7 +122,9 @@ public class PhotoController {
             newPhoto.setName("Photo " + newPhoto.getId());
 
             photoRepository.save(newPhoto);
-            return this.assembler.toModel(newPhoto.toDto());
+            PhotoDto dto = newPhoto.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(newPhoto, userDetails));
+            return this.assembler.toModel(dto);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -154,7 +164,11 @@ public class PhotoController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        return this.assembler.toModel(photoRepository.save(entity).toDto());
+
+        Photo saved = photoRepository.save(entity);
+        PhotoDto dto = saved.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -164,11 +178,13 @@ public class PhotoController {
             throw new ForbiddenException("User does not have permission to view photos.");
         }
 
-        return this.assembler.toModel(entity.toDto());
+        PhotoDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}/image")
-    ResponseEntity<Resource> getEntityPhoto(@PathVariable UUID id,@AuthenticationPrincipal User userDetails) {
+    ResponseEntity<Resource> getEntityPhoto(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
         Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view photos.");

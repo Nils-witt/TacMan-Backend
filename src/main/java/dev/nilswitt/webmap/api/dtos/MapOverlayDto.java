@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -11,16 +12,22 @@ import java.util.UUID;
 public class MapOverlayDto extends AbstractEntityDto {
 
     private String name;
-
-    private String baseUrl = "";
-
+    private String baseUrl;
     private String basePath = "";
-
-    private String tilePathPattern = "/{z}/{x}/{y}.png";
-
-    private int layerVersion = 0;
-
+    private String tilePathPattern;
+    private int layerVersion;
     private UUID mapGroupId;
+
+
+    public MapOverlayDto(UUID id, Instant createdAt, Instant updatedAt, String name, String baseUrl, String basePath, String tilePathPattern, int layerVersion, UUID mapGroupId) {
+        super(id, createdAt, updatedAt);
+        this.name = name;
+        this.baseUrl = baseUrl;
+        this.basePath = basePath;
+        this.tilePathPattern = tilePathPattern;
+        this.layerVersion = layerVersion;
+        this.mapGroupId = mapGroupId;
+    }
 
     @JsonGetter("fullTileUrl")
     public String getFullTileUrl() {
