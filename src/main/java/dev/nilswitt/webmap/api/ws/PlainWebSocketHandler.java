@@ -52,8 +52,8 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
             try {
                 if (topic.startsWith("/entities/")) {
                     String[] parts = topic.split("/");
-                    if (parts.length >= 4) {
-                        String entityType = parts[3];
+                    if (parts.length >= 3) {
+                        String entityType = parts[2];
                         if (!availableEntityTopics.contains(entityType)) {
                             throw new ForbiddenException("You do not have permission to subscribe to entity type: " + entityType);
                         }
