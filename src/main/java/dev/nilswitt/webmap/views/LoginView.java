@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -27,11 +28,15 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         login.setDescription("Admin");
         Paragraph text = new Paragraph("Version: " + applicationInfo.version());
         text.getStyle().set("text-align", "center");
-        login.getFooter().add(new Button("SSO", event -> getUI().ifPresent(ui -> ui.navigate("/oauth2/login"))));
+
+        Button ssoButton = new Button("SSO", event -> getUI().ifPresent(ui -> ui.navigate("/oauth2/login")));
+        ssoButton.setSizeFull();
+        login.getFooter().add(ssoButton);
         login.getFooter().add(text);
 
         login.setAction("login");
-        login.setForgotPasswordButtonVisible(false);
+        login.setForgotPasswordButtonVisible(true);
+        login.addForgotPasswordListener(event -> UI.getCurrent().navigate("forgot-password"));
         VerticalLayout layout = new VerticalLayout();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
