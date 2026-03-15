@@ -3,8 +3,6 @@ package dev.nilswitt.webmap.api.ws;
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.entities.User;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
@@ -32,12 +30,13 @@ public class WebSocketSessionRegistry {
             userSessions.computeIfAbsent(user, k -> ConcurrentHashMap.newKeySet()).add(session.getId());
         }
     }
+
     @Scheduled(fixedRate = 30000)
-    public void keepalive(){
+    public void keepalive() {
         log.debug("Keep alive sessions");
-        for(WebSocketSession session : sessions.values()){
+        for (WebSocketSession session : sessions.values()) {
             try {
-                if(session.isOpen()) {
+                if (session.isOpen()) {
                     session.sendMessage(new TextMessage("ping"));
                 }
             } catch (Exception e) {
@@ -60,7 +59,15 @@ public class WebSocketSessionRegistry {
     public void subscribe(WebSocketSession session, String topic) throws ForbiddenException {
         topicSubscriptions.computeIfAbsent(topic, k -> ConcurrentHashMap.newKeySet()).add(session.getId());
         log.info("Session {} subscribed to topic {}", session.getId(), topic);
+    }
 
+
+    public void unsubscribe(WebSocketSession session, String topic) {
+        topicSubscriptions.computeIfPresent(topic, (k, v) -> {
+            v.remove(session.getId());
+            return v.isEmpty() ? null : v;
+        });
+        log.info("Session {} unsubscribed from topic {}", session.getId(), topic);
     }
 
     public Iterable<WebSocketSession> getSessions() {

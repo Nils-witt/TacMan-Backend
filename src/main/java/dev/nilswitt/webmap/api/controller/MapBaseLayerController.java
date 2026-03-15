@@ -39,13 +39,21 @@ public class MapBaseLayerController {
         if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
 
             List<EntityModel<MapBaseLayerDto>> entities = this.repository.findAll().stream()
-                    .map(MapBaseLayer::toDto)
+                    .map(mapBaseLayer -> {
+                        MapBaseLayerDto dto = mapBaseLayer.toDto();
+                        dto.setPermissions(this.permissionUtil.getScopes(mapBaseLayer, userDetails));
+                        return dto;
+                    })
                     .map(this.assembler::toModel)
                     .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionUtil.getMapBaseLayersForUser(userDetails).stream().map(MapBaseLayer::toDto).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel());
+        return CollectionModel.of(this.permissionUtil.getMapBaseLayersForUser(userDetails).stream().map(mapBaseLayer -> {
+            MapBaseLayerDto dto = mapBaseLayer.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(mapBaseLayer, userDetails));
+            return dto;
+        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel());
     }
 
     @PostMapping("")
@@ -53,7 +61,10 @@ public class MapBaseLayerController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        return this.assembler.toModel(this.repository.save(MapBaseLayer.of(newEntity)).toDto());
+        MapBaseLayer entity = this.repository.save(MapBaseLayer.of(newEntity));
+        MapBaseLayerDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -62,7 +73,9 @@ public class MapBaseLayerController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
-        return this.assembler.toModel(entity.toDto());
+        MapBaseLayerDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @PutMapping("{id}")
@@ -73,7 +86,10 @@ public class MapBaseLayerController {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        return this.assembler.toModel(this.repository.save(entity).toDto());
+        MapBaseLayer saved = this.repository.save(entity);
+        MapBaseLayerDto dto = saved.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @DeleteMapping("{id}")

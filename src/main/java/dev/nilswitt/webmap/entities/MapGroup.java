@@ -32,13 +32,9 @@ public class MapGroup extends AbstractEntity {
 
 
     public MapGroupDto toDto() {
-        MapGroupDto dto = new MapGroupDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(getId());
-        dto.setName(getName());
-        return dto;
+        return new MapGroupDto(this.getId(), this.getCreatedAt(), this.getUpdatedAt(), this.getName());
     }
+
     public static MapGroup of(MapGroupDto dto) {
         MapGroup mapGroup = new MapGroup();
         mapGroup.setName(dto.getName());

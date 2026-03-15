@@ -40,12 +40,21 @@ public class MissionGroupController {
         if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
 
             List<EntityModel<MissionGroupDto>> entities = this.repository.findAll().stream()
-                    .map(MissionGroup::toDto).map(this.assembler::toModel)
+                    .map(missionGroup -> {
+                        MissionGroupDto dto = missionGroup.toDto();
+                        dto.setPermissions(this.permissionUtil.getScopes(missionGroup, userDetails));
+                        return dto;
+                    })
+                    .map(this.assembler::toModel)
                     .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MissionGroupController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionUtil.getMissionGroupsForUser(userDetails).stream().map(MissionGroup::toDto).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(MissionGroupController.class).all(null)).withSelfRel());
+        return CollectionModel.of(this.permissionUtil.getMissionGroupsForUser(userDetails).stream().map(missionGroup -> {
+            MissionGroupDto dto = missionGroup.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(missionGroup, userDetails));
+            return dto;
+        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(MissionGroupController.class).all(null)).withSelfRel());
     }
 
 
@@ -54,7 +63,10 @@ public class MissionGroupController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        return this.assembler.toModel(this.repository.save(newEntity).toDto());
+        MissionGroup entity = this.repository.save(newEntity);
+        MissionGroupDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -63,7 +75,9 @@ public class MissionGroupController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
-        return this.assembler.toModel(entity.toDto());
+        MissionGroupDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @PutMapping("{id}")
@@ -77,7 +91,10 @@ public class MissionGroupController {
         entity.setName(newEntity.getName());
         entity.setStartTime(newEntity.getStartTime());
 
-        return this.assembler.toModel(this.repository.save(entity).toDto());
+        MissionGroup saved = this.repository.save(entity);
+        MissionGroupDto dto = saved.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @DeleteMapping("{id}")

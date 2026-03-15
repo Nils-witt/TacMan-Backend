@@ -21,6 +21,10 @@ public class UnitPositionLog extends AbstractEntity {
 
     @Override
     public AbstractEntityDto toDto() {
-        return new AbstractEntityDto();
+        return new AbstractEntityDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt()
+        );
     }
 }

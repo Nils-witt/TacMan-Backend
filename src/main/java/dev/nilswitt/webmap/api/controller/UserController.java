@@ -38,13 +38,21 @@ public class UserController {
         if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.USER)) {
 
             List<EntityModel<UserDto>> entities = this.repository.findAll().stream()
-                    .map(User::toDto)
+                    .map(user -> {
+                        UserDto dto = user.toDto();
+                        dto.setPermissions(this.permissionUtil.getScopes(user, userDetails));
+                        return dto;
+                    })
                     .map(this.assembler::toModel)
                     .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(UserController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionUtil.getUsersForUser(userDetails).stream().map(User::toDto).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(UserController.class).all(null)).withSelfRel());
+        return CollectionModel.of(this.permissionUtil.getUsersForUser(userDetails).stream().map(user -> {
+            UserDto dto = user.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(user, userDetails));
+            return dto;
+        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(UserController.class).all(null)).withSelfRel());
 
     }
 
@@ -53,9 +61,12 @@ public class UserController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.USER)) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        User newUser = User.of(newEntity);
+        User newUser = this.repository.save(User.of(newEntity));
 
-        return this.assembler.toModel(this.repository.save(newUser).toDto());
+        UserDto dto = newUser.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(newUser, userDetails));
+
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -64,7 +75,10 @@ public class UserController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view users.");
         }
-        return this.assembler.toModel(entity.toDto());
+
+        UserDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @PutMapping("{id}")
@@ -80,9 +94,10 @@ public class UserController {
         entity.setFirstName(newEntity.getFirstName());
         entity.setLastName(newEntity.getLastName());
         User saved = this.repository.save(entity);
-        //eventPublisher.publishEvent(new UserNameChangedEvent(saved.getId(), saved.getUsername(), saved.getFirstName(), saved.getLastName()));
 
-        return this.assembler.toModel(saved.toDto());
+        UserDto dto = saved.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @DeleteMapping("{id}")

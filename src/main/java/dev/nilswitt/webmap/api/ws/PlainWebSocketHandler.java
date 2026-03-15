@@ -1,10 +1,13 @@
 package dev.nilswitt.webmap.api.ws;
 
+import dev.nilswitt.webmap.api.dtos.UnitDto;
 import dev.nilswitt.webmap.api.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.entities.SecurityGroup;
 import dev.nilswitt.webmap.entities.Unit;
+import dev.nilswitt.webmap.entities.User;
 import dev.nilswitt.webmap.entities.repositories.UnitRepository;
 import dev.nilswitt.webmap.events.ChangeType;
+import dev.nilswitt.webmap.security.PermissionUtil;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +31,17 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
 
     private final WebSocketSessionRegistry sessionRegistry;
     private final UnitRepository unitRepository;
-
+    private final PermissionUtil permissionsUtil;
     private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     private final Logger log = LoggerFactory.getLogger(PlainWebSocketHandler.class);
 
-    public PlainWebSocketHandler(WebSocketSessionRegistry sessionRegistry, UnitRepository unitRepository) {
+    public PlainWebSocketHandler(WebSocketSessionRegistry sessionRegistry, UnitRepository unitRepository, PermissionUtil permissionsUtil) {
         this.sessionRegistry = sessionRegistry;
         this.unitRepository = unitRepository;
+        this.permissionsUtil = permissionsUtil;
     }
+
     private final ArrayList<String> availableEntityTopics = new ArrayList<>(Arrays.stream(SecurityGroup.UserRoleTypeEnum.values()).map(r -> r.name().toLowerCase()).toList());
 
     @Override
@@ -45,7 +50,7 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
         if (payload.startsWith("SUBSCRIBE ")) {
             String topic = payload.substring(10).trim().toLowerCase();
             try {
-                if (topic.startsWith("/updates/entities/")) {
+                if (topic.startsWith("/entities/")) {
                     String[] parts = topic.split("/");
                     if (parts.length >= 4) {
                         String entityType = parts[3];
@@ -59,18 +64,20 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
 
                 sessionRegistry.subscribe(session, topic);
                 session.sendMessage(new TextMessage("Subscribed to " + topic));
-            }catch (ForbiddenException e){
+            } catch (ForbiddenException e) {
                 session.sendMessage(new TextMessage("Subscription to topic " + topic + " denied: " + e.getMessage()));
                 log.warn("Session {} denied subscription to topic {}: {}", session.getId(), topic, e.getMessage());
             }
 
             return;
-        }else if(payload.startsWith("UNSUBSCRIBE ")) {
+        } else if (payload.startsWith("UNSUBSCRIBE ")) {
             String topic = payload.substring(12).trim().toLowerCase();
-        }else if(payload.startsWith("GET ")) {
+            sessionRegistry.unsubscribe(session, topic);
+            session.sendMessage(new TextMessage("Unsubscribed from " + topic));
+        } else if (payload.startsWith("GET ")) {
             String topic = payload.substring(4).trim().toLowerCase();
 
-            if (topic.equals("/units")) {
+            if (topic.equals("/entities/units")) {
                 List<Unit> units = unitRepository.findAll();
                 for (Unit unit : units) {
                     EntityUpdateNotifier.DownstreamMessage downstreamMessage = new EntityUpdateNotifier.DownstreamMessage();
@@ -79,10 +86,16 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
                     dpayload.entityType = unit.getClass().getSimpleName();
                     dpayload.entityId = unit.getId();
                     dpayload.changeType = ChangeType.RETRANSMIT;
-                    dpayload.entity = unit.toDto();
+
+                    UnitDto dto = unit.toDto();
+                    User userObj = (User) session.getAttributes().get("user");
+                    dto.setPermissions(this.permissionsUtil.getScopes(unit, userObj));
+
+
+                    dpayload.entity = dto;
                     downstreamMessage.payload = dpayload;
 
-                    session.sendMessage(new TextMessage( ow.writeValueAsString(downstreamMessage)));
+                    session.sendMessage(new TextMessage(ow.writeValueAsString(downstreamMessage)));
                 }
             } else {
                 session.sendMessage(new TextMessage("Unknown topic: " + topic));

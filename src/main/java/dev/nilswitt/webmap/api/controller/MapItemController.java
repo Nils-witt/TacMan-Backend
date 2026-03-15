@@ -43,12 +43,21 @@ public class MapItemController {
         if (this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.MAPITEM)) {
 
             List<EntityModel<MapItemDto>> entities = this.repository.findAll().stream()
-                    .map(mapItem -> this.assembler.toModel(mapItem.toDto()))
+                    .map(mapItem -> {
+                        MapItemDto dto = mapItem.toDto();
+                        dto.setPermissions(this.permissionUtil.getScopes(mapItem, userDetails));
+                        return dto;
+                    })
+                    .map(this.assembler::toModel)
                     .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MapItemController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionUtil.getMapItemsForUser(userDetails).stream().map(mapItem -> this.assembler.toModel(mapItem.toDto())).collect(Collectors.toList()), linkTo(methodOn(MapItemController.class).all(null)).withSelfRel());
+        return CollectionModel.of(this.permissionUtil.getMapItemsForUser(userDetails).stream().map(mapItem -> {
+            MapItemDto dto = mapItem.toDto();
+            dto.setPermissions(this.permissionUtil.getScopes(mapItem, userDetails));
+            return dto;
+        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(MapItemController.class).all(null)).withSelfRel());
 
     }
 
@@ -63,7 +72,10 @@ public class MapItemController {
         mapItem.setPosition(EmbeddedPosition.of(newEntity.getPosition()));
         mapItem.setZoomLevel(newEntity.getZoomLevel());
 
-        return this.assembler.toModel(this.repository.save(mapItem).toDto());
+        MapItem saved = this.repository.save(mapItem);
+        MapItemDto dto = saved.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -72,10 +84,10 @@ public class MapItemController {
         if (!this.permissionUtil.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
-        return this.assembler.toModel(
-                (this.repository.findById(id)
-                        .orElseThrow(() -> new MapItemNotFoundException(id))).toDto()
-        );
+
+        MapItemDto dto = entity.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(entity, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @PutMapping("{id}")
@@ -96,7 +108,10 @@ public class MapItemController {
             entity.setMapGroup(null);
         }
 
-        return this.assembler.toModel(this.repository.save(entity).toDto());
+        MapItem saved = this.repository.save(entity);
+        MapItemDto dto = saved.toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
     }
 
     @DeleteMapping("{id}")

@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
-
 @Entity
 @Getter
 @Setter
@@ -39,17 +37,16 @@ public class Photo extends AbstractEntity {
 
     @Override
     public PhotoDto toDto() {
-        PhotoDto dto = new PhotoDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(this.getId());
-        dto.setName(this.getName());
-        dto.setPosition(this.getPosition() != null ? this.getPosition().toDto() : null);
-        dto.setCreatedAt(this.getCreatedAt());
-        dto.setUpdatedAt(this.getUpdatedAt());
-        dto.setAuthorId(this.author.getId());
-        dto.setMissionGroupId(this.missionGroup.getId());
-        return dto;
+
+        return new PhotoDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getName(),
+                this.getPosition() != null ? this.getPosition().toDto() : null,
+                this.getAuthor().getId(),
+                this.getMissionGroup() != null ? this.getMissionGroup().getId() : null
+        );
     }
 
     public static Photo fromDto(PhotoDto dto) {

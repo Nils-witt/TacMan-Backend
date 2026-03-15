@@ -24,11 +24,11 @@ public class UserPermission extends AbstractPermission {
 
 
     public AbstractEntityDto toDto() {
-        AbstractEntityDto dto = new AbstractEntityDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(getId());
-        return dto;
+        return new AbstractEntityDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt()
+        );
     }
 
 }

@@ -23,8 +23,8 @@ public class SecurityGroupPermission extends AbstractPermission {
 
 
     public AbstractEntityDto toDto() {
-        AbstractEntityDto dto = new AbstractEntityDto();
-        dto.setId(getId());
-        return dto;
+        return new AbstractEntityDto(this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt());
     }
 }

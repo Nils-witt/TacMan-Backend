@@ -24,6 +24,8 @@ public class EntityUpdateNotifier {
 
     private final WebSocketSessionRegistry registry;
     private final PermissionUtil permissionUtil;
+    private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+
 
     public EntityUpdateNotifier(WebSocketSessionRegistry registry, PermissionUtil permissionUtil) {
         this.registry = registry;
@@ -34,18 +36,12 @@ public class EntityUpdateNotifier {
     @Async
     public void onUserNameChanged(EntityChangedEvent<? extends AbstractEntity> event) {
 
-        Payload payload = buildPayload(event);
-        String baseTopic = "/updates/entities/" + event.className().toLowerCase();
+        String baseTopic = "/entities/" + event.className().toLowerCase();
         String entityTopic = baseTopic + "/" + event.id();
         log.debug("Updating entity {} to {}", entityTopic, baseTopic);
 
         List<String> topics = List.of(baseTopic, entityTopic);
 
-        DownstreamMessage message = new DownstreamMessage();
-        message.topic = entityTopic;
-        message.payload = payload;
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json = ow.writeValueAsString(message);
 
         HashMap<User, Set<String>> userSessions = new HashMap<>();
 
@@ -64,7 +60,7 @@ public class EntityUpdateNotifier {
                     WebSocketSession session = registry.getSessionById(sessionId);
                     if (session != null && session.isOpen()) {
                         try {
-                            session.sendMessage(new TextMessage(json));
+                            session.sendMessage(buildMessage(event, user));
                         } catch (Exception e) {
                             log.error("Failed to send WebSocket message to session {}: {}", sessionId, e.getMessage());
                         }
@@ -72,6 +68,18 @@ public class EntityUpdateNotifier {
                 }
             }
         }
+    }
+
+    private TextMessage buildMessage(EntityChangedEvent<? extends AbstractEntity> event, User user) {
+        Payload payload = buildPayload(event, user);
+        String baseTopic = "/entities/" + event.className().toLowerCase();
+        String entityTopic = baseTopic + "/" + event.id();
+
+        DownstreamMessage message = new DownstreamMessage();
+        message.topic = entityTopic;
+        message.payload = payload;
+        String json = ow.writeValueAsString(message);
+        return new TextMessage(json);
     }
 
     private boolean hasPermission(User user, EntityChangedEvent<? extends AbstractEntity> event) {
@@ -88,12 +96,17 @@ public class EntityUpdateNotifier {
         };
     }
 
-    private Payload buildPayload(EntityChangedEvent<? extends AbstractEntity> event) {
+    private Payload buildPayload(EntityChangedEvent<? extends AbstractEntity> event, User user) {
         Payload payload = new Payload();
         payload.entityType = event.entity().getClass().getSimpleName();
         payload.entityId = event.id();
         payload.changeType = event.changeType();
-        payload.entity = event.entity().toDto();
+
+        AbstractEntityDto dto = event.entity().toDto();
+        dto.setPermissions(this.permissionUtil.getScopes(event.entity(), user));
+
+        payload.entity = dto;
+
         return payload;
     }
 

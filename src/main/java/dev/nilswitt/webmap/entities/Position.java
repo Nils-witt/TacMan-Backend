@@ -27,6 +27,7 @@ public class Position extends AbstractEntity implements PositionInterface {
 
     @Column
     private Instant timestamp;
+
     public Position(Double latitude, Double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
@@ -34,9 +35,7 @@ public class Position extends AbstractEntity implements PositionInterface {
 
 
     public AbstractEntityDto toDto() {
-        AbstractEntityDto dto = new AbstractEntityDto();
-        dto.setId(getId());
-        return dto;
+        return new AbstractEntityDto(this.getId(), this.getCreatedAt(), this.getUpdatedAt());
     }
 
 }

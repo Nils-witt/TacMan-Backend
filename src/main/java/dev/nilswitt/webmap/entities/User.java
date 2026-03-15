@@ -1,7 +1,6 @@
 package dev.nilswitt.webmap.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.nilswitt.webmap.api.dtos.AbstractEntityDto;
 import dev.nilswitt.webmap.api.dtos.UserDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -139,7 +138,7 @@ public class User extends AbstractEntity implements UserDetails {
     public String getDisplayName() {
         if (this.unit == null) {
             return this.lastName + ", " + this.firstName;
-        }else {
+        } else {
             return this.unit.getName();
         }
     }
@@ -147,18 +146,18 @@ public class User extends AbstractEntity implements UserDetails {
     public String getFirstName() {
         if (this.unit == null) {
             return firstName;
-        }else {
-            return this.unit.getName();
-        }
-    }
-    public String getLastName() {
-        if (this.unit == null) {
-            return lastName;
-        }else {
+        } else {
             return this.unit.getName();
         }
     }
 
+    public String getLastName() {
+        if (this.unit == null) {
+            return lastName;
+        } else {
+            return this.unit.getName();
+        }
+    }
 
 
     @Override
@@ -187,16 +186,17 @@ public class User extends AbstractEntity implements UserDetails {
     }
 
     public UserDto toDto() {
-        UserDto dto = new UserDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(this.getId());
-        dto.setUsername(this.username);
-        dto.setEmail(this.email);
-        dto.setFirstName(this.firstName);
-        dto.setLastName(this.lastName);
-        dto.setUnitId(this.unit != null ? this.unit.getId() : null);
-        return dto;
+
+        return new UserDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getUsername(),
+                this.getEmail(),
+                this.getFirstName(),
+                this.getLastName(),
+                this.unit != null ? this.unit.getId() : null
+        );
     }
 
 

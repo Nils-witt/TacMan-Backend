@@ -48,23 +48,24 @@ public class Unit extends AbstractEntity {
     }
 
     public UnitDto toDto() {
-        UnitDto dto = new UnitDto();
-        dto.setCreatedAt(getCreatedAt());
-        dto.setUpdatedAt(getUpdatedAt());
-        dto.setId(getId());
-        dto.setName(getName());
-        dto.setStatus(getStatus());
-        dto.setSpeakRequest(isSpeakRequest());
-        dto.setShowOnMap(isShowOnMap());
-        dto.setIcon(getIcon() != null ? getIcon().toDto() : new TacticalIconDto());
         EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
         positionDto.setLatitude(getPosition().getLatitude());
         positionDto.setLongitude(getPosition().getLongitude());
         positionDto.setAltitude(getPosition().getAltitude());
         positionDto.setAccuracy(getPosition().getAccuracy());
         positionDto.setTimestamp(getPosition().getTimestamp());
-        dto.setPosition(positionDto);
-        return dto;
+
+        return new UnitDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getName(),
+                getIcon() != null ? getIcon().toDto() : new TacticalIconDto(),
+                positionDto,
+                this.getStatus(),
+                this.isSpeakRequest(),
+                this.showOnMap
+        );
     }
 
     public static Unit of(UnitDto dto) {
