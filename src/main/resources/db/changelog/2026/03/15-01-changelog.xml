@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1773582000000-1" author="copilot">
+        <createTable tableName="password_reset_token">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_password_reset_token"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_hash" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="expires_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="used_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1773582000000-2" author="copilot">
+        <createIndex indexName="idx_password_reset_token_hash" tableName="password_reset_token" unique="true">
+            <column name="token_hash"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1773582000000-3" author="copilot">
+        <createIndex indexName="idx_password_reset_token_user" tableName="password_reset_token">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1773582000000-4" author="copilot">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="password_reset_token"
+                                 constraintName="fk_password_reset_token_on_user" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+</databaseChangeLog>
+

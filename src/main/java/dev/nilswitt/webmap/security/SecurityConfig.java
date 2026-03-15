@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -29,7 +28,7 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Configure Vaadin's security using VaadinSecurityConfigurer
-        http.securityMatcher("/ui/**", "/login", "/", "/VAADIN/**").with(VaadinSecurityConfigurer.vaadin(), configurer -> {
+        http.securityMatcher("/ui/**", "/login", "/forgot-password", "/reset-password", "/", "/VAADIN/**").with(VaadinSecurityConfigurer.vaadin(), configurer -> {
             configurer.loginView(LoginView.class, "/");
             configurer.defaultSuccessUrl("/ui");
         });
@@ -52,7 +51,7 @@ class SecurityConfig {
     SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         return http.securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/token").permitAll();
+                    auth.requestMatchers("/api/token/**").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
