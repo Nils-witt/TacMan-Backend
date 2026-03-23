@@ -27,112 +27,159 @@ import java.util.*;
 @Component
 public class EntityUpdateNotifier {
 
-    private static final Logger log = LoggerFactory.getLogger(EntityUpdateNotifier.class);
+  private static final Logger log = LoggerFactory.getLogger(
+    EntityUpdateNotifier.class
+  );
 
-    private final WebSocketSessionRegistry registry;
-    private final PermissionVerifier permissionVerifier;
-    private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+  private final WebSocketSessionRegistry registry;
+  private final PermissionVerifier permissionVerifier;
+  private final ObjectWriter ow = new ObjectMapper()
+    .writer()
+    .withDefaultPrettyPrinter();
 
-    private final String baseTopic = "entities";
+  private final String baseTopic = "entities";
 
-    public EntityUpdateNotifier(WebSocketSessionRegistry registry, PermissionVerifier permissionVerifier) {
-        this.registry = registry;
-        this.permissionVerifier = permissionVerifier;
-    }
+  public EntityUpdateNotifier(
+    WebSocketSessionRegistry registry,
+    PermissionVerifier permissionVerifier
+  ) {
+    this.registry = registry;
+    this.permissionVerifier = permissionVerifier;
+  }
 
-    @EventListener
-    @Async
-    public void onUserNameChanged(EntityChangedEvent<? extends AbstractEntity> event) {
+  @EventListener
+  @Async
+  public void onUserNameChanged(
+    EntityChangedEvent<? extends AbstractEntity> event
+  ) {
+    String entityTypeName = event.className().toLowerCase();
 
-        String entityTypeName = event.className().toLowerCase();
+    // Notify the type subscribers and individual entity subscribers
+    List<String> topics = List.of(
+      StringUtils.join(List.of("", this.baseTopic, entityTypeName), "/"),
+      StringUtils.join(
+        List.of("", this.baseTopic, entityTypeName, event.id()),
+        "/"
+      )
+    );
 
-        // Notify the type subscribers and individual entity subscribers
-        List<String> topics = List.of(
-                StringUtils.join(List.of("", this.baseTopic, entityTypeName), "/"),
-                StringUtils.join(List.of("", this.baseTopic, entityTypeName, event.id()), "/")
-        );
+    // Find the sessions that are subscribed to one of topics
+    HashMap<User, Set<String>> userSessions = new HashMap<>();
 
+    for (String topic : topics) {
+      log.debug("Sending Update to " + topic);
+      for (WebSocketSession session : registry.getSessionsForTopic(topic)) {
+        Object userObj = session.getAttributes().get("user");
 
-        // Find the sessions that are subscribed to one of topics
-        HashMap<User, Set<String>> userSessions = new HashMap<>();
+        if (userObj instanceof User user) {
+          log.debug(
+            "Checking session for " + session.getId() + " user " + user.getId()
+          );
 
-        for (String topic : topics) {
-            log.info("Sending Update to " + topic);
-            for (WebSocketSession session : registry.getSessionsForTopic(topic)) {
-                Object userObj = session.getAttributes().get("user");
-
-                if (userObj instanceof User user) {
-                    log.info("Checking session for " + session.getId() + " user " + user.getId());
-
-                    userSessions.computeIfAbsent(user, k -> new HashSet<>()).add(session.getId());
-                }
-            }
+          userSessions
+            .computeIfAbsent(user, k -> new HashSet<>())
+            .add(session.getId());
         }
+      }
+    }
 
-        // For each session check of permissions and then send the message
-        for (User user : userSessions.keySet()) {
-            if (this.hasPermission(user, event)) {
-                for (String sessionId : userSessions.get(user)) {
-                    WebSocketSession session = registry.getSessionById(sessionId);
-                    if (session != null && session.isOpen()) {
-                        try {
-                            session.sendMessage(buildMessage(event, user));
-                        } catch (Exception e) {
-                            log.error("Failed to send WebSocket message to session {}: {}", sessionId, e.getMessage());
-                        }
-                    }
-                }
+    // For each session check of permissions and then send the message
+    for (User user : userSessions.keySet()) {
+      if (this.hasPermission(user, event)) {
+        for (String sessionId : userSessions.get(user)) {
+          WebSocketSession session = registry.getSessionById(sessionId);
+          if (session != null && session.isOpen()) {
+            try {
+              session.sendMessage(buildMessage(event, user));
+            } catch (Exception e) {
+              log.error(
+                "Failed to send WebSocket message to session {}: {}",
+                sessionId,
+                e.getMessage()
+              );
             }
+          }
         }
+      }
     }
+  }
 
-    private TextMessage buildMessage(EntityChangedEvent<? extends AbstractEntity> event, User user) {
-        DownstreamMessage message = new DownstreamMessage();
-        message.topic = StringUtils.join(List.of("", this.baseTopic, event.className().toLowerCase(), event.id()), "/");
-        message.payload = buildPayload(event, user);
-        String json = ow.writeValueAsString(message);
-        return new TextMessage(json);
-    }
+  private TextMessage buildMessage(
+    EntityChangedEvent<? extends AbstractEntity> event,
+    User user
+  ) {
+    DownstreamMessage message = new DownstreamMessage();
+    message.topic = StringUtils.join(
+      List.of("", this.baseTopic, event.className().toLowerCase(), event.id()),
+      "/"
+    );
+    message.payload = buildPayload(event, user);
+    String json = ow.writeValueAsString(message);
+    return new TextMessage(json);
+  }
 
-    private boolean hasPermission(User user, EntityChangedEvent<? extends AbstractEntity> event) {
-        AbstractEntity entity = event.entity();
-        return switch (entity) {
-            case User user1 -> permissionVerifier.hasAccess(user, SecurityGroup.UserRoleScopeEnum.VIEW, user1);
-            case MapBaseLayer mapBaseLayer ->
-                    permissionVerifier.hasAccess(user, SecurityGroup.UserRoleScopeEnum.VIEW, mapBaseLayer);
-            case MapItem mapItem -> permissionVerifier.hasAccess(user, SecurityGroup.UserRoleScopeEnum.VIEW, mapItem);
-            case MapOverlay mapOverlay ->
-                    permissionVerifier.hasAccess(user, SecurityGroup.UserRoleScopeEnum.VIEW, mapOverlay);
-            case Unit unit -> permissionVerifier.hasAccess(user, SecurityGroup.UserRoleScopeEnum.VIEW, unit);
-            default -> false;
-        };
-    }
+  private boolean hasPermission(
+    User user,
+    EntityChangedEvent<? extends AbstractEntity> event
+  ) {
+    AbstractEntity entity = event.entity();
+    return switch (entity) {
+      case User user1 -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        user1
+      );
+      case MapBaseLayer mapBaseLayer -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        mapBaseLayer
+      );
+      case MapItem mapItem -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        mapItem
+      );
+      case MapOverlay mapOverlay -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        mapOverlay
+      );
+      case Unit unit -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        unit
+      );
+      default -> false;
+    };
+  }
 
-    private EntityUpdatedPayload buildPayload(EntityChangedEvent<? extends AbstractEntity> event, User user) {
+  private EntityUpdatedPayload buildPayload(
+    EntityChangedEvent<? extends AbstractEntity> event,
+    User user
+  ) {
+    AbstractEntityDto dto = event.entity().toDto();
+    dto.setPermissions(this.permissionVerifier.getScopes(event.entity(), user));
 
-        AbstractEntityDto dto = event.entity().toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(event.entity(), user));
+    return EntityUpdatedPayload.builder()
+      .entity(dto)
+      .entityType(event.entity().getClass().getSimpleName())
+      .changeType(event.changeType())
+      .entityId(event.id())
+      .build();
+  }
 
+  @Builder
+  static class EntityUpdatedPayload {
 
-        return EntityUpdatedPayload.builder()
-                .entity(dto)
-                .entityType(event.entity().getClass().getSimpleName())
-                .changeType(event.changeType())
-                .entityId(event.id())
-                .build();
-    }
+    public String entityType;
+    public UUID entityId;
+    public ChangeType changeType;
+    public AbstractEntityDto entity;
+  }
 
-    @Builder
-    static class EntityUpdatedPayload {
-        public String entityType;
-        public UUID entityId;
-        public ChangeType changeType;
-        public AbstractEntityDto entity;
-    }
+  static class DownstreamMessage {
 
-
-    static class DownstreamMessage {
-        public String topic;
-        public EntityUpdatedPayload payload;
-    }
+    public String topic;
+    public EntityUpdatedPayload payload;
+  }
 }
