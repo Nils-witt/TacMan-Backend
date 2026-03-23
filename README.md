@@ -1,80 +1,94 @@
-# My Application README
+# TacMan Backend
 
-- [ ] TODO Replace or update this README with instructions relevant to your application
+Backend for TacMan built with Spring Boot, Vaadin, and PostgreSQL.
+
+## Tech Stack
+
+- Java 21
+- Spring Boot 4
+- Vaadin 25
+- PostgreSQL 18
+- Liquibase migrations
+
+## Prerequisites
+
+- JDK 21
+- Docker + Docker Compose
+
+## Quick Start (Local)
+
+1. Start PostgreSQL:
+
+```bash
+docker compose up -d postgres
+```
+
+2. Start the backend:
+
+```bash
+./mvnw spring-boot:run
+```
+
+3. Open the app:
+
+- UI/Login: `http://localhost:8080/`
+- API root: `http://localhost:8080/api`
+- OpenAPI UI: `http://localhost:8080/swagger-ui/index.html`
+
+## Default Local Configuration
+
+The app reads configuration from environment variables with local defaults.
+
+## Authentication
+
+- Obtain JWT: `POST /api/token`
+- Validate JWT: `GET /api/token` with `Authorization: Bearer <token>`
+- All other `/api/**` endpoints require authentication by default.
+
+## Password Reset
+
+Password reset is configured through:
+
+- `APP_BASE_URL` (link generation base URL)
+- `PASSWORD_RESET_TTL_MINUTES`
+- `PASSWORD_RESET_MAIL_FROM`
+- `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`
+- `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`
+
+The UI routes `/forgot-password` and `/reset-password` are publicly accessible.
+
+## Database
+
+- PostgreSQL is defined in `compose.yaml` and exposed on `localhost:5434`.
+- Liquibase changelog is loaded from:
+  `src/main/resources/db/changelog/db.changelog-master.xml`
+
+## Useful Commands
+
+Run tests:
+
+```bash
+./mvnw test
+```
+
+Build artifact:
+
+```bash
+./mvnw clean package
+```
+
+Build and push dev image (script in repo):
+
+```bash
+./build-dev-push.sh
+```
 
 ## Project Structure
 
-This project has the following structure:
+- `src/main/resources` - application config and Liquibase changelogs
+- `data/` - local runtime data (database volume, overlays, photos)
 
-```
-src
-├── main/java
-│   └── [application package]
-│       ├── base
-│       │   └── ui
-│       │       ├── ViewToolbar.java
-│       │       └── MainLayout.java
-│       ├── examplefeature
-│       │   ├── ui
-│       │   │   └── TaskListView.java
-│       │   ├── Task.java
-│       │   ├── TaskRepository.java
-│       │   └── TaskService.java                
-│       └── Application.java     
-├── main/resources
-│   ├── META-INF
-│   │   └── resources
-│   │       └── styles.css
-│   └── application.properties 
-└── test/java
-    └── [application package]
-        └── examplefeature
-           └── TaskServiceTest.java                 
-```
+## Notes
 
-The main entry point into the application is `Application.java`. This class contains the `main()` method that starts up 
-the Spring Boot application.
-
-The project follows a *feature-based package structure*, organizing code by *functional units* rather than traditional 
-architectural layers. It includes two feature packages: `base` and `examplefeature`.
-
-* The `base` package contains classes meant for reuse across different features, either through composition or 
-  inheritance. You can use them as-is, tweak them to your needs, or remove them.
-* The `examplefeature` package is an example feature package that demonstrates the structure. It represents a 
-  *self-contained unit of functionality*, including UI components, business logic, data access, and an integration test.
-  Once you create your own features, *you'll remove this package*.
-
-
-## Starting in Development Mode
-
-To start the application in development mode, import it into your IDE and run the `Application` class. 
-You can also start the application from the command line by running: 
-
-```bash
-./mvnw
-```
-
-## Building for Production
-
-To build the application in production mode, run:
-
-```bash
-./mvnw package
-```
-
-To build a Docker image, run:
-
-```bash
-docker build -t my-application:latest .
-```
-
-If you use commercial components, pass the license key as a build secret:
-
-```bash
-docker build --secret id=proKey,src=$HOME/.vaadin/proKey .
-```
-
-## Next Steps
-
-The [Building Apps](https://vaadin.com/docs/v25/building-apps) guides contain hands-on advice for adding features to 
-your application.
+- This repository currently contains hard-coded credentials/tokens in config/build files; rotate them before production use.
+- For production, set all secrets via environment variables and disable default admin credentials.
