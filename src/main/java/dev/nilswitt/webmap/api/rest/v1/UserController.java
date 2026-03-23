@@ -3,6 +3,7 @@ package dev.nilswitt.webmap.api.rest.v1;
 import dev.nilswitt.webmap.api.dtos.UserDto;
 import dev.nilswitt.webmap.entities.SecurityGroup;
 import dev.nilswitt.webmap.entities.User;
+import dev.nilswitt.webmap.entities.repositories.UnitRepository;
 import dev.nilswitt.webmap.entities.repositories.UserRepository;
 import dev.nilswitt.webmap.exceptions.ForbiddenException;
 import dev.nilswitt.webmap.exceptions.UserNotFoundException;
@@ -23,93 +24,175 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("api/users")
 public class UserController {
 
-    private final UserRepository repository;
-    private final UserModelAssembler assembler;
-    private final PermissionVerifier permissionVerifier;
+  private final UserRepository repository;
+  private final UserModelAssembler assembler;
+  private final PermissionVerifier permissionVerifier;
+  private final UnitRepository unitRepository;
 
-    public UserController(UserRepository repository, UserModelAssembler assembler, PermissionVerifier permissionVerifier) {
-        this.repository = repository;
-        this.assembler = assembler;
-        this.permissionVerifier = permissionVerifier;
+  public UserController(
+    UserRepository repository,
+    UserModelAssembler assembler,
+    PermissionVerifier permissionVerifier,
+    UnitRepository unitRepository) {
+    this.repository = repository;
+    this.assembler = assembler;
+    this.permissionVerifier = permissionVerifier;
+    this.unitRepository = unitRepository;
+  }
+
+  @GetMapping("")
+  public CollectionModel<EntityModel<UserDto>> all(
+    @AuthenticationPrincipal User userDetails
+  ) {
+    if (
+      this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        SecurityGroup.UserRoleTypeEnum.USER
+      )
+    ) {
+      List<EntityModel<UserDto>> entities = this.repository.findAll()
+        .stream()
+        .map(user -> {
+          UserDto dto = user.toDto();
+          dto.setPermissions(
+            this.permissionVerifier.getScopes(user, userDetails)
+          );
+          return dto;
+        })
+        .map(this.assembler::toModel)
+        .collect(Collectors.toList());
+      return CollectionModel.of(
+        entities,
+        linkTo(methodOn(UserController.class).all(null)).withSelfRel()
+      );
     }
 
-    @GetMapping("")
-    public CollectionModel<EntityModel<UserDto>> all(@AuthenticationPrincipal User userDetails) {
-        if (this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.USER)) {
+    return CollectionModel.of(
+      this.permissionVerifier.getUsersForUser(userDetails)
+        .stream()
+        .map(user -> {
+          UserDto dto = user.toDto();
+          dto.setPermissions(
+            this.permissionVerifier.getScopes(user, userDetails)
+          );
+          return dto;
+        })
+        .map(this.assembler::toModel)
+        .collect(Collectors.toList()),
+      linkTo(methodOn(UserController.class).all(null)).withSelfRel()
+    );
+  }
 
-            List<EntityModel<UserDto>> entities = this.repository.findAll().stream()
-                    .map(user -> {
-                        UserDto dto = user.toDto();
-                        dto.setPermissions(this.permissionVerifier.getScopes(user, userDetails));
-                        return dto;
-                    })
-                    .map(this.assembler::toModel)
-                    .collect(Collectors.toList());
-            return CollectionModel.of(entities, linkTo(methodOn(UserController.class).all(null)).withSelfRel());
-        }
+  @PostMapping("")
+  EntityModel<UserDto> newEmployee(
+    @RequestBody UserDto newEntity,
+    @AuthenticationPrincipal User userDetails
+  ) {
+    if (
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.CREATE,
+        SecurityGroup.UserRoleTypeEnum.USER
+      )
+    ) {
+      throw new ForbiddenException(
+        "User does not have permission to create overlays."
+      );
+    }
+    User newUser = this.repository.save(User.of(newEntity));
 
-        return CollectionModel.of(this.permissionVerifier.getUsersForUser(userDetails).stream().map(user -> {
-            UserDto dto = user.toDto();
-            dto.setPermissions(this.permissionVerifier.getScopes(user, userDetails));
-            return dto;
-        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(UserController.class).all(null)).withSelfRel());
+    UserDto dto = newUser.toDto();
+    dto.setPermissions(this.permissionVerifier.getScopes(newUser, userDetails));
 
+    return this.assembler.toModel(dto);
+  }
+
+  @GetMapping("{id}")
+  public EntityModel<UserDto> one(
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
+  ) {
+    User entity = this.repository.findById(id).orElseThrow(() ->
+      new UserNotFoundException(id)
+    );
+    if (
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        entity
+      )
+    ) {
+      throw new ForbiddenException(
+        "User does not have permission to view users."
+      );
     }
 
-    @PostMapping("")
-    EntityModel<UserDto> newEmployee(@RequestBody UserDto newEntity, @AuthenticationPrincipal User userDetails) {
-        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.USER)) {
-            throw new ForbiddenException("User does not have permission to create overlays.");
-        }
-        User newUser = this.repository.save(User.of(newEntity));
+    UserDto dto = entity.toDto();
+    dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
+    return this.assembler.toModel(dto);
+  }
 
-        UserDto dto = newUser.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(newUser, userDetails));
+  @PutMapping("{id}")
+  EntityModel<UserDto> replaceEntity(
+    @RequestBody UserDto newEntity,
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
+  ) {
+    User entity = this.repository.findById(id).orElseThrow(() ->
+      new UserNotFoundException(id)
+    );
 
-        return this.assembler.toModel(dto);
+    if (
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.EDIT,
+        entity
+      )
+    ) {
+      throw new ForbiddenException(
+        "User does not have permission to edit overlays."
+      );
     }
 
-    @GetMapping("{id}")
-    public EntityModel<UserDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
-            throw new ForbiddenException("User does not have permission to view users.");
-        }
-
-        UserDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+    entity.setUsername(newEntity.getUsername());
+    entity.setEmail(newEntity.getEmail());
+    entity.setFirstName(newEntity.getFirstName());
+    entity.setLastName(newEntity.getLastName());
+    entity.setLocked(newEntity.isLocked());
+    entity.setEnabled(newEntity.isEnabled());
+    if (newEntity.getUnitId() != null) {
+      entity.setUnit(unitRepository.findById(newEntity.getUnitId()).orElse(null));
+    } else {
+      entity.setUnit(null);
     }
+    User saved = this.repository.save(entity);
 
-    @PutMapping("{id}")
-    EntityModel<UserDto> replaceEntity(@RequestBody UserDto newEntity, @PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    UserDto dto = saved.toDto();
+    dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
+    return this.assembler.toModel(dto);
+  }
 
-        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
-            throw new ForbiddenException("User does not have permission to edit overlays.");
-        }
+  @DeleteMapping("{id}")
+  void deleteEntity(
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
+  ) {
+    User entity = this.repository.findById(id).orElseThrow(() ->
+      new UserNotFoundException(id)
+    );
 
-        entity.setUsername(newEntity.getUsername());
-        entity.setEmail(newEntity.getEmail());
-        entity.setFirstName(newEntity.getFirstName());
-        entity.setLastName(newEntity.getLastName());
-        entity.setLocked(newEntity.isLocked());
-        entity.setEnabled(newEntity.isEnabled());
-
-        User saved = this.repository.save(entity);
-
-        UserDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+    if (
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.DELETE,
+        entity
+      )
+    ) {
+      throw new ForbiddenException(
+        "User does not have permission to delete overlays."
+      );
     }
-
-    @DeleteMapping("{id}")
-    void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-
-        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
-            throw new ForbiddenException("User does not have permission to delete overlays.");
-        }
-        this.repository.deleteById(id);
-    }
+    this.repository.deleteById(id);
+  }
 }

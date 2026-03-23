@@ -8,10 +8,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public interface UnitPositionLogRepository extends JpaRepository<UnitPositionLog, UUID> {
-    List<UnitPositionLog> findByUnit(Unit unit);
+public interface UnitPositionLogRepository
+  extends JpaRepository<UnitPositionLog, UUID>
+{
+  List<UnitPositionLog> findByUnit(Unit unit);
 
-    List<UnitPositionLog> findByUnitAndPosition_TimestampAfter(Unit unit, Instant timestamp);
+  List<UnitPositionLog> findByUnitAndPosition_TimestampAfter(
+    Unit unit,
+    Instant timestamp
+  );
 
-
+  long deleteByUnit(Unit unit);
 }

@@ -88,11 +88,11 @@ public class MapOverlayController {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setName(newEntity.getName());
+    entity.setName(newEntity.getName());
 
-        entity.setBasePath(newEntity.getBasePath());
-        entity.setBasePath(newEntity.getBasePath());
-        entity.setTilePathPattern(newEntity.getTilePathPattern());
+    entity.setBaseUrl(newEntity.getBaseUrl());
+    entity.setBasePath(newEntity.getBasePath());
+    entity.setTilePathPattern(newEntity.getTilePathPattern());
 
         MapOverlay saved = this.repository.save(entity);
         MapOverlayDto dto = saved.toDto();

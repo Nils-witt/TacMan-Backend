@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.UUID;
 
-public interface UnitStatusUpdateRepository extends JpaRepository<UnitStatusUpdate, UUID> {
+public interface UnitStatusUpdateRepository
+  extends JpaRepository<UnitStatusUpdate, UUID>
+{
+  List<UnitStatusUpdate> findByUnit(Unit unit);
 
-    List<UnitStatusUpdate> findByUnit(Unit unit);
+  UnitStatusUpdate findFirstByUnitOrderByCreatedAtAsc(Unit unit);
 
-    UnitStatusUpdate findFirstByUnitOrderByCreatedAtAsc(Unit unit);
-
+  long deleteByUnit(Unit unit);
 }
