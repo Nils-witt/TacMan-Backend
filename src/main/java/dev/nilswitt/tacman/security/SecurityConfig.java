@@ -51,6 +51,7 @@ class SecurityConfig {
       .securityMatcher("/api/**")
       .authorizeHttpRequests(auth -> {
         auth.requestMatchers("/api/token/**").permitAll();
+        auth.requestMatchers("/api").permitAll();
         auth.anyRequest().authenticated();
       })
       .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))

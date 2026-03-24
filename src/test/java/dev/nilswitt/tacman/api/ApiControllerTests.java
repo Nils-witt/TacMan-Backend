@@ -48,7 +48,6 @@ class ApiControllerTests {
   private static Stream<Arguments> securedEndpoints() {
     String randomId = UUID.randomUUID().toString();
     return Stream.of(
-      Arguments.of("GET", "/api"),
       Arguments.of("GET", "/api/profile"),
       Arguments.of("GET", "/api/users"),
       Arguments.of("POST", "/api/users"),
@@ -92,7 +91,12 @@ class ApiControllerTests {
       Arguments.of("POST", "/api/map/groups"),
       Arguments.of("GET", "/api/map/groups/" + randomId),
       Arguments.of("PUT", "/api/map/groups/" + randomId),
-      Arguments.of("DELETE", "/api/map/groups/" + randomId)
+      Arguments.of("DELETE", "/api/map/groups/" + randomId),
+      Arguments.of("GET", "/api/securitygroups"),
+      Arguments.of("POST", "/api/securitygroups"),
+      Arguments.of("GET", "/api/securitygroups/" + randomId),
+      Arguments.of("PUT", "/api/securitygroups/" + randomId),
+      Arguments.of("DELETE", "/api/securitygroups/" + randomId)
     );
   }
 

@@ -23,6 +23,12 @@ public interface SecurityGroupPermissionsRepository
 
   List<SecurityGroupPermission> findByEntityUser(User entityUser);
 
+  List<SecurityGroupPermission> findByPhoto(Photo photo);
+
+  List<SecurityGroupPermission> findByMissionGroup(MissionGroup missionGroup);
+
+  void deleteBySecurityGroup(SecurityGroup securityGroup);
+
   List<SecurityGroupPermission> findBySecurityGroupAndMapOverlayNotNull(
     SecurityGroup securityGroup
   );
