@@ -1,5 +1,5 @@
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 ARG VERSION=0.0.0-SNAPSHOT
 ENV VERSION=${VERSION}
 LABEL maintainer="Nils Witt <nils@nils-witt.de>" version="${VERSION}"
