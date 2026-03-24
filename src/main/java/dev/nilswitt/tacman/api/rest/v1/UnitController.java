@@ -14,6 +14,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -299,6 +300,7 @@ public class UnitController {
   }
 
   @DeleteMapping("{id}")
+  @Transactional
   void deleteEntity(
           @PathVariable UUID id,
           @AuthenticationPrincipal User userDetails
