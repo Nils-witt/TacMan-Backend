@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,43 +15,41 @@ import lombok.Setter;
 @Setter
 public abstract class AbstractPermission extends AbstractEntity {
 
-    @Enumerated
+  @Enumerated
+  private SecurityGroup.UserRoleScopeEnum scope =
+    SecurityGroup.UserRoleScopeEnum.VIEW;
 
-    private SecurityGroup.UserRoleScopeEnum scope = SecurityGroup.UserRoleScopeEnum.VIEW;
+  @ManyToOne
+  @JoinColumn(name = "map_overlay_id")
+  private MapOverlay mapOverlay;
 
-    @ManyToOne
-    @JoinColumn(name = "map_overlay_id")
-    private MapOverlay mapOverlay;
+  @ManyToOne
+  @JoinColumn(name = "map_item_id")
+  private MapItem mapItem;
 
-    @ManyToOne
-    @JoinColumn(name = "map_item_id")
-    private MapItem mapItem;
+  @ManyToOne
+  @JoinColumn(name = "map_group_id")
+  private MapGroup mapGroup;
 
-    @ManyToOne
-    @JoinColumn(name = "map_group_id")
-    private MapGroup mapGroup;
+  @ManyToOne
+  @JoinColumn(name = "unit_id")
+  private Unit unit;
 
-    @ManyToOne
-    @JoinColumn(name = "unit_id")
-    private Unit unit;
+  @ManyToOne
+  @JoinColumn(name = "map_baseLayer_id")
+  private MapBaseLayer baseLayer;
 
-    @ManyToOne
-    @JoinColumn(name = "map_baseLayer_id")
-    private MapBaseLayer baseLayer;
+  @ManyToOne
+  @JoinColumn(name = "entity_user_id")
+  private User entityUser;
 
-    @ManyToOne
-    @JoinColumn(name = "entity_user_id")
-    private User entityUser;
+  @ManyToOne
+  @JoinColumn(name = "photo_id")
+  private Photo photo;
 
-    @ManyToOne
-    @JoinColumn(name = "photo_id")
-    private Photo photo;
+  @ManyToOne
+  @JoinColumn(name = "mission_group_id")
+  private MissionGroup missionGroup;
 
-    @ManyToOne
-    @JoinColumn(name = "mission_group_id")
-    private MissionGroup missionGroup;
-
-    public AbstractPermission() {
-
-    }
+  public AbstractPermission() {}
 }

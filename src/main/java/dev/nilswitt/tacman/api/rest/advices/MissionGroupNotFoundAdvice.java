@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class MissionGroupNotFoundAdvice {
 
-    @ExceptionHandler(MissionGroupNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    String missionNotFoundHandler(MissionGroupNotFoundException ex) {
-        return ex.getMessage();
-    }
+  @ExceptionHandler(MissionGroupNotFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  String missionNotFoundHandler(MissionGroupNotFoundException ex) {
+    return ex.getMessage();
+  }
 }

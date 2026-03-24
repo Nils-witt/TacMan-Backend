@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class MapOverlayNotFoundAdvice {
 
-    @ExceptionHandler(MapOverlayNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    String employeeNotFoundHandler(MapOverlayNotFoundException ex) {
-        return ex.getMessage();
-    }
+  @ExceptionHandler(MapOverlayNotFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  String employeeNotFoundHandler(MapOverlayNotFoundException ex) {
+    return ex.getMessage();
+  }
 }

@@ -5,6 +5,5 @@ import org.springframework.stereotype.Component;
 
 @Component
 public record OverlayConfig(
-        @Value("${application.overlays.path}") String basePath
-) {
-}
+  @Value("${application.overlays.path}") String basePath
+) {}

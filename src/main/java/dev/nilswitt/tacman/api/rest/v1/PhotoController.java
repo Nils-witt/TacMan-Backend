@@ -1,5 +1,8 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import dev.nilswitt.tacman.api.dtos.PhotoDto;
 import dev.nilswitt.tacman.entities.*;
 import dev.nilswitt.tacman.entities.repositories.MissionGroupRepository;
@@ -8,18 +11,6 @@ import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.PhotoNotFoundException;
 import dev.nilswitt.tacman.records.PictureConfig;
 import dev.nilswitt.tacman.security.PermissionVerifier;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,9 +22,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @RestController
@@ -113,16 +112,17 @@ public class PhotoController {
     @AuthenticationPrincipal User userDetails
   ) {
     if (missionGroupId == null) {
-      throw new RuntimeException("Mission Group ID is required to upload a photo.");
+      throw new RuntimeException(
+        "Mission Group ID is required to upload a photo."
+      );
     }
     MissionGroup missionGroup = this.missionGroupRepository.findById(
       missionGroupId
     ).orElseThrow(() -> new PhotoNotFoundException(missionGroupId));
 
     if (userDetails.getUnit() != null) {
-      if (userDetails
-              .getUnit()
-              .getMissionGroup() == null ||
+      if (
+        userDetails.getUnit().getMissionGroup() == null ||
         !userDetails
           .getUnit()
           .getMissionGroup()

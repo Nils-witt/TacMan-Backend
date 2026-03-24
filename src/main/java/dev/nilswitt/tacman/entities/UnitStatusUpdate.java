@@ -27,15 +27,14 @@ public class UnitStatusUpdate extends AbstractEntity {
 
   public UnitStatusDto toDto() {
     return new UnitStatusDto(
-            this.id,
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.status,
-            this.acknowledged,
-            this.unit.getId()
+      this.id,
+      this.getCreatedAt(),
+      this.getUpdatedAt(),
+      this.status,
+      this.acknowledged,
+      this.unit.getId()
     );
   }
 
-  public UnitStatusUpdate() {
-  }
+  public UnitStatusUpdate() {}
 }

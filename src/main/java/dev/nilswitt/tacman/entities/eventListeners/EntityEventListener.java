@@ -15,28 +15,63 @@ import org.springframework.context.ApplicationEventPublisher;
  */
 @Slf4j
 public class EntityEventListener {
-    private ApplicationEventPublisher applicationEventPublisher;
 
-    public EntityEventListener(ApplicationEventPublisher applicationEventPublisher) {
-        this.applicationEventPublisher = applicationEventPublisher;
-    }
+  private ApplicationEventPublisher applicationEventPublisher;
 
-    @PostPersist
-    public void onPostPersist(AbstractEntity entity) {
-        log.debug("A new {} entity has been persisted: {}", entity.getClass().getSimpleName(), entity);
-        applicationEventPublisher.publishEvent(new EntityChangedEvent<>(entity.getClass().getSimpleName(), entity, ChangeType.CREATED, entity.getId()));
-    }
+  public EntityEventListener(
+    ApplicationEventPublisher applicationEventPublisher
+  ) {
+    this.applicationEventPublisher = applicationEventPublisher;
+  }
 
-    @PostUpdate
-    public void onPostUpdate(AbstractEntity entity) {
-        log.debug("An existing {} entity has been updated: {}", entity.getClass().getSimpleName(), entity);
-        applicationEventPublisher.publishEvent(new EntityChangedEvent<>(entity.getClass().getSimpleName(), entity, ChangeType.UPDATED, entity.getId()));
+  @PostPersist
+  public void onPostPersist(AbstractEntity entity) {
+    log.debug(
+      "A new {} entity has been persisted: {}",
+      entity.getClass().getSimpleName(),
+      entity
+    );
+    applicationEventPublisher.publishEvent(
+      new EntityChangedEvent<>(
+        entity.getClass().getSimpleName(),
+        entity,
+        ChangeType.CREATED,
+        entity.getId()
+      )
+    );
+  }
 
-    }
+  @PostUpdate
+  public void onPostUpdate(AbstractEntity entity) {
+    log.debug(
+      "An existing {} entity has been updated: {}",
+      entity.getClass().getSimpleName(),
+      entity
+    );
+    applicationEventPublisher.publishEvent(
+      new EntityChangedEvent<>(
+        entity.getClass().getSimpleName(),
+        entity,
+        ChangeType.UPDATED,
+        entity.getId()
+      )
+    );
+  }
 
-    @PostRemove
-    public void onPostRemove(AbstractEntity entity) {
-        log.debug("An existing {} entity has been removed: {}", entity.getClass().getSimpleName(), entity);
-        applicationEventPublisher.publishEvent(new EntityChangedEvent<>(entity.getClass().getSimpleName(), entity, ChangeType.DELETED, entity.getId()));
-    }
+  @PostRemove
+  public void onPostRemove(AbstractEntity entity) {
+    log.debug(
+      "An existing {} entity has been removed: {}",
+      entity.getClass().getSimpleName(),
+      entity
+    );
+    applicationEventPublisher.publishEvent(
+      new EntityChangedEvent<>(
+        entity.getClass().getSimpleName(),
+        entity,
+        ChangeType.DELETED,
+        entity.getId()
+      )
+    );
+  }
 }

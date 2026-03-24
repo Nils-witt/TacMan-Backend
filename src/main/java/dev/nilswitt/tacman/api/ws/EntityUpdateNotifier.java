@@ -5,6 +5,7 @@ import dev.nilswitt.tacman.entities.*;
 import dev.nilswitt.tacman.events.ChangeType;
 import dev.nilswitt.tacman.events.EntityChangedEvent;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import java.util.*;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,9 +17,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ObjectWriter;
-
-import java.util.*;
-
 
 /**
  * This component listens for EntityChangedEvent events and notifies all connected WebSocket clients that have subscribed to the relevant topics about the changes.

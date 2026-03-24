@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class UnauthorizedAdvice {
 
-    @ExceptionHandler(UnauthorizedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    String errorHandler(UnauthorizedException ex) {
-        return ex.getMessage();
-    }
+  @ExceptionHandler(UnauthorizedException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  String errorHandler(UnauthorizedException ex) {
+    return ex.getMessage();
+  }
 }

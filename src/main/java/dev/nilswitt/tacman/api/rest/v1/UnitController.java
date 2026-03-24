@@ -1,5 +1,8 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import dev.nilswitt.tacman.api.dtos.TacticalIconDto;
 import dev.nilswitt.tacman.api.dtos.UnitDto;
 import dev.nilswitt.tacman.api.dtos.UnitStatusDto;
@@ -10,6 +13,12 @@ import dev.nilswitt.tacman.entities.repositories.UnitStatusUpdateRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.UnitNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -18,16 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("api/units")
@@ -43,13 +42,13 @@ public class UnitController {
   private final UnitPositionLogRepository unitPositionLogRepository;
 
   public UnitController(
-          UnitRepository userRepository,
-          UnitModelAssembler assembler,
-          UnitStatusUpdateModelAssembler unitStatusUpdateModelAssembler,
-          PermissionVerifier permissionVerifier,
-          UnitStatusUpdateRepository unitStatusUpdateRepository,
-          UnitPositionLogRepository unitPositionLogRepository,
-          UnitPositionLogModelAssembler unitPositionLogModelAssembler
+    UnitRepository userRepository,
+    UnitModelAssembler assembler,
+    UnitStatusUpdateModelAssembler unitStatusUpdateModelAssembler,
+    PermissionVerifier permissionVerifier,
+    UnitStatusUpdateRepository unitStatusUpdateRepository,
+    UnitPositionLogRepository unitPositionLogRepository,
+    UnitPositionLogModelAssembler unitPositionLogModelAssembler
   ) {
     this.repository = userRepository;
     this.assembler = assembler;
@@ -62,72 +61,72 @@ public class UnitController {
 
   @GetMapping("")
   CollectionModel<EntityModel<UnitDto>> all(
-          @AuthenticationPrincipal User userDetails
+    @AuthenticationPrincipal User userDetails
   ) {
     if (
-            this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.VIEW,
-                    SecurityGroup.UserRoleTypeEnum.UNIT
-            )
+      this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        SecurityGroup.UserRoleTypeEnum.UNIT
+      )
     ) {
       List<EntityModel<UnitDto>> entities = this.repository.findAll()
-              .stream()
-              .map(unit -> {
-                UnitDto dto = unit.toDto();
-                dto.setPermissions(
-                        this.permissionVerifier.getScopes(unit, userDetails)
-                );
-                return dto;
-              })
-              .map(this.assembler::toModel)
-              .collect(Collectors.toList());
+        .stream()
+        .map(unit -> {
+          UnitDto dto = unit.toDto();
+          dto.setPermissions(
+            this.permissionVerifier.getScopes(unit, userDetails)
+          );
+          return dto;
+        })
+        .map(this.assembler::toModel)
+        .collect(Collectors.toList());
       return CollectionModel.of(
-              entities,
-              linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
+        entities,
+        linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
       );
     }
 
     return CollectionModel.of(
-            this.permissionVerifier.getUnitsForUser(userDetails)
-                    .stream()
-                    .map(unit -> {
-                      UnitDto dto = unit.toDto();
-                      dto.setPermissions(
-                              this.permissionVerifier.getScopes(unit, userDetails)
-                      );
-                      return dto;
-                    })
-                    .map(this.assembler::toModel)
-                    .collect(Collectors.toList()),
-            linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
+      this.permissionVerifier.getUnitsForUser(userDetails)
+        .stream()
+        .map(unit -> {
+          UnitDto dto = unit.toDto();
+          dto.setPermissions(
+            this.permissionVerifier.getScopes(unit, userDetails)
+          );
+          return dto;
+        })
+        .map(this.assembler::toModel)
+        .collect(Collectors.toList()),
+      linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
     );
   }
 
   @PostMapping("")
   EntityModel<UnitDto> newEntity(
-          @RequestBody UnitDto newEntity,
-          @AuthenticationPrincipal User userDetails
+    @RequestBody UnitDto newEntity,
+    @AuthenticationPrincipal User userDetails
   ) {
     if (
-            !this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.CREATE,
-                    SecurityGroup.UserRoleTypeEnum.UNIT
-            )
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.CREATE,
+        SecurityGroup.UserRoleTypeEnum.UNIT
+      )
     ) {
       throw new ForbiddenException(
-              "User does not have permission to create overlays."
+        "User does not have permission to create overlays."
       );
     }
 
     Unit unit = this.repository.save(Unit.of(newEntity));
 
     UnitStatusUpdate statusUpdate = UnitStatusUpdate.builder()
-            .status(newEntity.getStatus())
-            .acknowledged(false)
-            .unit(unit)
-            .build();
+      .status(newEntity.getStatus())
+      .acknowledged(false)
+      .unit(unit)
+      .build();
 
     unitStatusUpdateRepository.save(statusUpdate);
 
@@ -138,26 +137,26 @@ public class UnitController {
 
   @GetMapping("{id}")
   EntityModel<UnitDto> one(
-          @PathVariable UUID id,
-          @AuthenticationPrincipal User userDetails
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
   ) {
     Unit entity = this.repository.findById(id).orElseThrow(() ->
-            new UnitNotFoundException(id)
+      new UnitNotFoundException(id)
     );
     if (
-            !this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.VIEW,
-                    entity
-            )
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        entity
+      )
     ) {
       throw new ForbiddenException(
-              "User does not have permission to view overlays."
+        "User does not have permission to view overlays."
       );
     }
 
     Unit unit = this.repository.findById(id).orElseThrow(() ->
-            new UnitNotFoundException(id)
+      new UnitNotFoundException(id)
     );
     UnitDto dto = unit.toDto();
     dto.setPermissions(this.permissionVerifier.getScopes(unit, userDetails));
@@ -166,20 +165,20 @@ public class UnitController {
 
   @PatchMapping("{id}")
   EntityModel<UnitDto> updateEntity(
-          @RequestBody String rawBody,
-          @PathVariable UUID id,
-          @AuthenticationPrincipal User userDetails
+    @RequestBody String rawBody,
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
   ) {
     Unit entity = this.repository.findById(id).orElseThrow(() ->
-            new UnitNotFoundException(id)
+      new UnitNotFoundException(id)
     );
 
     if (
-            !this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.EDIT,
-                    entity
-            )
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.EDIT,
+        entity
+      )
     ) {
       // When it is an Unit user allow some self updates
       if (userDetails.getUnit().getId().equals(entity.getId())) {
@@ -200,7 +199,7 @@ public class UnitController {
         }
       } else {
         throw new ForbiddenException(
-                "User does not have permission to edit overlays."
+          "User does not have permission to edit overlays."
         );
       }
     }
@@ -218,19 +217,19 @@ public class UnitController {
               EmbeddedPosition position = new EmbeddedPosition();
               position.setLatitude(positionNode.get("latitude").doubleValue());
               position.setLongitude(
-                      positionNode.get("longitude").doubleValue()
+                positionNode.get("longitude").doubleValue()
               );
 
               if (positionNode.has("altitude")) {
                 position.setAltitude(
-                        positionNode.get("altitude").doubleValue()
+                  positionNode.get("altitude").doubleValue()
                 );
               } else {
                 position.setAltitude(0.0);
               }
               if (positionNode.has("accuracy")) {
                 position.setAccuracy(
-                        positionNode.get("accuracy").doubleValue()
+                  positionNode.get("accuracy").doubleValue()
                 );
               } else {
                 position.setAccuracy(-1.0);
@@ -239,12 +238,12 @@ public class UnitController {
               if (positionNode.has("timestamp")) {
                 try {
                   position.setTimestamp(
-                          Instant.parse(positionNode.get("timestamp").asString())
+                    Instant.parse(positionNode.get("timestamp").asString())
                   );
                 } catch (Exception e) {
                   log.warn(
-                          "Could not parse timestamp as date: {}",
-                          positionNode.get("timestamp")
+                    "Could not parse timestamp as date: {}",
+                    positionNode.get("timestamp")
                   );
                   position.setTimestamp(Instant.now());
                 }
@@ -276,17 +275,17 @@ public class UnitController {
         }
         log.info("Commited status update: {}", entity.getStatus());
         unitStatusUpdateRepository.save(
-                UnitStatusUpdate.builder()
-                        .status(entity.getStatus())
-                        .acknowledged(false)
-                        .unit(entity)
-                        .build()
+          UnitStatusUpdate.builder()
+            .status(entity.getStatus())
+            .acknowledged(false)
+            .unit(entity)
+            .build()
         );
       }
       if (data.has("icon")) {
         TacticalIconDto iconDto = mapper.treeToValue(
-                data.get("icon"),
-                TacticalIconDto.class
+          data.get("icon"),
+          TacticalIconDto.class
         );
         entity.setIcon(TacticalIcon.of(iconDto));
       }
@@ -302,22 +301,22 @@ public class UnitController {
   @DeleteMapping("{id}")
   @Transactional
   void deleteEntity(
-          @PathVariable UUID id,
-          @AuthenticationPrincipal User userDetails
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
   ) {
     Unit entity = this.repository.findById(id).orElseThrow(() ->
-            new UnitNotFoundException(id)
+      new UnitNotFoundException(id)
     );
 
     if (
-            !this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.DELETE,
-                    entity
-            )
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.DELETE,
+        entity
+      )
     ) {
       throw new ForbiddenException(
-              "User does not have permission to delete overlays."
+        "User does not have permission to delete overlays."
       );
     }
     this.unitPositionLogRepository.deleteByUnit(entity);
@@ -327,102 +326,118 @@ public class UnitController {
 
   @GetMapping("{id}/status/history")
   CollectionModel<EntityModel<UnitStatusDto>> getStatusHistory(
-          @PathVariable UUID id,
-          @AuthenticationPrincipal User userDetails
+    @PathVariable UUID id,
+    @AuthenticationPrincipal User userDetails
   ) {
     Unit entity = this.repository.findById(id).orElseThrow(() ->
-            new UnitNotFoundException(id)
+      new UnitNotFoundException(id)
     );
     if (
-            !this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.VIEW,
-                    entity
-            )
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        entity
+      )
     ) {
       throw new ForbiddenException(
-              "User does not have permission to view that unit."
+        "User does not have permission to view that unit."
       );
     }
     return CollectionModel.of(
-            this.unitStatusUpdateRepository.findByUnit(entity)
-                    .stream()
-                    .map(UnitStatusUpdate::toDto)
-                    .map(this.unitStatusUpdateModelAssembler::toModel)
-                    .toList(),
-            linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
+      this.unitStatusUpdateRepository.findByUnit(entity)
+        .stream()
+        .map(UnitStatusUpdate::toDto)
+        .map(this.unitStatusUpdateModelAssembler::toModel)
+        .toList(),
+      linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
     );
   }
 
   @GetMapping(value = "{id}/position/history")
   Object getPositionHistory(
-          @PathVariable UUID id,
-          @RequestParam(required = false) Integer since,
-          @RequestParam(required = false) String format,
-          @AuthenticationPrincipal User userDetails
+    @PathVariable UUID id,
+    @RequestParam(required = false) Integer since,
+    @RequestParam(required = false) String format,
+    @AuthenticationPrincipal User userDetails
   ) {
     Unit entity = this.repository.findById(id).orElseThrow(() ->
-            new UnitNotFoundException(id)
+      new UnitNotFoundException(id)
     );
     if (
-            !this.permissionVerifier.hasAccess(
-                    userDetails,
-                    SecurityGroup.UserRoleScopeEnum.VIEW,
-                    entity
-            )
+      !this.permissionVerifier.hasAccess(
+        userDetails,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        entity
+      )
     ) {
       throw new ForbiddenException(
-              "User does not have permission to view that unit."
+        "User does not have permission to view that unit."
       );
     }
     if (format != null && format.equals("simple")) {
       ArrayList<TimedPosition> coordinates = new ArrayList<>();
       if (since != null) {
-        this.unitPositionLogRepository.findByUnitAndPosition_TimestampAfter(entity, Instant.ofEpochSecond(since))
-                .stream()
-                .sorted(Comparator.comparing(UnitPositionLog::getCreatedAt))
-                .forEach(log -> coordinates.add(
-                        new TimedPosition(log.getPosition().getLongitude(), log.getPosition().getLatitude(), log.getPosition().getTimestamp())
-                ));
+        this.unitPositionLogRepository.findByUnitAndPosition_TimestampAfter(
+            entity,
+            Instant.ofEpochSecond(since)
+          )
+          .stream()
+          .sorted(Comparator.comparing(UnitPositionLog::getCreatedAt))
+          .forEach(log ->
+            coordinates.add(
+              new TimedPosition(
+                log.getPosition().getLongitude(),
+                log.getPosition().getLatitude(),
+                log.getPosition().getTimestamp()
+              )
+            )
+          );
       } else {
         this.unitPositionLogRepository.findByUnit(entity)
-                .stream()
-                .sorted(Comparator.comparing(UnitPositionLog::getCreatedAt))
-                .forEach(log -> coordinates.add(
-                        new TimedPosition(log.getPosition().getLongitude(), log.getPosition().getLatitude(), log.getPosition().getTimestamp())
-                ));
+          .stream()
+          .sorted(Comparator.comparing(UnitPositionLog::getCreatedAt))
+          .forEach(log ->
+            coordinates.add(
+              new TimedPosition(
+                log.getPosition().getLongitude(),
+                log.getPosition().getLatitude(),
+                log.getPosition().getTimestamp()
+              )
+            )
+          );
       }
-
 
       return coordinates;
     }
 
     if (since == null) {
       return CollectionModel.of(
-              this.unitPositionLogRepository.findByUnit(entity)
-                      .stream()
-                      .map(UnitPositionLog::toDto)
-                      .map(this.unitPositionLogModelAssembler::toModel)
-                      .toList(),
-              linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
+        this.unitPositionLogRepository.findByUnit(entity)
+          .stream()
+          .map(UnitPositionLog::toDto)
+          .map(this.unitPositionLogModelAssembler::toModel)
+          .toList(),
+        linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
       );
     } else {
       Instant sinceInstant = Instant.ofEpochSecond(since);
       return CollectionModel.of(
-              this.unitPositionLogRepository.findByUnitAndPosition_TimestampAfter(
-                              entity,
-                              sinceInstant
-                      )
-                      .stream()
-                      .map(UnitPositionLog::toDto)
-                      .map(this.unitPositionLogModelAssembler::toModel)
-                      .toList(),
-              linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
+        this.unitPositionLogRepository.findByUnitAndPosition_TimestampAfter(
+            entity,
+            sinceInstant
+          )
+          .stream()
+          .map(UnitPositionLog::toDto)
+          .map(this.unitPositionLogModelAssembler::toModel)
+          .toList(),
+        linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
       );
     }
   }
 
-
-  public record TimedPosition(double longitude, double latitude, Instant timestamp) {
-  }
+  public record TimedPosition(
+    double longitude,
+    double latitude,
+    Instant timestamp
+  ) {}
 }

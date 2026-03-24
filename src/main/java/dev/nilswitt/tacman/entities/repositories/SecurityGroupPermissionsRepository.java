@@ -1,57 +1,97 @@
 package dev.nilswitt.tacman.entities.repositories;
 
 import dev.nilswitt.tacman.entities.*;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SecurityGroupPermissionsRepository extends JpaRepository<SecurityGroupPermission, UUID> {
-    List<SecurityGroupPermission> findByMapOverlay(MapOverlay mapOverlay);
+public interface SecurityGroupPermissionsRepository
+  extends JpaRepository<SecurityGroupPermission, UUID>
+{
+  List<SecurityGroupPermission> findByMapOverlay(MapOverlay mapOverlay);
 
-    List<SecurityGroupPermission> findByMapItem(MapItem mapItem);
+  List<SecurityGroupPermission> findByMapItem(MapItem mapItem);
 
-    List<SecurityGroupPermission> findByMapGroup(MapGroup mapGroup);
+  List<SecurityGroupPermission> findByMapGroup(MapGroup mapGroup);
 
-    List<SecurityGroupPermission> findByBaseLayer(MapBaseLayer mapBaseLayer);
+  List<SecurityGroupPermission> findByBaseLayer(MapBaseLayer mapBaseLayer);
 
-    List<SecurityGroupPermission> findByUnit(Unit unit);
+  List<SecurityGroupPermission> findByUnit(Unit unit);
 
-    List<SecurityGroupPermission> findByEntityUser(User entityUser);
+  List<SecurityGroupPermission> findByEntityUser(User entityUser);
 
-    List<SecurityGroupPermission> findBySecurityGroupAndMapOverlayNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndMapOverlayNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndMapItemNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndMapItemNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndMapGroupNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndMapGroupNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndBaseLayerNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndBaseLayerNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndUnitNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndUnitNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndEntityUserNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndEntityUserNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndPhotoNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndPhotoNotNull(
+    SecurityGroup securityGroup
+  );
 
-    List<SecurityGroupPermission> findBySecurityGroupAndMissionGroupNotNull(SecurityGroup securityGroup);
+  List<SecurityGroupPermission> findBySecurityGroupAndMissionGroupNotNull(
+    SecurityGroup securityGroup
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndMapItem(SecurityGroup securityGroup, MapItem mapItem);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndMapItem(
+    SecurityGroup securityGroup,
+    MapItem mapItem
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndMapGroup(SecurityGroup securityGroup, MapGroup mapGroup);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndMapGroup(
+    SecurityGroup securityGroup,
+    MapGroup mapGroup
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndMapOverlay(SecurityGroup securityGroup, MapOverlay mapOverlay);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndMapOverlay(
+    SecurityGroup securityGroup,
+    MapOverlay mapOverlay
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndBaseLayer(SecurityGroup securityGroup, MapBaseLayer mapBaseLayer);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndBaseLayer(
+    SecurityGroup securityGroup,
+    MapBaseLayer mapBaseLayer
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndUnit(SecurityGroup securityGroup, Unit unit);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndUnit(
+    SecurityGroup securityGroup,
+    Unit unit
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndEntityUser(SecurityGroup securityGroup, User entityUser);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndEntityUser(
+    SecurityGroup securityGroup,
+    User entityUser
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndPhoto(SecurityGroup securityGroup, Photo photo);
+  Optional<SecurityGroupPermission> findBySecurityGroupAndPhoto(
+    SecurityGroup securityGroup,
+    Photo photo
+  );
 
-    Optional<SecurityGroupPermission> findBySecurityGroupAndMissionGroup(SecurityGroup securityGroup, MissionGroup missionGroup);
-
+  Optional<SecurityGroupPermission> findBySecurityGroupAndMissionGroup(
+    SecurityGroup securityGroup,
+    MissionGroup missionGroup
+  );
 }

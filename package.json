@@ -1,0 +1,24 @@
+{
+  "name": "tacman_backend",
+  "version": "1.0.0",
+  "description": "Backend for TacMan built with Spring Boot, Vaadin, and PostgreSQL.",
+  "homepage": "https://github.com/Nils-witt/TacMan-Backend#readme",
+  "bugs": {
+    "url": "https://github.com/Nils-witt/TacMan-Backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nils-witt/TacMan-Backend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "prettier": "3.8.1",
+    "prettier-plugin-java": "2.8.1"
+  }
+}

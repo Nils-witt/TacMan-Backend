@@ -2,13 +2,10 @@ package dev.nilswitt.tacman.entities.repositories;
 
 import dev.nilswitt.tacman.entities.MissionGroup;
 import dev.nilswitt.tacman.entities.Photo;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PhotoRepository extends JpaRepository<Photo, UUID> {
-    List<Photo> findByMissionGroup(MissionGroup missionGroup);
-
-
+  List<Photo> findByMissionGroup(MissionGroup missionGroup);
 }

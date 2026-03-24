@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-
 import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -15,16 +14,17 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SecurityGroupPermission extends AbstractPermission {
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "group_id", nullable = false)
-    @Getter
-    @Setter
-    private SecurityGroup securityGroup;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "group_id", nullable = false)
+  @Getter
+  @Setter
+  private SecurityGroup securityGroup;
 
-
-    public AbstractEntityDto toDto() {
-        return new AbstractEntityDto(this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt());
-    }
+  public AbstractEntityDto toDto() {
+    return new AbstractEntityDto(
+      this.getId(),
+      this.getCreatedAt(),
+      this.getUpdatedAt()
+    );
+  }
 }

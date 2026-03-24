@@ -1,5 +1,8 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import dev.nilswitt.tacman.api.dtos.UserDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
@@ -8,17 +11,13 @@ import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.UserNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("api/users")
@@ -33,7 +32,8 @@ public class UserController {
     UserRepository repository,
     UserModelAssembler assembler,
     PermissionVerifier permissionVerifier,
-    UnitRepository unitRepository) {
+    UnitRepository unitRepository
+  ) {
     this.repository = repository;
     this.assembler = assembler;
     this.permissionVerifier = permissionVerifier;
@@ -162,7 +162,9 @@ public class UserController {
     entity.setLocked(newEntity.isLocked());
     entity.setEnabled(newEntity.isEnabled());
     if (newEntity.getUnitId() != null) {
-      entity.setUnit(unitRepository.findById(newEntity.getUnitId()).orElse(null));
+      entity.setUnit(
+        unitRepository.findById(newEntity.getUnitId()).orElse(null)
+      );
     } else {
       entity.setUnit(null);
     }
