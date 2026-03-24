@@ -1,23 +1,26 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 import dev.nilswitt.tacman.api.dtos.UserDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
+import dev.nilswitt.tacman.entities.repositories.SecurityGroupRepository;
 import dev.nilswitt.tacman.entities.repositories.UnitRepository;
 import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.UserNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("api/users")
@@ -27,17 +30,19 @@ public class UserController {
   private final UserModelAssembler assembler;
   private final PermissionVerifier permissionVerifier;
   private final UnitRepository unitRepository;
+  private final SecurityGroupRepository securityGroupRepository;
 
   public UserController(
     UserRepository repository,
     UserModelAssembler assembler,
     PermissionVerifier permissionVerifier,
-    UnitRepository unitRepository
-  ) {
+    UnitRepository unitRepository,
+    SecurityGroupRepository securityGroupRepository) {
     this.repository = repository;
     this.assembler = assembler;
     this.permissionVerifier = permissionVerifier;
     this.unitRepository = unitRepository;
+    this.securityGroupRepository = securityGroupRepository;
   }
 
   @GetMapping("")
@@ -100,7 +105,9 @@ public class UserController {
         "User does not have permission to create overlays."
       );
     }
-    User newUser = this.repository.save(User.of(newEntity));
+    User newUser = User.of(newEntity);
+    securityGroupRepository.findByName("Everyone").ifPresent(newUser::addSecurityGroup);
+    newUser = this.repository.save(newUser);
 
     UserDto dto = newUser.toDto();
     dto.setPermissions(this.permissionVerifier.getScopes(newUser, userDetails));
@@ -168,6 +175,8 @@ public class UserController {
     } else {
       entity.setUnit(null);
     }
+
+    entity.setSecurityGroups(newEntity.getSecurityGroups().stream().map(uuid -> securityGroupRepository.findById(uuid).orElse(null)).filter(Objects::nonNull).collect(Collectors.toSet()));
     User saved = this.repository.save(entity);
 
     UserDto dto = saved.toDto();
