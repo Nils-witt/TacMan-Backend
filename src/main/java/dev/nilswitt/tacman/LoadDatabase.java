@@ -38,6 +38,16 @@ class LoadDatabase {
     }
     securityGroupRepository.save(adminGroup);
 
+    Optional<SecurityGroup> everyoneGroupOpt =
+      securityGroupRepository.findByName("Everyone");
+    SecurityGroup everyoneGroup;
+    if (everyoneGroupOpt.isEmpty()) {
+      everyoneGroup = new SecurityGroup("Everyone", new HashSet<>());
+      everyoneGroup = securityGroupRepository.save(everyoneGroup);
+    } else {
+      everyoneGroup = everyoneGroupOpt.get();
+    }
+
     if (adminUserRecord.create().equalsIgnoreCase("true")) {
       Optional<User> adminUserOpt = repository.findByUsername(
         adminUserRecord.username()
@@ -53,6 +63,7 @@ class LoadDatabase {
           passwordEncoder.encode(adminUserRecord.password())
         );
         adminUser.addSecurityGroup(adminGroup);
+        adminUser.addSecurityGroup(everyoneGroup);
         repository.save(adminUser);
       } else {
         if (adminUserRecord.force().equalsIgnoreCase("true")) {

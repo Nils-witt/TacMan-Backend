@@ -2,8 +2,10 @@ package dev.nilswitt.tacman.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.nilswitt.tacman.api.dtos.SecurityGroupDto;
+import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,6 +19,7 @@ import lombok.Setter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Entity
+@EntityListeners(EntityEventListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

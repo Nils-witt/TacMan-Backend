@@ -5,7 +5,7 @@ ENV VERSION=${VERSION}
 LABEL maintainer="Nils Witt <nils@nils-witt.de>" version="${VERSION}"
 
 
-HEALTHCHECK --start-period=30s CMD wget -qO- http://localhost:8080/ || exit 1
+HEALTHCHECK --start-period=30s CMD wget -qO- http://localhost:8080/api || exit 1
 
 ENV OVERLAYS_PATH='/overlays'
 COPY target/*.jar app.jar

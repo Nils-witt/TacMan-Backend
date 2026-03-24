@@ -97,25 +97,32 @@ public class JwtFilter extends OncePerRequestFilter {
           newUser.setSecurityGroups(securityGroups);
           user = userRepository.save(newUser);
         } else {
-          User newUser = new User();
-          newUser.setUsername(username);
-          newUser.setEmail(claims.get("email", String.class));
-          newUser.setFirstName(claims.get("given_name", String.class));
-          newUser.setLastName(claims.get("name", String.class));
-          ArrayList<String> cGroups = (ArrayList<String>) claims.get(
-            "groups",
-            ArrayList.class
-          );
-          Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
-          cGroups.forEach(cGroup -> {
-            List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(
-              cGroup
+          log.info("Create new User: " + username);
+          try {
+            User newUser = new User();
+            newUser.setUsername(username);
+            newUser.setEmail(claims.get("email", String.class));
+            newUser.setFirstName(claims.get("given_name", String.class));
+            newUser.setLastName(claims.get("name", String.class));
+            ArrayList<String> cGroups = (ArrayList<String>) claims.get(
+              "groups",
+              ArrayList.class
             );
-            securityGroups.addAll(sg);
-          });
+            Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
+            cGroups.forEach(cGroup -> {
+              List<SecurityGroup> sg =
+                securityGroupRepository.findBySsoGroupName(cGroup);
+              securityGroups.addAll(sg);
+            });
+            securityGroupRepository
+              .findByName("Everyone")
+              .ifPresent(securityGroups::add);
 
-          newUser.setSecurityGroups(securityGroups);
-          user = userRepository.save(newUser);
+            newUser.setSecurityGroups(securityGroups);
+            user = userRepository.save(newUser);
+          } catch (Exception e) {
+            log.warn("User creation failed: {}", e.getMessage(), e);
+          }
         }
 
         AbstractAuthenticationToken auth =

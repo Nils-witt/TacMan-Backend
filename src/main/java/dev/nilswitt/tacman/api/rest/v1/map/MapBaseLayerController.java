@@ -14,11 +14,13 @@ import dev.nilswitt.tacman.security.PermissionVerifier;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Log4j2
 @RestController
 @RequestMapping("api/map/baselayers")
 public class MapBaseLayerController {
@@ -64,7 +66,10 @@ public class MapBaseLayerController {
         linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel()
       );
     }
-
+    log.info(
+      "User {} does not have permission to view all baselayers, returning only those with permissions.",
+      userDetails.getUsername()
+    );
     return CollectionModel.of(
       this.permissionVerifier.getMapBaseLayersForUser(userDetails)
         .stream()

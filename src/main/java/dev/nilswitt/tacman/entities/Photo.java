@@ -1,11 +1,13 @@
 package dev.nilswitt.tacman.entities;
 
 import dev.nilswitt.tacman.api.dtos.PhotoDto;
+import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@EntityListeners(EntityEventListener.class)
 @Getter
 @Setter
 public class Photo extends AbstractEntity {

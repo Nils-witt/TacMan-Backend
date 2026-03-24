@@ -23,6 +23,10 @@ public interface UserPermissionsRepository
 
   List<UserPermission> findByEntityUser(User entityUser);
 
+  List<UserPermission> findByPhoto(Photo photo);
+
+  List<UserPermission> findByMissionGroup(MissionGroup missionGroup);
+
   List<UserPermission> findByUserAndMapOverlayNotNull(User user);
 
   List<UserPermission> findByUserAndMapItemNotNull(User user);

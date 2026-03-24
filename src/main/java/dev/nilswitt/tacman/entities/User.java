@@ -2,11 +2,13 @@ package dev.nilswitt.tacman.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.nilswitt.tacman.api.dtos.UserDto;
+import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 @Setter
 @Entity
+@EntityListeners(EntityEventListener.class)
 @Table(
   name = "users",
   indexes = {
@@ -43,10 +46,9 @@ public class User extends AbstractEntity implements UserDetails {
   @Column(nullable = false, length = 100)
   private String lastName;
 
-  @NotBlank
   @Email
   @Size(max = 255)
-  @Column(nullable = false, unique = true)
+  @Column
   private String email;
 
   @NotBlank
@@ -213,7 +215,10 @@ public class User extends AbstractEntity implements UserDetails {
       this.getLastName(),
       this.isEnabled(),
       this.isLocked(),
-      this.getUnit() != null ? this.getUnit().getId() : null
+      this.getUnit() != null ? this.getUnit().getId() : null,
+      this.securityGroups.stream()
+        .map(SecurityGroup::getId)
+        .collect(Collectors.toSet())
     );
   }
 }
