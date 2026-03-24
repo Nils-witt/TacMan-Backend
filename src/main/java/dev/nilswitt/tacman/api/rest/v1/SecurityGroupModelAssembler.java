@@ -12,7 +12,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityGroupModelAssembler
   implements
-    RepresentationModelAssembler<SecurityGroupDto, EntityModel<SecurityGroupDto>>
+    RepresentationModelAssembler<
+      SecurityGroupDto,
+      EntityModel<SecurityGroupDto>
+    >
 {
 
   @Override
@@ -22,9 +25,9 @@ public class SecurityGroupModelAssembler
       WebMvcLinkBuilder.linkTo(
         methodOn(SecurityGroupController.class).one(entity.getId(), null)
       ).withSelfRel(),
-      linkTo(
-        methodOn(SecurityGroupController.class).all(null)
-      ).withRel("securitygroups")
+      linkTo(methodOn(SecurityGroupController.class).all(null)).withRel(
+        "securitygroups"
+      )
     );
   }
 }

@@ -1,6 +1,11 @@
 package dev.nilswitt.tacman.api;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.jayway.jsonpath.JsonPath;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,12 +15,6 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.UUID;
-
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -44,7 +43,10 @@ class SecurityGroupControllerTests {
   @Test
   @WithUserDetails("admin")
   void shouldCreateSecurityGroup() throws Exception {
-    String unique = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    String unique = UUID.randomUUID()
+      .toString()
+      .replace("-", "")
+      .substring(0, 10);
     String body = """
       {
         "name": "Group_%s",
@@ -65,16 +67,24 @@ class SecurityGroupControllerTests {
       .andExpect(jsonPath("$.roles[0]").value("UNIT_VIEW"))
       .andReturn();
 
-    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
+    String id = JsonPath.read(
+      result.getResponse().getContentAsString(),
+      "$.id"
+    );
 
     // cleanup
-    mockMvc.perform(delete("/api/securitygroups/" + id)).andExpect(status().isOk());
+    mockMvc
+      .perform(delete("/api/securitygroups/" + id))
+      .andExpect(status().isOk());
   }
 
   @Test
   @WithUserDetails("admin")
   void shouldGetSecurityGroupById() throws Exception {
-    String unique = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    String unique = UUID.randomUUID()
+      .toString()
+      .replace("-", "")
+      .substring(0, 10);
     String body = """
       {
         "name": "Group_%s",
@@ -92,7 +102,10 @@ class SecurityGroupControllerTests {
       .andExpect(status().isOk())
       .andReturn();
 
-    String id = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+    String id = JsonPath.read(
+      created.getResponse().getContentAsString(),
+      "$.id"
+    );
 
     mockMvc
       .perform(get("/api/securitygroups/" + id))
@@ -101,13 +114,18 @@ class SecurityGroupControllerTests {
       .andExpect(jsonPath("$.name").value("Group_" + unique));
 
     // cleanup
-    mockMvc.perform(delete("/api/securitygroups/" + id)).andExpect(status().isOk());
+    mockMvc
+      .perform(delete("/api/securitygroups/" + id))
+      .andExpect(status().isOk());
   }
 
   @Test
   @WithUserDetails("admin")
   void shouldUpdateSecurityGroup() throws Exception {
-    String unique = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    String unique = UUID.randomUUID()
+      .toString()
+      .replace("-", "")
+      .substring(0, 10);
     String createBody = """
       {
         "name": "Group_%s",
@@ -125,7 +143,10 @@ class SecurityGroupControllerTests {
       .andExpect(status().isOk())
       .andReturn();
 
-    String id = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+    String id = JsonPath.read(
+      created.getResponse().getContentAsString(),
+      "$.id"
+    );
 
     String updateBody = """
       {
@@ -146,13 +167,18 @@ class SecurityGroupControllerTests {
       .andExpect(jsonPath("$.ssoGroupName").value("sso-group"));
 
     // cleanup
-    mockMvc.perform(delete("/api/securitygroups/" + id)).andExpect(status().isOk());
+    mockMvc
+      .perform(delete("/api/securitygroups/" + id))
+      .andExpect(status().isOk());
   }
 
   @Test
   @WithUserDetails("admin")
   void shouldDeleteSecurityGroup() throws Exception {
-    String unique = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    String unique = UUID.randomUUID()
+      .toString()
+      .replace("-", "")
+      .substring(0, 10);
     String body = """
       {
         "name": "Group_%s",
@@ -170,9 +196,14 @@ class SecurityGroupControllerTests {
       .andExpect(status().isOk())
       .andReturn();
 
-    String id = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+    String id = JsonPath.read(
+      created.getResponse().getContentAsString(),
+      "$.id"
+    );
 
-    mockMvc.perform(delete("/api/securitygroups/" + id)).andExpect(status().isOk());
+    mockMvc
+      .perform(delete("/api/securitygroups/" + id))
+      .andExpect(status().isOk());
 
     mockMvc
       .perform(get("/api/securitygroups/" + id))

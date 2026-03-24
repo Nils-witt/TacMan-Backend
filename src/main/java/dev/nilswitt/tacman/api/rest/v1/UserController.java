@@ -1,5 +1,8 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import dev.nilswitt.tacman.api.dtos.UserDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
@@ -9,18 +12,14 @@ import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.UserNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/users")
@@ -37,7 +36,8 @@ public class UserController {
     UserModelAssembler assembler,
     PermissionVerifier permissionVerifier,
     UnitRepository unitRepository,
-    SecurityGroupRepository securityGroupRepository) {
+    SecurityGroupRepository securityGroupRepository
+  ) {
     this.repository = repository;
     this.assembler = assembler;
     this.permissionVerifier = permissionVerifier;
@@ -106,7 +106,9 @@ public class UserController {
       );
     }
     User newUser = User.of(newEntity);
-    securityGroupRepository.findByName("Everyone").ifPresent(newUser::addSecurityGroup);
+    securityGroupRepository
+      .findByName("Everyone")
+      .ifPresent(newUser::addSecurityGroup);
     newUser = this.repository.save(newUser);
 
     UserDto dto = newUser.toDto();
@@ -176,7 +178,16 @@ public class UserController {
       entity.setUnit(null);
     }
 
-    entity.setSecurityGroups(newEntity.getSecurityGroups().stream().map(uuid -> securityGroupRepository.findById(uuid).orElse(null)).filter(Objects::nonNull).collect(Collectors.toSet()));
+    if (newEntity.getSecurityGroups() != null) {
+      entity.setSecurityGroups(
+        newEntity
+          .getSecurityGroups()
+          .stream()
+          .map(uuid -> securityGroupRepository.findById(uuid).orElse(null))
+          .filter(Objects::nonNull)
+          .collect(Collectors.toSet())
+      );
+    }
     User saved = this.repository.save(entity);
 
     UserDto dto = saved.toDto();

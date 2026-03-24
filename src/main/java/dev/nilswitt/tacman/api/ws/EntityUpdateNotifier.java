@@ -137,10 +137,30 @@ public class EntityUpdateNotifier {
         SecurityGroup.UserRoleScopeEnum.VIEW,
         mapItem
       );
+      case MapGroup mapGroup -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        mapGroup
+      );
       case MapOverlay mapOverlay -> permissionVerifier.hasAccess(
         user,
         SecurityGroup.UserRoleScopeEnum.VIEW,
         mapOverlay
+      );
+      case MissionGroup missionGroup -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        missionGroup
+      );
+      case Photo photo -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        photo
+      );
+      case SecurityGroup ignored -> permissionVerifier.hasAccess(
+        user,
+        SecurityGroup.UserRoleScopeEnum.VIEW,
+        SecurityGroup.UserRoleTypeEnum.SECURITYGROUP
       );
       case Unit unit -> permissionVerifier.hasAccess(
         user,

@@ -105,24 +105,24 @@ public class JwtFilter extends OncePerRequestFilter {
             newUser.setFirstName(claims.get("given_name", String.class));
             newUser.setLastName(claims.get("name", String.class));
             ArrayList<String> cGroups = (ArrayList<String>) claims.get(
-                    "groups",
-                    ArrayList.class
+              "groups",
+              ArrayList.class
             );
             Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
             cGroups.forEach(cGroup -> {
-              List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(
-                      cGroup
-              );
+              List<SecurityGroup> sg =
+                securityGroupRepository.findBySsoGroupName(cGroup);
               securityGroups.addAll(sg);
             });
-            securityGroupRepository.findByName("Everyone").ifPresent(securityGroups::add);
+            securityGroupRepository
+              .findByName("Everyone")
+              .ifPresent(securityGroups::add);
 
             newUser.setSecurityGroups(securityGroups);
             user = userRepository.save(newUser);
           } catch (Exception e) {
-            log.warn("User creation failed: {}", e.getMessage(),e);
+            log.warn("User creation failed: {}", e.getMessage(), e);
           }
-
         }
 
         AbstractAuthenticationToken auth =

@@ -14,7 +14,6 @@ import dev.nilswitt.tacman.security.PermissionVerifier;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.extern.log4j.Log4j2;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
