@@ -21,6 +21,8 @@ public class MapOverlayDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     String baseUrl,
     String basePath,
@@ -28,7 +30,7 @@ public class MapOverlayDto extends AbstractEntityDto {
     int layerVersion,
     UUID mapGroupId
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.baseUrl = baseUrl;
     this.basePath = basePath;

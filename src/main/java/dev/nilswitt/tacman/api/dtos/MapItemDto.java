@@ -18,12 +18,14 @@ public class MapItemDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     EmbeddedPositionDto position,
     UUID mapGroupId,
     Integer zoomLevel
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.position = position;
     this.mapGroupId = mapGroupId;

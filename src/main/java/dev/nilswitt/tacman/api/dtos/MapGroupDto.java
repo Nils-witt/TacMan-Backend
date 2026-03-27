@@ -15,9 +15,11 @@ public class MapGroupDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
   }
 }

@@ -18,11 +18,13 @@ public class SecurityGroupDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     List<String> roles,
     String ssoGroupName
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.roles = roles;
     this.ssoGroupName = ssoGroupName;

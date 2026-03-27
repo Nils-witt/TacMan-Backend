@@ -17,11 +17,13 @@ public class UnitStatusDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     int status,
     boolean acknowledged,
     UUID unitId
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.status = status;
     this.unitId = unitId;
     this.acknowledged = acknowledged;

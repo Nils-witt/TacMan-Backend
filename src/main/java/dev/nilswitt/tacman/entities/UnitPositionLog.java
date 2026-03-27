@@ -31,6 +31,8 @@ public class UnitPositionLog extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.unit.getId(),
       this.position.toDto()
     );

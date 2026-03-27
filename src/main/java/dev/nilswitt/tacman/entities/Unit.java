@@ -47,6 +47,8 @@ public class Unit extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getName(),
       getIcon() != null ? this.getIcon().toDto() : null,
       this.getPosition() != null ? this.getPosition().toDto() : null,

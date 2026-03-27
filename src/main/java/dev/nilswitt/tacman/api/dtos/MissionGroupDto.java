@@ -21,6 +21,8 @@ public class MissionGroupDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     Instant startTime,
     Instant endTime,
@@ -28,7 +30,7 @@ public class MissionGroupDto extends AbstractEntityDto {
     Set<UUID> mapGroupIds,
     EmbeddedPositionDto position
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.startTime = startTime;
     this.endTime = endTime;

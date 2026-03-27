@@ -72,6 +72,7 @@ public class SecurityGroup extends AbstractEntity {
     GLOBAL,
     PHOTO,
     MISSIONGROUP,
+    MISSION,
   }
 
   public static List<String> availableRoles() {
@@ -96,6 +97,8 @@ public class SecurityGroup extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getName(),
       this.getRoles().stream().toList(),
       this.getSsoGroupName()

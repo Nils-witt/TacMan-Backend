@@ -19,13 +19,15 @@ public class UnitDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     TacticalIconDto icon,
     EmbeddedPositionDto position,
     boolean speakRequest,
     int status
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.icon = icon;
     this.position = position;

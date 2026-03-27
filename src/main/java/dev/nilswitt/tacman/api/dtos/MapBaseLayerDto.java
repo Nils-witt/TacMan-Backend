@@ -17,11 +17,13 @@ public class MapBaseLayerDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     String url,
     String cacheUrl
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.url = url;
     this.cacheUrl = cacheUrl;

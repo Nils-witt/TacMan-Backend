@@ -48,6 +48,8 @@ public class MapItem extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getName(),
       positionDto,
       this.getMapGroup() != null ? this.getMapGroup().getId() : null,

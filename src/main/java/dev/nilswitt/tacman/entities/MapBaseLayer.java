@@ -32,6 +32,8 @@ public class MapBaseLayer extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getName(),
       this.getUrl(),
       this.getCacheUrl()

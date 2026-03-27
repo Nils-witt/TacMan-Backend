@@ -81,6 +81,8 @@ public class MapOverlay extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getName(),
       this.getBaseUrl(),
       this.getBasePath(),

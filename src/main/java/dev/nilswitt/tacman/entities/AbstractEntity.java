@@ -5,6 +5,11 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * This is the base Entity class. Which holds the data shared across all Entity-types
@@ -12,6 +17,7 @@ import lombok.Getter;
  */
 @MappedSuperclass
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 public abstract class AbstractEntity {
 
   @Id
@@ -19,22 +25,20 @@ public abstract class AbstractEntity {
   UUID id;
 
   @Column(name = "created_at", nullable = false, updatable = false)
+  @CreatedDate
   private Instant createdAt;
 
   @Column(name = "updated_at", nullable = false)
+  @LastModifiedDate
   private Instant updatedAt;
 
-  @PrePersist
-  protected void onCreate() {
-    Instant now = Instant.now();
-    this.createdAt = now;
-    this.updatedAt = now;
-  }
+  @Column(name = "created_by")
+  @CreatedBy
+  private String createdBy;
 
-  @PreUpdate
-  protected void onUpdate() {
-    this.updatedAt = Instant.now();
-  }
+  @Column(name = "modified_by")
+  @LastModifiedBy
+  private String modifiedBy;
 
   public abstract AbstractEntityDto toDto();
 }

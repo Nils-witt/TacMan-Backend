@@ -70,6 +70,7 @@ public class JwtFilter extends OncePerRequestFilter {
             user.getAuthorities()
           );
         SecurityContextHolder.getContext().setAuthentication(auth);
+        return;
       } catch (Exception e) {
         log.warn("Local JWT validation failed: {}", e.getMessage());
       }
@@ -121,7 +122,7 @@ public class JwtFilter extends OncePerRequestFilter {
             newUser.setSecurityGroups(securityGroups);
             user = userRepository.save(newUser);
           } catch (Exception e) {
-            log.warn("User creation failed: {}", e.getMessage(), e);
+            log.warn("User creation failed: {}", e.getMessage());
           }
         }
 

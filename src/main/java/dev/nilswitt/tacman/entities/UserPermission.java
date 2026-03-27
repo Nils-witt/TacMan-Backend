@@ -22,7 +22,9 @@ public class UserPermission extends AbstractPermission {
     return new AbstractEntityDto(
       this.getId(),
       this.getCreatedAt(),
-      this.getUpdatedAt()
+      this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy()
     );
   }
 }

@@ -40,7 +40,9 @@ public class Position extends AbstractEntity implements PositionInterface {
     return new AbstractEntityDto(
       this.getId(),
       this.getCreatedAt(),
-      this.getUpdatedAt()
+      this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy()
     );
   }
 }

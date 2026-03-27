@@ -14,11 +14,21 @@ public class AbstractEntityDto {
   private UUID id;
   private Instant createdAt;
   private Instant updatedAt;
+  private String createdBy;
+  private String modifiedBy;
   private Set<SecurityGroup.UserRoleScopeEnum> permissions;
 
-  public AbstractEntityDto(UUID id, Instant createdAt, Instant updatedAt) {
+  public AbstractEntityDto(
+    UUID id,
+    Instant createdAt,
+    Instant updatedAt,
+    String createdBy,
+    String modifiedBy
+  ) {
     this.id = id;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.createdBy = createdBy;
+    this.modifiedBy = modifiedBy;
   }
 }

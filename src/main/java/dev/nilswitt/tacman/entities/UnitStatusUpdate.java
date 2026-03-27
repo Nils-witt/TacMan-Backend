@@ -30,6 +30,8 @@ public class UnitStatusUpdate extends AbstractEntity {
       this.id,
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.status,
       this.acknowledged,
       this.unit.getId()

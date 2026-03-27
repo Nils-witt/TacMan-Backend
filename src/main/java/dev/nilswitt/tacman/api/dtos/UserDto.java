@@ -27,6 +27,8 @@ public class UserDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String username,
     String email,
     String firstName,
@@ -36,7 +38,7 @@ public class UserDto extends AbstractEntityDto {
     UUID unitId,
     Set<UUID> securityGroups
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.username = username;
     this.email = email;
     this.firstName = firstName;

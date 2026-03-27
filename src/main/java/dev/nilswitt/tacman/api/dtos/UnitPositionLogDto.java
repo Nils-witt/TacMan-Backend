@@ -16,10 +16,12 @@ public class UnitPositionLogDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     UUID unitId,
     EmbeddedPositionDto position
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.unitId = unitId;
     this.position = position;
   }

@@ -209,6 +209,8 @@ public class User extends AbstractEntity implements UserDetails {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getUsername(),
       this.getEmail(),
       this.getFirstName(),

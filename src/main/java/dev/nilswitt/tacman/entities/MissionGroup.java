@@ -65,6 +65,8 @@ public class MissionGroup extends AbstractEntity {
       this.getId(),
       this.getCreatedAt(),
       this.getUpdatedAt(),
+      this.getCreatedBy(),
+      this.getModifiedBy(),
       this.getName(),
       this.getStartTime(),
       this.getEndTime(),

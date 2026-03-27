@@ -18,12 +18,14 @@ public class PhotoDto extends AbstractEntityDto {
     UUID id,
     Instant createdAt,
     Instant updatedAt,
+    String createdBy,
+    String modifiedBy,
     String name,
     EmbeddedPositionDto position,
     UUID authorId,
     UUID missionGroupId
   ) {
-    super(id, createdAt, updatedAt);
+    super(id, createdAt, updatedAt, createdBy, modifiedBy);
     this.name = name;
     this.position = position;
     this.authorId = authorId;
