@@ -70,6 +70,7 @@ public class JwtFilter extends OncePerRequestFilter {
             user.getAuthorities()
           );
         SecurityContextHolder.getContext().setAuthentication(auth);
+        filterChain.doFilter(request, response);
         return;
       } catch (Exception e) {
         log.warn("Local JWT validation failed: {}", e.getMessage());

@@ -29,26 +29,8 @@
             <column name="modified_by" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
-    <changeSet id="1774476212498-5" author="nilswitt">
-        <addColumn tableName="message">
-            <column name="created_by" type="VARCHAR(255)"/>
-            <column name="modified_by" type="VARCHAR(255)"/>
-        </addColumn>
-    </changeSet>
-    <changeSet id="1774476212498-6" author="nilswitt">
-        <addColumn tableName="mission">
-            <column name="created_by" type="VARCHAR(255)"/>
-            <column name="modified_by" type="VARCHAR(255)"/>
-        </addColumn>
-    </changeSet>
     <changeSet id="1774476212498-7" author="nilswitt">
         <addColumn tableName="mission_group">
-            <column name="created_by" type="VARCHAR(255)"/>
-            <column name="modified_by" type="VARCHAR(255)"/>
-        </addColumn>
-    </changeSet>
-    <changeSet id="1774476212498-8" author="nilswitt">
-        <addColumn tableName="mission_unit_assignment">
             <column name="created_by" type="VARCHAR(255)"/>
             <column name="modified_by" type="VARCHAR(255)"/>
         </addColumn>
