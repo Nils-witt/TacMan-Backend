@@ -12,41 +12,44 @@ import lombok.Setter;
 @Getter
 public class UnitPositionLog extends AbstractEntity {
 
-  @ManyToOne(optional = false)
-  private Unit unit;
+    @ManyToOne(optional = false)
+    private Unit unit;
 
-  @Embedded
-  private EmbeddedPosition position;
+    @Embedded
+    private EmbeddedPosition position;
 
-  public UnitPositionLog() {}
+    public UnitPositionLog() {
+    }
 
-  public UnitPositionLog(Unit unit, EmbeddedPosition position) {
-    this.unit = unit;
-    this.position = position;
-  }
+    public UnitPositionLog(Unit unit, EmbeddedPosition position) {
+        this.unit = unit;
+        this.position = position;
+    }
 
-  @Override
-  public UnitPositionLogDto toDto() {
-    return new UnitPositionLogDto(
-      this.getId(),
-      this.getCreatedAt(),
-      this.getUpdatedAt(),
-      this.unit.getId(),
-      this.position.toDto()
-    );
-  }
+    @Override
+    public UnitPositionLogDto toDto() {
+        return new UnitPositionLogDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy(),
+                this.unit.getId(),
+                this.position.toDto()
+        );
+    }
 
-  @Override
-  public String toString() {
-    return (
-      "UnitPositionLog{" +
-      "position=" +
-      position +
-      ", id=" +
-      id +
-      ", unit=" +
-      unit +
-      '}'
-    );
-  }
+    @Override
+    public String toString() {
+        return (
+                "UnitPositionLog{" +
+                        "position=" +
+                        position +
+                        ", id=" +
+                        id +
+                        ", unit=" +
+                        unit +
+                        '}'
+        );
+    }
 }

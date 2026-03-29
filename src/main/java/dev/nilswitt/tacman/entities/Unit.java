@@ -14,56 +14,58 @@ import lombok.Setter;
 @Setter
 public class Unit extends AbstractEntity {
 
-  @NotBlank
-  @Size(max = 100)
-  @Column(nullable = false, length = 100, unique = true)
-  private String name;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100, unique = true)
+    private String name;
 
-  @Embedded
-  private TacticalIcon icon = new TacticalIcon();
+    @Embedded
+    private TacticalIcon icon = new TacticalIcon();
 
-  @Embedded
-  private EmbeddedPosition position = new EmbeddedPosition();
+    @Embedded
+    private EmbeddedPosition position = new EmbeddedPosition();
 
-  @Column(nullable = false)
-  private int status = 6;
+    @Column(nullable = false)
+    private int status = 6;
 
-  @Column(nullable = false)
-  private boolean speakRequest = false;
+    @Column(nullable = false)
+    private boolean speakRequest = false;
 
-  @ManyToOne
-  @JoinColumn(name = "mission_group_id")
-  private MissionGroup missionGroup;
+    @ManyToOne
+    @JoinColumn(name = "mission_group_id")
+    private MissionGroup missionGroup;
 
-  public EmbeddedPosition getPosition() {
-    if (position == null) {
-      position = new EmbeddedPosition();
+    public EmbeddedPosition getPosition() {
+        if (position == null) {
+            position = new EmbeddedPosition();
+        }
+        return position;
     }
-    return position;
-  }
 
-  public UnitDto toDto() {
-    return new UnitDto(
-      this.getId(),
-      this.getCreatedAt(),
-      this.getUpdatedAt(),
-      this.getName(),
-      getIcon() != null ? this.getIcon().toDto() : null,
-      this.getPosition() != null ? this.getPosition().toDto() : null,
-      this.isSpeakRequest(),
-      this.status
-    );
-  }
-
-  public static Unit of(UnitDto dto) {
-    Unit unit = new Unit();
-    unit.setName(dto.getName());
-    unit.setIcon(TacticalIcon.of(dto.getIcon()));
-    unit.setSpeakRequest(dto.isSpeakRequest());
-    unit.setStatus(dto.getStatus());
-    if (dto.getPosition() != null) {
-      unit.setPosition(EmbeddedPosition.of(dto.getPosition()));
+    public UnitDto toDto() {
+        return new UnitDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy(),
+                this.getName(),
+                getIcon() != null ? this.getIcon().toDto() : null,
+                this.getPosition() != null ? this.getPosition().toDto() : null,
+                this.isSpeakRequest(),
+                this.status
+        );
     }
-    return unit;
-  }
+
+    public static Unit of(UnitDto dto) {
+        Unit unit = new Unit();
+        unit.setName(dto.getName());
+        unit.setIcon(TacticalIcon.of(dto.getIcon()));
+        unit.setSpeakRequest(dto.isSpeakRequest());
+        unit.setStatus(dto.getStatus());
+        if (dto.getPosition() != null) {
+            unit.setPosition(EmbeddedPosition.of(dto.getPosition()));
+        }
+        return unit;
+    }
 }

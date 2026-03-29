@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class MapBaseLayerNotFoundAdvice {
 
-  @ExceptionHandler(MapBaseLayerNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  String employeeNotFoundHandler(MapBaseLayerNotFoundException ex) {
-    return ex.getMessage();
-  }
+    @ExceptionHandler(MapBaseLayerNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    String employeeNotFoundHandler(MapBaseLayerNotFoundException ex) {
+        return ex.getMessage();
+    }
 }

@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class MapItemNotFoundAdvice {
 
-  @ExceptionHandler(MapItemNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  String employeeNotFoundHandler(MapItemNotFoundException ex) {
-    return ex.getMessage();
-  }
+    @ExceptionHandler(MapItemNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    String employeeNotFoundHandler(MapItemNotFoundException ex) {
+        return ex.getMessage();
+    }
 }

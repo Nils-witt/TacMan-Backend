@@ -10,19 +10,22 @@ import lombok.Setter;
 @Entity
 public class UserPermission extends AbstractPermission {
 
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
-  @Getter
-  @Setter
-  private User user;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @Getter
+    @Setter
+    private User user;
 
-  public UserPermission() {}
+    public UserPermission() {
+    }
 
-  public AbstractEntityDto toDto() {
-    return new AbstractEntityDto(
-      this.getId(),
-      this.getCreatedAt(),
-      this.getUpdatedAt()
-    );
-  }
+    public AbstractEntityDto toDto() {
+        return new AbstractEntityDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy()
+        );
+    }
 }

@@ -16,25 +16,28 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UnitStatusUpdate extends AbstractEntity {
 
-  @Column(nullable = false)
-  private int status = 6;
+    @Column(nullable = false)
+    private int status = 6;
 
-  @Column(nullable = false)
-  private boolean acknowledged = false;
+    @Column(nullable = false)
+    private boolean acknowledged = false;
 
-  @ManyToOne(optional = false)
-  private Unit unit;
+    @ManyToOne(optional = false)
+    private Unit unit;
 
-  public UnitStatusDto toDto() {
-    return new UnitStatusDto(
-      this.id,
-      this.getCreatedAt(),
-      this.getUpdatedAt(),
-      this.status,
-      this.acknowledged,
-      this.unit.getId()
-    );
-  }
+    public UnitStatusDto toDto() {
+        return new UnitStatusDto(
+                this.id,
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy(),
+                this.status,
+                this.acknowledged,
+                this.unit.getId()
+        );
+    }
 
-  public UnitStatusUpdate() {}
+    public UnitStatusUpdate() {
+    }
 }

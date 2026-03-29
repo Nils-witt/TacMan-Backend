@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Log4j2
 public class ProfileController {
 
-  private final UserModelAssembler assembler;
+    private final UserModelAssembler assembler;
 
-  public ProfileController(UserModelAssembler assembler) {
-    this.assembler = assembler;
-  }
+    public ProfileController(UserModelAssembler assembler) {
+        this.assembler = assembler;
+    }
 
-  @GetMapping("")
-  EntityModel<UserDto> newEntity(@AuthenticationPrincipal User userDetails) {
-    return this.assembler.toModel(userDetails.toDto());
-  }
+    @GetMapping("")
+    EntityModel<UserDto> newEntity(@AuthenticationPrincipal User userDetails) {
+        return this.assembler.toModel(userDetails.toDto());
+    }
 }

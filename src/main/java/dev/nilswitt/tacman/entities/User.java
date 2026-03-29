@@ -7,218 +7,222 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Setter
 @Entity
 @EntityListeners(EntityEventListener.class)
 @Table(
-  name = "users",
-  indexes = {
-    @Index(columnList = "username", name = "idx_users_username"),
-    @Index(columnList = "email", name = "idx_users_email"),
-  },
-  uniqueConstraints = {
-    @UniqueConstraint(columnNames = { "username" }),
-    @UniqueConstraint(columnNames = { "email" }),
-  }
+        name = "users",
+        indexes = {
+                @Index(columnList = "username", name = "idx_users_username"),
+                @Index(columnList = "email", name = "idx_users_email"),
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"username"}),
+                @UniqueConstraint(columnNames = {"email"}),
+        }
 )
 @Getter
 public class User extends AbstractEntity implements UserDetails {
 
-  @NotBlank
-  @Size(max = 100)
-  @Column(nullable = false, unique = true, length = 100)
-  private String username;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, unique = true, length = 100)
+    private String username;
 
-  @NotBlank
-  @Size(max = 100)
-  @Column(nullable = false, length = 100)
-  private String firstName;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100)
+    private String firstName;
 
-  @NotBlank
-  @Size(max = 100)
-  @Column(nullable = false, length = 100)
-  private String lastName;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100)
+    private String lastName;
 
-  @Email
-  @Size(max = 255)
-  @Column
-  private String email;
+    @Email
+    @Size(max = 255)
+    @Column
+    private String email;
 
-  @NotBlank
-  @Column(nullable = false, length = 100)
-  @JsonIgnore
-  private String password = "NaN";
+    @NotBlank
+    @Column(nullable = false, length = 100)
+    @JsonIgnore
+    private String password = "NaN";
 
-  @ManyToMany(fetch = FetchType.EAGER)
-  @JoinTable(
-    name = "user_security_group",
-    joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "group_id")
-  )
-  @JsonIgnore
-  private Set<SecurityGroup> securityGroups = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_security_group",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id")
+    )
+    @JsonIgnore
+    private Set<SecurityGroup> securityGroups = new HashSet<>();
 
-  @Column
-  private boolean isEnabled = true;
+    @Column
+    private boolean isEnabled = true;
 
-  @Column
-  private boolean isLocked = false;
+    @Column
+    private boolean isLocked = false;
 
-  @OneToMany(mappedBy = "user", orphanRemoval = true)
-  private Set<UserPermission> userPermissions = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
+    private Set<UserPermission> userPermissions = new LinkedHashSet<>();
 
-  @OneToOne
-  @JoinColumn(name = "unit_id", unique = true)
-  private Unit unit;
+    @OneToOne
+    @JoinColumn(name = "unit_id", unique = true)
+    private Unit unit;
 
-  public User() {}
-
-  /**
-   * Constructor for creating a user
-   *
-   * @param username
-   * @param email
-   * @param firstName
-   * @param lastName
-   */
-  public User(
-    String username,
-    String email,
-    String firstName,
-    String lastName
-  ) {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.username = username;
-    this.email = email;
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return UserDetails.super.isAccountNonExpired();
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return !this.isLocked;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return UserDetails.super.isCredentialsNonExpired();
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return this.isEnabled;
-  }
-
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return this.securityGroups.stream()
-      .flatMap(securityGroup -> securityGroup.getGrantedAuthorities().stream())
-      .toList();
-  }
-
-  public void addSecurityGroup(SecurityGroup securityGroup) {
-    if (this.securityGroups == null) {
-      this.securityGroups = new HashSet<>();
+    public User() {
     }
-    this.securityGroups.add(securityGroup);
-  }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    User user = (User) o;
-    return this.getId() != null && Objects.equals(this.getId(), user.getId());
-  }
-
-  public String getDisplayName() {
-    if (this.unit == null) {
-      return this.lastName + ", " + this.firstName;
-    } else {
-      return this.unit.getName();
+    /**
+     * Constructor for creating a user
+     *
+     * @param username
+     * @param email
+     * @param firstName
+     * @param lastName
+     */
+    public User(
+            String username,
+            String email,
+            String firstName,
+            String lastName
+    ) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.email = email;
     }
-  }
 
-  public String getFirstName() {
-    if (this.unit == null) {
-      return firstName;
-    } else {
-      return this.unit.getName();
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
     }
-  }
 
-  public String getLastName() {
-    if (this.unit == null) {
-      return lastName;
-    } else {
-      return this.unit.getName();
+    @Override
+    public boolean isAccountNonLocked() {
+        return !this.isLocked;
     }
-  }
 
-  @Override
-  public int hashCode() {
-    return this.getId() != null
-      ? Objects.hash(this.getId())
-      : System.identityHashCode(this);
-  }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
 
-  @Override
-  public String toString() {
-    return (
-      "User{" +
-      "id=" +
-      this.getId() +
-      ", username='" +
-      username +
-      '\'' +
-      ", email='" +
-      email +
-      '\'' +
-      ", createdAt=" +
-      this.getCreatedAt() +
-      ", updatedAt=" +
-      this.getUpdatedAt() +
-      '}'
-    );
-  }
+    @Override
+    public boolean isEnabled() {
+        return this.isEnabled;
+    }
 
-  public static User of(UserDto userDto) {
-    User user = new User();
-    user.setUsername(userDto.getUsername());
-    user.setEmail(userDto.getEmail());
-    user.setFirstName(userDto.getFirstName());
-    user.setLastName(userDto.getLastName());
-    user.setEnabled(userDto.isEnabled());
-    user.setLocked(userDto.isLocked());
-    return user;
-  }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.securityGroups.stream()
+                .flatMap(securityGroup -> securityGroup.getGrantedAuthorities().stream())
+                .toList();
+    }
 
-  public UserDto toDto() {
-    return new UserDto(
-      this.getId(),
-      this.getCreatedAt(),
-      this.getUpdatedAt(),
-      this.getUsername(),
-      this.getEmail(),
-      this.getFirstName(),
-      this.getLastName(),
-      this.isEnabled(),
-      this.isLocked(),
-      this.getUnit() != null ? this.getUnit().getId() : null,
-      this.securityGroups.stream()
-        .map(SecurityGroup::getId)
-        .collect(Collectors.toSet())
-    );
-  }
+    public void addSecurityGroup(SecurityGroup securityGroup) {
+        if (this.securityGroups == null) {
+            this.securityGroups = new HashSet<>();
+        }
+        this.securityGroups.add(securityGroup);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return this.getId() != null && Objects.equals(this.getId(), user.getId());
+    }
+
+    public String getDisplayName() {
+        if (this.unit == null) {
+            return this.lastName + ", " + this.firstName;
+        } else {
+            return this.unit.getName();
+        }
+    }
+
+    public String getFirstName() {
+        if (this.unit == null) {
+            return firstName;
+        } else {
+            return this.unit.getName();
+        }
+    }
+
+    public String getLastName() {
+        if (this.unit == null) {
+            return lastName;
+        } else {
+            return this.unit.getName();
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getId() != null
+                ? Objects.hash(this.getId())
+                : System.identityHashCode(this);
+    }
+
+    @Override
+    public String toString() {
+        return (
+                "User{" +
+                        "id=" +
+                        this.getId() +
+                        ", username='" +
+                        username +
+                        '\'' +
+                        ", email='" +
+                        email +
+                        '\'' +
+                        ", createdAt=" +
+                        this.getCreatedAt() +
+                        ", updatedAt=" +
+                        this.getUpdatedAt() +
+                        '}'
+        );
+    }
+
+    public static User of(UserDto userDto) {
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
+        user.setEnabled(userDto.isEnabled());
+        user.setLocked(userDto.isLocked());
+        return user;
+    }
+
+    public UserDto toDto() {
+        return new UserDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy(),
+                this.getUsername(),
+                this.getEmail(),
+                this.getFirstName(),
+                this.getLastName(),
+                this.isEnabled(),
+                this.isLocked(),
+                this.getUnit() != null ? this.getUnit().getId() : null,
+                this.securityGroups.stream()
+                        .map(SecurityGroup::getId)
+                        .collect(Collectors.toSet())
+        );
+    }
 }

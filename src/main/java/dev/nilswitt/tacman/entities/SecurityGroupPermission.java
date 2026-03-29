@@ -14,17 +14,19 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SecurityGroupPermission extends AbstractPermission {
 
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "group_id", nullable = false)
-  @Getter
-  @Setter
-  private SecurityGroup securityGroup;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "group_id", nullable = false)
+    @Getter
+    @Setter
+    private SecurityGroup securityGroup;
 
-  public AbstractEntityDto toDto() {
-    return new AbstractEntityDto(
-      this.getId(),
-      this.getCreatedAt(),
-      this.getUpdatedAt()
-    );
-  }
+    public AbstractEntityDto toDto() {
+        return new AbstractEntityDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy()
+        );
+    }
 }

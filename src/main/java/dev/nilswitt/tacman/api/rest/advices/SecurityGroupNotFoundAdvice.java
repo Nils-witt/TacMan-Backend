@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class SecurityGroupNotFoundAdvice {
 
-  @ExceptionHandler(SecurityGroupNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  String securityGroupNotFoundHandler(SecurityGroupNotFoundException ex) {
-    return ex.getMessage();
-  }
+    @ExceptionHandler(SecurityGroupNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    String securityGroupNotFoundHandler(SecurityGroupNotFoundException ex) {
+        return ex.getMessage();
+    }
 }
