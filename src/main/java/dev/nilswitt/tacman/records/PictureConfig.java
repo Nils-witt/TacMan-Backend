@@ -5,5 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public record PictureConfig(
-  @Value("${application.photos.path}") String localPath
-) {}
+        @Value("${application.photos.path}") String localPath
+) {
+}

@@ -5,5 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public record ApplicationInfo(
-  @Value("${spring.application.version:unknown}") String version
-) {}
+        @Value("${spring.application.version:unknown}") String version
+) {
+}

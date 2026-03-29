@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class PhotoNotFoundAdvice {
 
-  @ExceptionHandler(PhotoNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  String photoNotFoundHandler(PhotoNotFoundException ex) {
-    return ex.getMessage();
-  }
+    @ExceptionHandler(PhotoNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    String photoNotFoundHandler(PhotoNotFoundException ex) {
+        return ex.getMessage();
+    }
 }

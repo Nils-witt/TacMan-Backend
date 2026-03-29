@@ -5,80 +5,82 @@ import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.entities.repositories.SecurityGroupRepository;
 import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.records.DatabaseInitAdminUserRecord;
-import java.util.HashSet;
-import java.util.Optional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.HashSet;
+import java.util.Optional;
+
 @Configuration
 class LoadDatabase {
 
-  @Bean
-  CommandLineRunner initDatabase(
-    UserRepository repository,
-    SecurityGroupRepository securityGroupRepository,
-    DatabaseInitAdminUserRecord adminUserRecord,
-    PasswordEncoder passwordEncoder
-  ) {
-    Optional<SecurityGroup> adminGroupOpt = securityGroupRepository.findByName(
-      "SuperAdmins"
-    );
-    SecurityGroup adminGroup;
-
-    if (adminGroupOpt.isEmpty()) {
-      adminGroup = new SecurityGroup(
-        "SuperAdmins",
-        new HashSet<>(SecurityGroup.availableRoles())
-      );
-    } else {
-      adminGroup = adminGroupOpt.get();
-      adminGroup.setRoles(new HashSet<>(SecurityGroup.availableRoles()));
-    }
-    securityGroupRepository.save(adminGroup);
-
-    Optional<SecurityGroup> everyoneGroupOpt =
-      securityGroupRepository.findByName("Everyone");
-    SecurityGroup everyoneGroup;
-    if (everyoneGroupOpt.isEmpty()) {
-      everyoneGroup = new SecurityGroup("Everyone", new HashSet<>());
-      everyoneGroup = securityGroupRepository.save(everyoneGroup);
-    } else {
-      everyoneGroup = everyoneGroupOpt.get();
-    }
-
-    if (adminUserRecord.create().equalsIgnoreCase("true")) {
-      Optional<User> adminUserOpt = repository.findByUsername(
-        adminUserRecord.username()
-      );
-      if (adminUserOpt.isEmpty()) {
-        User adminUser = new User(
-          adminUserRecord.username(),
-          "admin@admin.local",
-          "Admin",
-          "Admin"
+    @Bean
+    CommandLineRunner initDatabase(
+            UserRepository repository,
+            SecurityGroupRepository securityGroupRepository,
+            DatabaseInitAdminUserRecord adminUserRecord,
+            PasswordEncoder passwordEncoder
+    ) {
+        Optional<SecurityGroup> adminGroupOpt = securityGroupRepository.findByName(
+                "SuperAdmins"
         );
-        adminUser.setPassword(
-          passwordEncoder.encode(adminUserRecord.password())
-        );
-        adminUser.addSecurityGroup(adminGroup);
-        adminUser.addSecurityGroup(everyoneGroup);
-        repository.save(adminUser);
-      } else {
-        if (adminUserRecord.force().equalsIgnoreCase("true")) {
-          User adminUser = adminUserOpt.get();
-          adminUser.setPassword(
-            passwordEncoder.encode(adminUserRecord.password())
-          );
-          adminUser.setLocked(false);
-          adminUser.setEnabled(true);
-          adminUser.addSecurityGroup(adminGroup);
-          repository.save(adminUser);
+        SecurityGroup adminGroup;
+
+        if (adminGroupOpt.isEmpty()) {
+            adminGroup = new SecurityGroup(
+                    "SuperAdmins",
+                    new HashSet<>(SecurityGroup.availableRoles())
+            );
+        } else {
+            adminGroup = adminGroupOpt.get();
+            adminGroup.setRoles(new HashSet<>(SecurityGroup.availableRoles()));
         }
-      }
-    }
+        securityGroupRepository.save(adminGroup);
 
-    return args -> {};
-  }
+        Optional<SecurityGroup> everyoneGroupOpt =
+                securityGroupRepository.findByName("Everyone");
+        SecurityGroup everyoneGroup;
+        if (everyoneGroupOpt.isEmpty()) {
+            everyoneGroup = new SecurityGroup("Everyone", new HashSet<>());
+            everyoneGroup = securityGroupRepository.save(everyoneGroup);
+        } else {
+            everyoneGroup = everyoneGroupOpt.get();
+        }
+
+        if (adminUserRecord.create().equalsIgnoreCase("true")) {
+            Optional<User> adminUserOpt = repository.findByUsername(
+                    adminUserRecord.username()
+            );
+            if (adminUserOpt.isEmpty()) {
+                User adminUser = new User(
+                        adminUserRecord.username(),
+                        "admin@admin.local",
+                        "Admin",
+                        "Admin"
+                );
+                adminUser.setPassword(
+                        passwordEncoder.encode(adminUserRecord.password())
+                );
+                adminUser.addSecurityGroup(adminGroup);
+                adminUser.addSecurityGroup(everyoneGroup);
+                repository.save(adminUser);
+            } else {
+                if (adminUserRecord.force().equalsIgnoreCase("true")) {
+                    User adminUser = adminUserOpt.get();
+                    adminUser.setPassword(
+                            passwordEncoder.encode(adminUserRecord.password())
+                    );
+                    adminUser.setLocked(false);
+                    adminUser.setEnabled(true);
+                    adminUser.addSecurityGroup(adminGroup);
+                    repository.save(adminUser);
+                }
+            }
+        }
+
+        return args -> {
+        };
+    }
 }

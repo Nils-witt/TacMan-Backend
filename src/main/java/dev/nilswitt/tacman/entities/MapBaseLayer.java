@@ -16,35 +16,35 @@ import lombok.Setter;
 @Setter
 public class MapBaseLayer extends AbstractEntity {
 
-  @NotBlank
-  @Size(max = 100)
-  @Column(nullable = false, length = 100)
-  private String name;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100)
+    private String name;
 
-  @Column(nullable = false, length = 100)
-  private String url;
+    @Column(nullable = false, length = 100)
+    private String url;
 
-  @Column
-  private String cacheUrl;
+    @Column
+    private String cacheUrl;
 
-  public MapBaseLayerDto toDto() {
-    return new MapBaseLayerDto(
-      this.getId(),
-      this.getCreatedAt(),
-      this.getUpdatedAt(),
-      this.getCreatedBy(),
-      this.getModifiedBy(),
-      this.getName(),
-      this.getUrl(),
-      this.getCacheUrl()
-    );
-  }
+    public MapBaseLayerDto toDto() {
+        return new MapBaseLayerDto(
+                this.getId(),
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.getCreatedBy(),
+                this.getModifiedBy(),
+                this.getName(),
+                this.getUrl(),
+                this.getCacheUrl()
+        );
+    }
 
-  public static MapBaseLayer of(MapBaseLayerDto dto) {
-    MapBaseLayer layer = new MapBaseLayer();
-    layer.setName(dto.getName());
-    layer.setUrl(dto.getUrl());
-    layer.setCacheUrl(dto.getCacheUrl());
-    return layer;
-  }
+    public static MapBaseLayer of(MapBaseLayerDto dto) {
+        MapBaseLayer layer = new MapBaseLayer();
+        layer.setName(dto.getName());
+        layer.setUrl(dto.getUrl());
+        layer.setCacheUrl(dto.getCacheUrl());
+        return layer;
+    }
 }

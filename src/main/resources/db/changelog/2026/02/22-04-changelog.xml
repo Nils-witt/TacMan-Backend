@@ -30,10 +30,13 @@
     </changeSet>
     <changeSet id="1771795266686-23" author="Nils-WItt">
         <renameColumn oldColumnName="accuracy" newColumnName="embeddedposition_accuracy" tableName="unit_position_log"/>
-        <renameColumn oldColumnName="altitude" newColumnName="embeddedposition_altimeter" tableName="unit_position_log"/>
+        <renameColumn oldColumnName="altitude" newColumnName="embeddedposition_altimeter"
+                      tableName="unit_position_log"/>
         <renameColumn oldColumnName="latitude" newColumnName="embeddedposition_latitude" tableName="unit_position_log"/>
-        <renameColumn oldColumnName="longitude" newColumnName="embeddedposition_longitude" tableName="unit_position_log"/>
-        <renameColumn oldColumnName="timestamp" newColumnName="embeddedposition_timestamp" tableName="unit_position_log"/>
+        <renameColumn oldColumnName="longitude" newColumnName="embeddedposition_longitude"
+                      tableName="unit_position_log"/>
+        <renameColumn oldColumnName="timestamp" newColumnName="embeddedposition_timestamp"
+                      tableName="unit_position_log"/>
     </changeSet>
 
 </databaseChangeLog>

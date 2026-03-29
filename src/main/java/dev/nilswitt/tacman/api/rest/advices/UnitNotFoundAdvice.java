@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class UnitNotFoundAdvice {
 
-  @ExceptionHandler(UnitNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  String employeeNotFoundHandler(UnitNotFoundException ex) {
-    return ex.getMessage();
-  }
+    @ExceptionHandler(UnitNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    String employeeNotFoundHandler(UnitNotFoundException ex) {
+        return ex.getMessage();
+    }
 }

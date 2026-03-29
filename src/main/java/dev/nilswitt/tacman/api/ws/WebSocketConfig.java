@@ -11,29 +11,29 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-  private final PlainWebSocketHandler plainWebSocketHandler;
-  private final JWTTokenComponent jwtComponent;
-  private final UserRepository userRepository;
+    private final PlainWebSocketHandler plainWebSocketHandler;
+    private final JWTTokenComponent jwtComponent;
+    private final UserRepository userRepository;
 
-  private final String WS_PATH = "/api/ws";
+    private final String WS_PATH = "/api/ws";
 
-  public WebSocketConfig(
-    PlainWebSocketHandler plainWebSocketHandler,
-    JWTTokenComponent jwtComponent,
-    UserRepository userRepository
-  ) {
-    this.plainWebSocketHandler = plainWebSocketHandler;
-    this.jwtComponent = jwtComponent;
-    this.userRepository = userRepository;
-  }
+    public WebSocketConfig(
+            PlainWebSocketHandler plainWebSocketHandler,
+            JWTTokenComponent jwtComponent,
+            UserRepository userRepository
+    ) {
+        this.plainWebSocketHandler = plainWebSocketHandler;
+        this.jwtComponent = jwtComponent;
+        this.userRepository = userRepository;
+    }
 
-  @Override
-  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry
-      .addHandler(this.plainWebSocketHandler, this.WS_PATH)
-      .addInterceptors(
-        new JWTHandshakeInterceptor(this.jwtComponent, this.userRepository)
-      )
-      .setAllowedOriginPatterns("*");
-  }
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry
+                .addHandler(this.plainWebSocketHandler, this.WS_PATH)
+                .addInterceptors(
+                        new JWTHandshakeInterceptor(this.jwtComponent, this.userRepository)
+                )
+                .setAllowedOriginPatterns("*");
+    }
 }

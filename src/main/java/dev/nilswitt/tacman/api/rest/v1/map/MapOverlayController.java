@@ -16,7 +16,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -132,7 +135,7 @@ public class MapOverlayController {
             throw new RuntimeException("Failed to create directory for overlay upload.", e);
         }
 
-        try{
+        try {
             InputStream inputStream = file.getInputStream();
 
             byte[] buffer = new byte[1024];
@@ -177,6 +180,7 @@ public class MapOverlayController {
 
     /**
      * Helper for unzipping
+     *
      * @param destinationDir
      * @param zipEntry
      * @return
