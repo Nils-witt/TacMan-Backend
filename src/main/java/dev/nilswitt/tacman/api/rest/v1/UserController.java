@@ -16,12 +16,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
+@Slf4j
 @RestController
 @RequestMapping("api/users")
 public class UserController {
@@ -158,6 +162,52 @@ public class UserController {
         return this.assembler.toModel(dto);
     }
 
+    @PatchMapping("{id}")
+    EntityModel<UserDto> updateEntity(
+        @RequestBody String rawBody,
+        @PathVariable UUID id,
+        @AuthenticationPrincipal User userDetails
+    ) {
+        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
+            throw new ForbiddenException("User does not have permission to edit overlays.");
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode data = mapper.readTree(rawBody);
+            if (data.has("email")) {
+                entity.setEmail(data.get("email").asString());
+            }
+            if (data.has("firstName")) {
+                entity.setFirstName(data.get("firstName").asString());
+            }
+            if (data.has("lastName")) {
+                entity.setLastName(data.get("lastName").asString());
+            }
+            if (data.has("locked")) {
+                entity.setLocked(data.get("locked").asBoolean());
+            }
+            if (data.has("enabled")) {
+                entity.setEnabled(data.get("enabled").asBoolean());
+            }
+            if (data.has("unitId")) {
+                try {
+                    String unitId = data.get("unitId").asString();
+                    entity.setUnit(unitRepository.findById(UUID.fromString(unitId)).orElse(null));
+                } catch (Exception e) {
+                    entity.setUnit(null);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to parse JSON body: {}", e.getMessage(), e);
+        }
+        User saved = this.repository.save(entity);
+        UserDto dto = saved.toDto();
+        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
+        return this.assembler.toModel(dto);
+    }
+
     @DeleteMapping("{id}")
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
         User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
@@ -169,18 +219,19 @@ public class UserController {
     }
 
     @PostMapping("{id}/password")
-    void setPassword(
+    EntityModel<UserDto> setPassword(
         @PathVariable UUID id,
         @RequestBody PasswordPayload body,
         @AuthenticationPrincipal User userDetails
     ) {
         User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-
+        log.info("Changing password for user {}", entity.getUsername());
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to set User Passwords.");
         }
         entity.setPassword(passwordEncoder.encode(body.password()));
         this.repository.save(entity);
+        return this.assembler.toModel(entity.toDto());
     }
 
     private record PasswordPayload(String password) {}
