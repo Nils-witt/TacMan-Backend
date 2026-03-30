@@ -31,6 +31,87 @@ public final class PermissionVerifier {
         this.mapItemRepository = mapItemRepository;
     }
 
+    public static boolean testScope(
+        SecurityGroup.UserRoleScopeEnum requiredScope,
+        SecurityGroup.UserRoleScopeEnum providedScope
+    ) {
+        return switch (requiredScope) {
+            case VIEW -> isView(providedScope);
+            case EDIT -> isEdit(providedScope);
+            case CREATE -> isCreate(providedScope);
+            case DELETE -> isDelete(providedScope);
+            case ADMIN -> providedScope == SecurityGroup.UserRoleScopeEnum.ADMIN;
+        };
+    }
+
+    public static boolean isView(SecurityGroup.UserRoleScopeEnum toTest) {
+        return (
+            toTest == SecurityGroup.UserRoleScopeEnum.VIEW ||
+            toTest == SecurityGroup.UserRoleScopeEnum.EDIT ||
+            toTest == SecurityGroup.UserRoleScopeEnum.ADMIN
+        );
+    }
+
+    public static boolean isEdit(SecurityGroup.UserRoleScopeEnum toTest) {
+        return (
+            toTest == SecurityGroup.UserRoleScopeEnum.VIEW ||
+            toTest == SecurityGroup.UserRoleScopeEnum.EDIT ||
+            toTest == SecurityGroup.UserRoleScopeEnum.ADMIN
+        );
+    }
+
+    public static boolean isCreate(SecurityGroup.UserRoleScopeEnum toTest) {
+        return (toTest == SecurityGroup.UserRoleScopeEnum.CREATE || toTest == SecurityGroup.UserRoleScopeEnum.ADMIN);
+    }
+
+    public static boolean isDelete(SecurityGroup.UserRoleScopeEnum toTest) {
+        return (toTest == SecurityGroup.UserRoleScopeEnum.DELETE || toTest == SecurityGroup.UserRoleScopeEnum.ADMIN);
+    }
+
+    public static boolean hasAnyScope(
+        User user,
+        SecurityGroup.UserRoleTypeEnum type,
+        SecurityGroup.UserRoleScopeEnum... scopes
+    ) {
+        if (scopes == null || scopes.length == 0) {
+            return false;
+        }
+        return Arrays.stream(scopes).anyMatch(scope -> hasScope(user, type, scope));
+    }
+
+    private static boolean hasScope(
+        User user,
+        SecurityGroup.UserRoleTypeEnum type,
+        SecurityGroup.UserRoleScopeEnum scope
+    ) {
+        if (user == null || type == null || scope == null) {
+            return false;
+        }
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        String requiredRole = buildRole(type, scope);
+        String typeAdminRole = buildRole(type, SecurityGroup.UserRoleScopeEnum.ADMIN);
+        String globalScopeRole = buildRole(SecurityGroup.UserRoleTypeEnum.GLOBAL, scope);
+        String globalAdminRole = buildRole(
+            SecurityGroup.UserRoleTypeEnum.GLOBAL,
+            SecurityGroup.UserRoleScopeEnum.ADMIN
+        );
+
+        return authorities
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(
+                role ->
+                    role.equals(requiredRole) ||
+                    role.equals(typeAdminRole) ||
+                    role.equals(globalScopeRole) ||
+                    role.equals(globalAdminRole)
+            );
+    }
+
+    private static String buildRole(SecurityGroup.UserRoleTypeEnum type, SecurityGroup.UserRoleScopeEnum scope) {
+        return "ROLE_" + type.name() + "_" + scope.name();
+    }
+
     public boolean hasAccess(
         User user,
         SecurityGroup.UserRoleScopeEnum requiredScope,
@@ -119,87 +200,6 @@ public final class PermissionVerifier {
         return getScopes(checkUser, user).contains(requiredScope);
     }
 
-    public static boolean testScope(
-        SecurityGroup.UserRoleScopeEnum requiredScope,
-        SecurityGroup.UserRoleScopeEnum providedScope
-    ) {
-        return switch (requiredScope) {
-            case VIEW -> isView(providedScope);
-            case EDIT -> isEdit(providedScope);
-            case CREATE -> isCreate(providedScope);
-            case DELETE -> isDelete(providedScope);
-            case ADMIN -> providedScope == SecurityGroup.UserRoleScopeEnum.ADMIN;
-        };
-    }
-
-    public static boolean isView(SecurityGroup.UserRoleScopeEnum toTest) {
-        return (
-            toTest == SecurityGroup.UserRoleScopeEnum.VIEW ||
-            toTest == SecurityGroup.UserRoleScopeEnum.EDIT ||
-            toTest == SecurityGroup.UserRoleScopeEnum.ADMIN
-        );
-    }
-
-    public static boolean isEdit(SecurityGroup.UserRoleScopeEnum toTest) {
-        return (
-            toTest == SecurityGroup.UserRoleScopeEnum.VIEW ||
-            toTest == SecurityGroup.UserRoleScopeEnum.EDIT ||
-            toTest == SecurityGroup.UserRoleScopeEnum.ADMIN
-        );
-    }
-
-    public static boolean isCreate(SecurityGroup.UserRoleScopeEnum toTest) {
-        return (toTest == SecurityGroup.UserRoleScopeEnum.CREATE || toTest == SecurityGroup.UserRoleScopeEnum.ADMIN);
-    }
-
-    public static boolean isDelete(SecurityGroup.UserRoleScopeEnum toTest) {
-        return (toTest == SecurityGroup.UserRoleScopeEnum.DELETE || toTest == SecurityGroup.UserRoleScopeEnum.ADMIN);
-    }
-
-    public static boolean hasAnyScope(
-        User user,
-        SecurityGroup.UserRoleTypeEnum type,
-        SecurityGroup.UserRoleScopeEnum... scopes
-    ) {
-        if (scopes == null || scopes.length == 0) {
-            return false;
-        }
-        return Arrays.stream(scopes).anyMatch(scope -> hasScope(user, type, scope));
-    }
-
-    private static boolean hasScope(
-        User user,
-        SecurityGroup.UserRoleTypeEnum type,
-        SecurityGroup.UserRoleScopeEnum scope
-    ) {
-        if (user == null || type == null || scope == null) {
-            return false;
-        }
-        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
-        String requiredRole = buildRole(type, scope);
-        String typeAdminRole = buildRole(type, SecurityGroup.UserRoleScopeEnum.ADMIN);
-        String globalScopeRole = buildRole(SecurityGroup.UserRoleTypeEnum.GLOBAL, scope);
-        String globalAdminRole = buildRole(
-            SecurityGroup.UserRoleTypeEnum.GLOBAL,
-            SecurityGroup.UserRoleScopeEnum.ADMIN
-        );
-
-        return authorities
-            .stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(
-                role ->
-                    role.equals(requiredRole) ||
-                    role.equals(typeAdminRole) ||
-                    role.equals(globalScopeRole) ||
-                    role.equals(globalAdminRole)
-            );
-    }
-
-    private static String buildRole(SecurityGroup.UserRoleTypeEnum type, SecurityGroup.UserRoleScopeEnum scope) {
-        return "ROLE_" + type.name() + "_" + scope.name();
-    }
-
     public List<MapOverlay> getMapOverlaysForUser(User userDetails) {
         ArrayList<MapOverlay> permittedOverlays = new ArrayList<>(
             this.userPermissionsRepository.findByUserAndMapOverlayNotNull(userDetails)
@@ -229,14 +229,14 @@ public final class PermissionVerifier {
     }
 
     public List<Unit> getUnitsForUser(User userDetails) {
-        ArrayList<Unit> permittedOverlays = new ArrayList<>(
+        ArrayList<Unit> permittedUnits = new ArrayList<>(
             this.userPermissionsRepository.findByUserAndUnitNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getUnit)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
-            permittedOverlays.addAll(
+            permittedUnits.addAll(
                 this.securityGroupPermissionsRepository.findBySecurityGroupAndUnitNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getUnit)
@@ -244,9 +244,9 @@ public final class PermissionVerifier {
             );
         }
         if (userDetails.getUnit() != null) {
-            permittedOverlays.add(userDetails.getUnit());
+            permittedUnits.add(userDetails.getUnit());
         }
-        return permittedOverlays.stream().distinct().toList();
+        return permittedUnits.stream().distinct().toList();
     }
 
     public List<MapItem> getMapItemsForUser(User userDetails) {

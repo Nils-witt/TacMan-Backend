@@ -34,6 +34,11 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     private final Logger log = LoggerFactory.getLogger(PlainWebSocketHandler.class);
+    private final ArrayList<String> availableEntityTopics = new ArrayList<>(
+        Arrays.stream(SecurityGroup.UserRoleTypeEnum.values())
+            .map(r -> r.name().toLowerCase())
+            .toList()
+    );
 
     public PlainWebSocketHandler(
         WebSocketSessionRegistry sessionRegistry,
@@ -44,12 +49,6 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
         this.unitRepository = unitRepository;
         this.permissionsUtil = permissionsUtil;
     }
-
-    private final ArrayList<String> availableEntityTopics = new ArrayList<>(
-        Arrays.stream(SecurityGroup.UserRoleTypeEnum.values())
-            .map(r -> r.name().toLowerCase())
-            .toList()
-    );
 
     @Override
     public void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
@@ -97,14 +96,16 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
                     User userObj = (User) session.getAttributes().get("user");
                     dto.setPermissions(this.permissionsUtil.getScopes(unit, userObj));
 
-                    downstreamMessage.payload = EntityUpdateNotifier.EntityUpdatedPayload.builder()
-                        .entity(dto)
-                        .changeType(ChangeType.RETRANSMIT)
-                        .entityType(unit.getClass().getSimpleName())
-                        .entityId(unit.getId())
-                        .build();
+                    if (dto.getPermissions().contains(SecurityGroup.UserRoleScopeEnum.VIEW)) {
+                        downstreamMessage.payload = EntityUpdateNotifier.EntityUpdatedPayload.builder()
+                            .entity(dto)
+                            .changeType(ChangeType.RETRANSMIT)
+                            .entityType(unit.getClass().getSimpleName())
+                            .entityId(unit.getId())
+                            .build();
 
-                    session.sendMessage(new TextMessage(ow.writeValueAsString(downstreamMessage)));
+                        session.sendMessage(new TextMessage(ow.writeValueAsString(downstreamMessage)));
+                    }
                 }
             } else {
                 session.sendMessage(new TextMessage("Unknown topic: " + topic));
