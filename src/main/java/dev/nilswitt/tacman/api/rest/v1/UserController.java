@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,19 +31,22 @@ public class UserController {
     private final PermissionVerifier permissionVerifier;
     private final UnitRepository unitRepository;
     private final SecurityGroupRepository securityGroupRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserController(
         UserRepository repository,
         UserModelAssembler assembler,
         PermissionVerifier permissionVerifier,
         UnitRepository unitRepository,
-        SecurityGroupRepository securityGroupRepository
+        SecurityGroupRepository securityGroupRepository,
+        PasswordEncoder passwordEncoder
     ) {
         this.repository = repository;
         this.assembler = assembler;
         this.permissionVerifier = permissionVerifier;
         this.unitRepository = unitRepository;
         this.securityGroupRepository = securityGroupRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("")
@@ -163,4 +167,21 @@ public class UserController {
         }
         this.repository.deleteById(id);
     }
+
+    @PostMapping("{id}/password")
+    void setPassword(
+        @PathVariable UUID id,
+        @RequestBody PasswordPayload body,
+        @AuthenticationPrincipal User userDetails
+    ) {
+        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
+            throw new ForbiddenException("User does not have permission to set User Passwords.");
+        }
+        entity.setPassword(passwordEncoder.encode(body.password()));
+        this.repository.save(entity);
+    }
+
+    private record PasswordPayload(String password) {}
 }
