@@ -3,12 +3,11 @@ package dev.nilswitt.tacman.entities;
 import dev.nilswitt.tacman.api.dtos.EmbeddedPositionDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
 
 /**
  * Position implementation used for all position properties in the application.
@@ -35,12 +34,7 @@ public class EmbeddedPosition implements PositionInterface {
     @Column(name = "embeddedposition_timestamp")
     private Instant timestamp = null;
 
-    public EmbeddedPosition(
-            Double latitude,
-            Double longitude,
-            Double accuracy,
-            Instant timestamp
-    ) {
+    public EmbeddedPosition(Double latitude, Double longitude, Double accuracy, Instant timestamp) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
@@ -52,11 +46,11 @@ public class EmbeddedPosition implements PositionInterface {
             return null;
         }
         return new EmbeddedPosition(
-                entity.getLatitude(),
-                entity.getLongitude(),
-                entity.getAltitude(),
-                entity.getAccuracy(),
-                entity.getTimestamp()
+            entity.getLatitude(),
+            entity.getLongitude(),
+            entity.getAltitude(),
+            entity.getAccuracy(),
+            entity.getTimestamp()
         );
     }
 
@@ -73,18 +67,18 @@ public class EmbeddedPosition implements PositionInterface {
     @Override
     public String toString() {
         return (
-                "EmbeddedPosition{" +
-                        "latitude=" +
-                        latitude +
-                        ", longitude=" +
-                        longitude +
-                        ", altitude=" +
-                        altitude +
-                        ", accuracy=" +
-                        accuracy +
-                        ", timestamp=" +
-                        timestamp +
-                        '}'
+            "EmbeddedPosition{" +
+            "latitude=" +
+            latitude +
+            ", longitude=" +
+            longitude +
+            ", altitude=" +
+            altitude +
+            ", accuracy=" +
+            accuracy +
+            ", timestamp=" +
+            timestamp +
+            '}'
         );
     }
 }

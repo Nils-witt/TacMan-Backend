@@ -1,25 +1,25 @@
 # These will be overridden by the publish workflow and set to the new tag
-name-template: 'Next Release'
-tag-template: 'next'
+name-template: "Next Release"
+tag-template: "next"
 
 # Optionally configure your categories and other templates
 categories:
-  - title: '🚀 Features'
-    labels:
-      - 'feature'
-      - 'enhancement'
-  - title: '🐛 Bug Fixes'
-    labels:
-      - 'fix'
-      - 'bugfix'
-      - 'bug'
-  - title: '📖 Documentation'
-    label: 'documentation'
+    - title: "🚀 Features"
+      labels:
+          - "feature"
+          - "enhancement"
+    - title: "🐛 Bug Fixes"
+      labels:
+          - "fix"
+          - "bugfix"
+          - "bug"
+    - title: "📖 Documentation"
+      label: "documentation"
 
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
 
 template: |
-  ## Changes
+    ## Changes
 
-  $CHANGES
+    $CHANGES

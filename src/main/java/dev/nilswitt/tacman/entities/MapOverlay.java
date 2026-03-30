@@ -7,10 +7,9 @@ import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Set;
 
 @Setter
 @Getter
@@ -37,9 +36,9 @@ public class MapOverlay extends AbstractEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "map_overlay_security_group",
-            joinColumns = @JoinColumn(name = "overlay_id"),
-            inverseJoinColumns = @JoinColumn(name = "group_id")
+        name = "map_overlay_security_group",
+        joinColumns = @JoinColumn(name = "overlay_id"),
+        inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     @JsonIgnore
     private Set<SecurityGroup> securityGroups;
@@ -67,29 +66,22 @@ public class MapOverlay extends AbstractEntity {
             tilePathPattern = "/" + tilePathPattern;
         }
 
-        return (
-                baseUrl +
-                        basePath +
-                        this.getId() +
-                        "/" +
-                        this.layerVersion +
-                        tilePathPattern
-        );
+        return (baseUrl + basePath + this.getId() + "/" + this.layerVersion + tilePathPattern);
     }
 
     public MapOverlayDto toDto() {
         return new MapOverlayDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName(),
-                this.getBaseUrl(),
-                this.getBasePath(),
-                this.getTilePathPattern(),
-                this.getLayerVersion(),
-                this.getMapGroup() != null ? this.getMapGroup().getId() : null
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName(),
+            this.getBaseUrl(),
+            this.getBasePath(),
+            this.getTilePathPattern(),
+            this.getLayerVersion(),
+            this.getMapGroup() != null ? this.getMapGroup().getId() : null
         );
     }
 

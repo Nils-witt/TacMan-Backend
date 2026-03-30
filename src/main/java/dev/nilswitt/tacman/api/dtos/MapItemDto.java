@@ -1,10 +1,9 @@
 package dev.nilswitt.tacman.api.dtos;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -16,15 +15,15 @@ public class MapItemDto extends AbstractEntityDto {
     private Integer zoomLevel;
 
     public MapItemDto(
-            UUID id,
-            Instant createdAt,
-            Instant updatedAt,
-            String createdBy,
-            String modifiedBy,
-            String name,
-            EmbeddedPositionDto position,
-            UUID mapGroupId,
-            Integer zoomLevel
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String createdBy,
+        String modifiedBy,
+        String name,
+        EmbeddedPositionDto position,
+        UUID mapGroupId,
+        Integer zoomLevel
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.name = name;

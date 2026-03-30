@@ -1,11 +1,10 @@
 package dev.nilswitt.tacman.api.dtos;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -24,19 +23,19 @@ public class UserDto extends AbstractEntityDto {
     private Set<UUID> securityGroups;
 
     public UserDto(
-            UUID id,
-            Instant createdAt,
-            Instant updatedAt,
-            String createdBy,
-            String modifiedBy,
-            String username,
-            String email,
-            String firstName,
-            String lastName,
-            boolean enabled,
-            boolean locked,
-            UUID unitId,
-            Set<UUID> securityGroups
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String createdBy,
+        String modifiedBy,
+        String username,
+        String email,
+        String firstName,
+        String lastName,
+        boolean enabled,
+        boolean locked,
+        UUID unitId,
+        Set<UUID> securityGroups
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.username = username;

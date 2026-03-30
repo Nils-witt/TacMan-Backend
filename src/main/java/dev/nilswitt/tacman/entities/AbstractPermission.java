@@ -16,8 +16,7 @@ import lombok.Setter;
 public abstract class AbstractPermission extends AbstractEntity {
 
     @Enumerated
-    private SecurityGroup.UserRoleScopeEnum scope =
-            SecurityGroup.UserRoleScopeEnum.VIEW;
+    private SecurityGroup.UserRoleScopeEnum scope = SecurityGroup.UserRoleScopeEnum.VIEW;
 
     @ManyToOne
     @JoinColumn(name = "map_overlay_id")
@@ -51,6 +50,5 @@ public abstract class AbstractPermission extends AbstractEntity {
     @JoinColumn(name = "mission_group_id")
     private MissionGroup missionGroup;
 
-    public AbstractPermission() {
-    }
+    public AbstractPermission() {}
 }

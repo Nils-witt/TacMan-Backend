@@ -6,17 +6,16 @@ import dev.nilswitt.tacman.entities.repositories.PasswordResetTokenRepository;
 import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.InvalidPasswordResetTokenException;
 import dev.nilswitt.tacman.records.PasswordResetConfig;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
@@ -29,11 +28,11 @@ public class PasswordResetService {
     private final PasswordResetConfig passwordResetConfig;
 
     public PasswordResetService(
-            UserRepository userRepository,
-            PasswordResetTokenRepository passwordResetTokenRepository,
-            PasswordEncoder passwordEncoder,
-            SmtpPasswordResetEmailSender passwordResetEmailSender,
-            PasswordResetConfig passwordResetConfig
+        UserRepository userRepository,
+        PasswordResetTokenRepository passwordResetTokenRepository,
+        PasswordEncoder passwordEncoder,
+        SmtpPasswordResetEmailSender passwordResetEmailSender,
+        PasswordResetConfig passwordResetConfig
     ) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
@@ -58,37 +57,27 @@ public class PasswordResetService {
         PasswordResetToken passwordResetToken = new PasswordResetToken();
         passwordResetToken.setUser(user);
         passwordResetToken.setTokenHash(tokenHash);
-        passwordResetToken.setExpiresAt(
-                Instant.now().plusSeconds(this.passwordResetConfig.ttlMinutes() * 60)
-        );
+        passwordResetToken.setExpiresAt(Instant.now().plusSeconds(this.passwordResetConfig.ttlMinutes() * 60));
         this.passwordResetTokenRepository.save(passwordResetToken);
 
         String resetLink = buildResetLink(rawToken);
         try {
             this.passwordResetEmailSender.sendPasswordResetEmail(
-                    user.getEmail(),
-                    user.getDisplayName(),
-                    resetLink,
-                    this.passwordResetConfig.ttlMinutes()
+                user.getEmail(),
+                user.getDisplayName(),
+                resetLink,
+                this.passwordResetConfig.ttlMinutes()
             );
         } catch (Exception e) {
-            log.error(
-                    "Failed to send password reset email to {}: {}",
-                    user.getEmail(),
-                    e.getMessage(),
-                    e
-            );
+            log.error("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage(), e);
         }
     }
 
     @Transactional
     public void resetPassword(String rawToken, String newPassword) {
-        PasswordResetToken token =
-                this.passwordResetTokenRepository.findByTokenHash(
-                        sha256(rawToken)
-                ).orElseThrow(() ->
-                        new InvalidPasswordResetTokenException("Invalid reset token.")
-                );
+        PasswordResetToken token = this.passwordResetTokenRepository.findByTokenHash(sha256(rawToken)).orElseThrow(() ->
+            new InvalidPasswordResetTokenException("Invalid reset token.")
+        );
 
         if (token.isExpired()) {
             throw new InvalidPasswordResetTokenException("Reset token has expired.");
@@ -103,9 +92,7 @@ public class PasswordResetService {
     }
 
     private String buildResetLink(String rawToken) {
-        return (
-                this.passwordResetConfig.baseUrl() + "/reset-password?token=" + rawToken
-        );
+        return (this.passwordResetConfig.baseUrl() + "/reset-password?token=" + rawToken);
     }
 
     private static String generateRawToken() {

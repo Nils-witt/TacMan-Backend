@@ -1,5 +1,8 @@
 package dev.nilswitt.tacman.api.rest.v1.map;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import dev.nilswitt.tacman.api.dtos.MapOverlayDto;
 import dev.nilswitt.tacman.entities.MapOverlay;
 import dev.nilswitt.tacman.entities.SecurityGroup;
@@ -9,13 +12,6 @@ import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.MapOverlayNotFoundException;
 import dev.nilswitt.tacman.records.OverlayConfig;
 import dev.nilswitt.tacman.security.PermissionVerifier;
-import org.apache.commons.io.FileUtils;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,9 +22,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import org.apache.commons.io.FileUtils;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api/map/overlays")
@@ -39,7 +38,12 @@ public class MapOverlayController {
     private final PermissionVerifier permissionVerifier;
     private final OverlayConfig overlayConfig;
 
-    public MapOverlayController(MapOverlayRepository repository, MapOverlayModelAssembler assembler, PermissionVerifier permissionVerifier, OverlayConfig overlayConfig) {
+    public MapOverlayController(
+        MapOverlayRepository repository,
+        MapOverlayModelAssembler assembler,
+        PermissionVerifier permissionVerifier,
+        OverlayConfig overlayConfig
+    ) {
         this.repository = repository;
         this.assembler = assembler;
         this.permissionVerifier = permissionVerifier;
@@ -48,25 +52,51 @@ public class MapOverlayController {
 
     @GetMapping("")
     CollectionModel<EntityModel<MapOverlayDto>> all(@AuthenticationPrincipal User userDetails) {
-        if (this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
-            List<EntityModel<MapOverlayDto>> entities = this.repository.findAll().stream().map(mapOverlay -> {
-                MapOverlayDto dto = mapOverlay.toDto();
-                dto.setPermissions(this.permissionVerifier.getScopes(mapOverlay, userDetails));
-                return dto;
-            }).map(this.assembler::toModel).collect(Collectors.toList());
+        if (
+            this.permissionVerifier.hasAccess(
+                userDetails,
+                SecurityGroup.UserRoleScopeEnum.VIEW,
+                SecurityGroup.UserRoleTypeEnum.MAPOVERLAY
+            )
+        ) {
+            List<EntityModel<MapOverlayDto>> entities = this.repository.findAll()
+                .stream()
+                .map(mapOverlay -> {
+                    MapOverlayDto dto = mapOverlay.toDto();
+                    dto.setPermissions(this.permissionVerifier.getScopes(mapOverlay, userDetails));
+                    return dto;
+                })
+                .map(this.assembler::toModel)
+                .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MapOverlayController.class).all(null)).withSelfRel());
         }
 
-        return CollectionModel.of(this.permissionVerifier.getMapOverlaysForUser(userDetails).stream().map(mapOverlay -> {
-            MapOverlayDto dto = mapOverlay.toDto();
-            dto.setPermissions(this.permissionVerifier.getScopes(mapOverlay, userDetails));
-            return dto;
-        }).map(this.assembler::toModel).collect(Collectors.toList()), linkTo(methodOn(MapOverlayController.class).all(null)).withSelfRel());
+        return CollectionModel.of(
+            this.permissionVerifier.getMapOverlaysForUser(userDetails)
+                .stream()
+                .map(mapOverlay -> {
+                    MapOverlayDto dto = mapOverlay.toDto();
+                    dto.setPermissions(this.permissionVerifier.getScopes(mapOverlay, userDetails));
+                    return dto;
+                })
+                .map(this.assembler::toModel)
+                .collect(Collectors.toList()),
+            linkTo(methodOn(MapOverlayController.class).all(null)).withSelfRel()
+        );
     }
 
     @PostMapping("")
-    EntityModel<MapOverlayDto> newEntity(@RequestBody MapOverlayDto newEntity, @AuthenticationPrincipal User userDetails) {
-        if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.CREATE, SecurityGroup.UserRoleTypeEnum.MAPOVERLAY)) {
+    EntityModel<MapOverlayDto> newEntity(
+        @RequestBody MapOverlayDto newEntity,
+        @AuthenticationPrincipal User userDetails
+    ) {
+        if (
+            !this.permissionVerifier.hasAccess(
+                userDetails,
+                SecurityGroup.UserRoleScopeEnum.CREATE,
+                SecurityGroup.UserRoleTypeEnum.MAPOVERLAY
+            )
+        ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
         MapOverlay entity = this.repository.save(MapOverlay.of(newEntity));
@@ -87,7 +117,11 @@ public class MapOverlayController {
     }
 
     @PutMapping("{id}")
-    EntityModel<MapOverlayDto> replaceEntity(@RequestBody MapOverlayDto newEntity, @PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
+    EntityModel<MapOverlayDto> replaceEntity(
+        @RequestBody MapOverlayDto newEntity,
+        @PathVariable UUID id,
+        @AuthenticationPrincipal User userDetails
+    ) {
         MapOverlay entity = this.repository.findById(id).orElseThrow(() -> new MapOverlayNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
@@ -117,7 +151,12 @@ public class MapOverlayController {
     }
 
     @PostMapping("{id}/upload/{version}")
-    EntityModel<MapOverlayDto> upload(@PathVariable UUID id, @PathVariable String version, @RequestParam("file") MultipartFile file, @AuthenticationPrincipal User userDetails) {
+    EntityModel<MapOverlayDto> upload(
+        @PathVariable UUID id,
+        @PathVariable String version,
+        @RequestParam("file") MultipartFile file,
+        @AuthenticationPrincipal User userDetails
+    ) {
         MapOverlay entity = this.repository.findById(id).orElseThrow(() -> new MapOverlayNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {

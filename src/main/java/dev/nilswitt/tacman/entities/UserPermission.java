@@ -16,16 +16,15 @@ public class UserPermission extends AbstractPermission {
     @Setter
     private User user;
 
-    public UserPermission() {
-    }
+    public UserPermission() {}
 
     public AbstractEntityDto toDto() {
         return new AbstractEntityDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy()
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy()
         );
     }
 }

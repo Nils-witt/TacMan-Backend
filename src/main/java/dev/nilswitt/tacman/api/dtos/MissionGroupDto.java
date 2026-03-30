@@ -1,11 +1,10 @@
 package dev.nilswitt.tacman.api.dtos;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -19,17 +18,17 @@ public class MissionGroupDto extends AbstractEntityDto {
     private EmbeddedPositionDto position;
 
     public MissionGroupDto(
-            UUID id,
-            Instant createdAt,
-            Instant updatedAt,
-            String createdBy,
-            String modifiedBy,
-            String name,
-            Instant startTime,
-            Instant endTime,
-            Set<UUID> unitIds,
-            Set<UUID> mapGroupIds,
-            EmbeddedPositionDto position
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String createdBy,
+        String modifiedBy,
+        String name,
+        Instant startTime,
+        Instant endTime,
+        Set<UUID> unitIds,
+        Set<UUID> mapGroupIds,
+        EmbeddedPositionDto position
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.name = name;

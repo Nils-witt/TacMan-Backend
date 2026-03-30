@@ -1,16 +1,14 @@
 package dev.nilswitt.tacman.entities.repositories;
 
 import dev.nilswitt.tacman.entities.*;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserPermissionsRepository
-        extends JpaRepository<UserPermission, UUID> {
+public interface UserPermissionsRepository extends JpaRepository<UserPermission, UUID> {
     List<UserPermission> findByMapOverlay(MapOverlay mapOverlay);
 
     List<UserPermission> findByMapItem(MapItem mapItem);
@@ -47,15 +45,9 @@ public interface UserPermissionsRepository
 
     Optional<UserPermission> findByUserAndMapGroup(User user, MapGroup mapGroup);
 
-    Optional<UserPermission> findByUserAndMapOverlay(
-            User user,
-            MapOverlay mapOverlay
-    );
+    Optional<UserPermission> findByUserAndMapOverlay(User user, MapOverlay mapOverlay);
 
-    Optional<UserPermission> findByUserAndBaseLayer(
-            User user,
-            MapBaseLayer mapBaseLayer
-    );
+    Optional<UserPermission> findByUserAndBaseLayer(User user, MapBaseLayer mapBaseLayer);
 
     Optional<UserPermission> findByUserAndUnit(User user, Unit unit);
 
@@ -63,8 +55,5 @@ public interface UserPermissionsRepository
 
     Optional<UserPermission> findByUserAndPhoto(User user, Photo photo);
 
-    Optional<UserPermission> findByUserAndMissionGroup(
-            User user,
-            MissionGroup missionGroup
-    );
+    Optional<UserPermission> findByUserAndMissionGroup(User user, MissionGroup missionGroup);
 }

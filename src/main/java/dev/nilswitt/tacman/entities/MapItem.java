@@ -45,15 +45,15 @@ public class MapItem extends AbstractEntity {
         positionDto.setTimestamp(getPosition().getTimestamp());
 
         return new MapItemDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName(),
-                positionDto,
-                this.getMapGroup() != null ? this.getMapGroup().getId() : null,
-                this.getZoomLevel()
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName(),
+            positionDto,
+            this.getMapGroup() != null ? this.getMapGroup().getId() : null,
+            this.getZoomLevel()
         );
     }
 
@@ -72,17 +72,17 @@ public class MapItem extends AbstractEntity {
     @Override
     public String toString() {
         return (
-                "MapItem{" +
-                        "name='" +
-                        name +
-                        '\'' +
-                        ", position=" +
-                        position +
-                        ", mapGroup=" +
-                        mapGroup +
-                        ", zoomLevel=" +
-                        zoomLevel +
-                        '}'
+            "MapItem{" +
+            "name='" +
+            name +
+            '\'' +
+            ", position=" +
+            position +
+            ", mapGroup=" +
+            mapGroup +
+            ", zoomLevel=" +
+            zoomLevel +
+            '}'
         );
     }
 }

@@ -2,15 +2,14 @@ package dev.nilswitt.tacman.entities;
 
 import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * This is the base Entity class. Which holds the data shared across all Entity-types

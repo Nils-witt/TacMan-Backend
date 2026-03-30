@@ -5,12 +5,11 @@ import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.UnauthorizedException;
 import dev.nilswitt.tacman.security.JWTTokenComponent;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
+import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-import java.util.Optional;
 
 @Log4j2
 @RestController
@@ -22,9 +21,9 @@ public class AuthController {
     private final JWTTokenComponent jwtHandler;
 
     public AuthController(
-            PasswordEncoder passwordEncoder,
-            UserRepository userRepository,
-            JWTTokenComponent jwtHandler
+        PasswordEncoder passwordEncoder,
+        UserRepository userRepository,
+        JWTTokenComponent jwtHandler
     ) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
@@ -51,15 +50,13 @@ public class AuthController {
 
     @PostMapping
     Map<String, Object> obtain(@RequestBody AuthRequest authRequest) {
-        Optional<User> userOpt = userRepository.findByUsername(
-                authRequest.username
-        );
+        Optional<User> userOpt = userRepository.findByUsername(authRequest.username);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (
-                    user.isEnabled() &&
-                            !user.isLocked() &&
-                            passwordEncoder.matches(authRequest.password, user.getPassword())
+                user.isEnabled() &&
+                !user.isLocked() &&
+                passwordEncoder.matches(authRequest.password, user.getPassword())
             ) {
                 String token = this.jwtHandler.generateToken(user);
                 return Map.of("token", token, "userId", user.getId());

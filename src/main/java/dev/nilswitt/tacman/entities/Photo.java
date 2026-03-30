@@ -29,8 +29,7 @@ public class Photo extends AbstractEntity {
     @JoinColumn(name = "mission_group_id", nullable = false)
     private MissionGroup missionGroup;
 
-    public Photo() {
-    }
+    public Photo() {}
 
     public Photo(String name, String path) {
         this.name = name;
@@ -40,24 +39,22 @@ public class Photo extends AbstractEntity {
     @Override
     public PhotoDto toDto() {
         return new PhotoDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName(),
-                this.getPosition() != null ? this.getPosition().toDto() : null,
-                this.getAuthor().getId(),
-                this.getMissionGroup() != null ? this.getMissionGroup().getId() : null
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName(),
+            this.getPosition() != null ? this.getPosition().toDto() : null,
+            this.getAuthor().getId(),
+            this.getMissionGroup() != null ? this.getMissionGroup().getId() : null
         );
     }
 
     public static Photo fromDto(PhotoDto dto) {
         Photo photo = new Photo();
         photo.setName(dto.getName());
-        photo.setPosition(
-                dto.getPosition() != null ? EmbeddedPosition.of(dto.getPosition()) : null
-        );
+        photo.setPosition(dto.getPosition() != null ? EmbeddedPosition.of(dto.getPosition()) : null);
         return photo;
     }
 }

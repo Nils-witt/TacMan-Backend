@@ -1,8 +1,0 @@
-{
-  "servers": {
-    "vaadin": {
-      "type": "http",
-      "url": "https://mcp.vaadin.com/docs"
-    }
-  }
-}

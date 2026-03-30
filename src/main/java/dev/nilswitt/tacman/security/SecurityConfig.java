@@ -1,5 +1,7 @@
 package dev.nilswitt.tacman.security;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 import dev.nilswitt.tacman.security.filter.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @EnableWebSecurity
 @Configuration
@@ -38,9 +38,9 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain wsFilterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher("/api/ws/**")
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .build();
+            .securityMatcher("/api/ws/**")
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .build();
     }
 
     /**
@@ -54,22 +54,20 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher("/api/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
-                    auth.requestMatchers("/api/token/**").permitAll();
-                    auth.requestMatchers("/api").permitAll();
-                    auth.anyRequest().authenticated();
-                })
-                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(
-                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
-                        )
-                )
-                .build();
+            .securityMatcher("/api/**")
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                auth.requestMatchers("/api/token/**").permitAll();
+                auth.requestMatchers("/api").permitAll();
+                auth.anyRequest().authenticated();
+            })
+            .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(exception ->
+                exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            )
+            .build();
     }
 
     @Bean

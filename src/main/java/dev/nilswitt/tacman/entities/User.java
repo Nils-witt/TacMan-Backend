@@ -7,27 +7,25 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Setter
 @Entity
 @EntityListeners(EntityEventListener.class)
 @Table(
-        name = "users",
-        indexes = {
-                @Index(columnList = "username", name = "idx_users_username"),
-                @Index(columnList = "email", name = "idx_users_email"),
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"username"}),
-                @UniqueConstraint(columnNames = {"email"}),
-        }
+    name = "users",
+    indexes = {
+        @Index(columnList = "username", name = "idx_users_username"),
+        @Index(columnList = "email", name = "idx_users_email"),
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "username" }), @UniqueConstraint(columnNames = { "email" }),
+    }
 )
 @Getter
 public class User extends AbstractEntity implements UserDetails {
@@ -59,9 +57,9 @@ public class User extends AbstractEntity implements UserDetails {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "user_security_group",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "group_id")
+        name = "user_security_group",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     @JsonIgnore
     private Set<SecurityGroup> securityGroups = new HashSet<>();
@@ -79,8 +77,7 @@ public class User extends AbstractEntity implements UserDetails {
     @JoinColumn(name = "unit_id", unique = true)
     private Unit unit;
 
-    public User() {
-    }
+    public User() {}
 
     /**
      * Constructor for creating a user
@@ -90,12 +87,7 @@ public class User extends AbstractEntity implements UserDetails {
      * @param firstName
      * @param lastName
      */
-    public User(
-            String username,
-            String email,
-            String firstName,
-            String lastName
-    ) {
+    public User(String username, String email, String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
@@ -125,8 +117,8 @@ public class User extends AbstractEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.securityGroups.stream()
-                .flatMap(securityGroup -> securityGroup.getGrantedAuthorities().stream())
-                .toList();
+            .flatMap(securityGroup -> securityGroup.getGrantedAuthorities().stream())
+            .toList();
     }
 
     public void addSecurityGroup(SecurityGroup securityGroup) {
@@ -170,28 +162,26 @@ public class User extends AbstractEntity implements UserDetails {
 
     @Override
     public int hashCode() {
-        return this.getId() != null
-                ? Objects.hash(this.getId())
-                : System.identityHashCode(this);
+        return this.getId() != null ? Objects.hash(this.getId()) : System.identityHashCode(this);
     }
 
     @Override
     public String toString() {
         return (
-                "User{" +
-                        "id=" +
-                        this.getId() +
-                        ", username='" +
-                        username +
-                        '\'' +
-                        ", email='" +
-                        email +
-                        '\'' +
-                        ", createdAt=" +
-                        this.getCreatedAt() +
-                        ", updatedAt=" +
-                        this.getUpdatedAt() +
-                        '}'
+            "User{" +
+            "id=" +
+            this.getId() +
+            ", username='" +
+            username +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", createdAt=" +
+            this.getCreatedAt() +
+            ", updatedAt=" +
+            this.getUpdatedAt() +
+            '}'
         );
     }
 
@@ -208,21 +198,19 @@ public class User extends AbstractEntity implements UserDetails {
 
     public UserDto toDto() {
         return new UserDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getUsername(),
-                this.getEmail(),
-                this.getFirstName(),
-                this.getLastName(),
-                this.isEnabled(),
-                this.isLocked(),
-                this.getUnit() != null ? this.getUnit().getId() : null,
-                this.securityGroups.stream()
-                        .map(SecurityGroup::getId)
-                        .collect(Collectors.toSet())
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getUsername(),
+            this.getEmail(),
+            this.getFirstName(),
+            this.getLastName(),
+            this.isEnabled(),
+            this.isLocked(),
+            this.getUnit() != null ? this.getUnit().getId() : null,
+            this.securityGroups.stream().map(SecurityGroup::getId).collect(Collectors.toSet())
         );
     }
 }

@@ -1,30 +1,25 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import dev.nilswitt.tacman.api.dtos.UnitPositionLogDto;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 @Component
 public class UnitPositionLogModelAssembler
-        implements
-        RepresentationModelAssembler<
-                UnitPositionLogDto,
-                EntityModel<UnitPositionLogDto>
-                > {
+    implements RepresentationModelAssembler<UnitPositionLogDto, EntityModel<UnitPositionLogDto>>
+{
 
     @Override
     public EntityModel<UnitPositionLogDto> toModel(UnitPositionLogDto unit) {
         return EntityModel.of(
-                unit,
-                WebMvcLinkBuilder.linkTo(
-                        methodOn(UnitController.class).one(unit.getId(), null)
-                ).withSelfRel(),
-                linkTo(methodOn(UnitController.class).all(null)).withRel("units")
+            unit,
+            WebMvcLinkBuilder.linkTo(methodOn(UnitController.class).one(unit.getId(), null)).withSelfRel(),
+            linkTo(methodOn(UnitController.class).all(null)).withRel("units")
         );
     }
 }

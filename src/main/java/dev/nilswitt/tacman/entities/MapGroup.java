@@ -8,11 +8,10 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @EntityListeners(EntityEventListener.class)
@@ -33,12 +32,12 @@ public class MapGroup extends AbstractEntity {
 
     public MapGroupDto toDto() {
         return new MapGroupDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName()
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName()
         );
     }
 

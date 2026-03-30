@@ -1,10 +1,9 @@
 package dev.nilswitt.tacman.api.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -16,15 +15,15 @@ public class PhotoDto extends AbstractEntityDto {
     private UUID missionGroupId;
 
     public PhotoDto(
-            UUID id,
-            Instant createdAt,
-            Instant updatedAt,
-            String createdBy,
-            String modifiedBy,
-            String name,
-            EmbeddedPositionDto position,
-            UUID authorId,
-            UUID missionGroupId
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String createdBy,
+        String modifiedBy,
+        String name,
+        EmbeddedPositionDto position,
+        UUID authorId,
+        UUID missionGroupId
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.name = name;

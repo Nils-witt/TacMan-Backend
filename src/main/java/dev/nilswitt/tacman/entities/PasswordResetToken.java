@@ -2,24 +2,19 @@ package dev.nilswitt.tacman.entities;
 
 import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
 @Table(
-        name = "password_reset_token",
-        indexes = {
-                @Index(
-                        name = "idx_password_reset_token_hash",
-                        columnList = "token_hash",
-                        unique = true
-                ),
-                @Index(name = "idx_password_reset_token_user", columnList = "user_id"),
-        }
+    name = "password_reset_token",
+    indexes = {
+        @Index(name = "idx_password_reset_token_hash", columnList = "token_hash", unique = true),
+        @Index(name = "idx_password_reset_token_user", columnList = "user_id"),
+    }
 )
 public class PasswordResetToken extends AbstractEntity {
 

@@ -29,14 +29,14 @@ public class MapBaseLayer extends AbstractEntity {
 
     public MapBaseLayerDto toDto() {
         return new MapBaseLayerDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName(),
-                this.getUrl(),
-                this.getCacheUrl()
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName(),
+            this.getUrl(),
+            this.getCacheUrl()
         );
     }
 

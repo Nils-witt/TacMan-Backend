@@ -3,12 +3,11 @@ package dev.nilswitt.tacman.entities;
 import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
 
 @Entity
 @Getter
@@ -39,11 +38,11 @@ public class Position extends AbstractEntity implements PositionInterface {
 
     public AbstractEntityDto toDto() {
         return new AbstractEntityDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy()
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy()
         );
     }
 }

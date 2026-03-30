@@ -1,11 +1,10 @@
 package dev.nilswitt.tacman.api.dtos;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -19,17 +18,17 @@ public class MapOverlayDto extends AbstractEntityDto {
     private UUID mapGroupId;
 
     public MapOverlayDto(
-            UUID id,
-            Instant createdAt,
-            Instant updatedAt,
-            String createdBy,
-            String modifiedBy,
-            String name,
-            String baseUrl,
-            String basePath,
-            String tilePathPattern,
-            int layerVersion,
-            UUID mapGroupId
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String createdBy,
+        String modifiedBy,
+        String name,
+        String baseUrl,
+        String basePath,
+        String tilePathPattern,
+        int layerVersion,
+        UUID mapGroupId
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.name = name;
@@ -43,15 +42,15 @@ public class MapOverlayDto extends AbstractEntityDto {
     @JsonGetter("fullTileUrl")
     public String getFullTileUrl() {
         return (
-                this.baseUrl +
-                        "/" +
-                        this.basePath +
-                        "/" +
-                        this.getId() +
-                        "/" +
-                        this.layerVersion +
-                        "/" +
-                        this.tilePathPattern
+            this.baseUrl +
+            "/" +
+            this.basePath +
+            "/" +
+            this.getId() +
+            "/" +
+            this.layerVersion +
+            "/" +
+            this.tilePathPattern
         );
     }
 }

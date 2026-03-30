@@ -3,6 +3,7 @@ package dev.nilswitt.tacman.api.ws;
 import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.security.JWTTokenComponent;
+import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -11,18 +12,13 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.util.Map;
-
 @Log4j2
 public class JWTHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JWTTokenComponent jwtComponent;
     private final UserRepository userRepository;
 
-    JWTHandshakeInterceptor(
-            JWTTokenComponent jwtComponent,
-            UserRepository userRepository
-    ) {
+    JWTHandshakeInterceptor(JWTTokenComponent jwtComponent, UserRepository userRepository) {
         this.jwtComponent = jwtComponent;
         this.userRepository = userRepository;
     }
@@ -37,9 +33,7 @@ public class JWTHandshakeInterceptor implements HandshakeInterceptor {
 
         try {
             String username = jwtComponent.getUsernameFromSSOToken(token);
-            return userRepository
-                    .findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
         } catch (Exception e) {
             /* */
         }
@@ -48,10 +42,10 @@ public class JWTHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(
-            ServerHttpRequest request,
-            @NonNull ServerHttpResponse response,
-            @NonNull WebSocketHandler wsHandler,
-            @NonNull Map<String, Object> attributes
+        ServerHttpRequest request,
+        @NonNull ServerHttpResponse response,
+        @NonNull WebSocketHandler wsHandler,
+        @NonNull Map<String, Object> attributes
     ) throws Exception {
         if (request.getHeaders().containsHeader("Authorization")) {
             String authHeader = request.getHeaders().getFirst("Authorization");
@@ -94,10 +88,9 @@ public class JWTHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public void afterHandshake(
-            @NonNull ServerHttpRequest request,
-            @NonNull ServerHttpResponse response,
-            @NonNull WebSocketHandler wsHandler,
-            @Nullable Exception exception
-    ) {
-    }
+        @NonNull ServerHttpRequest request,
+        @NonNull ServerHttpResponse response,
+        @NonNull WebSocketHandler wsHandler,
+        @Nullable Exception exception
+    ) {}
 }

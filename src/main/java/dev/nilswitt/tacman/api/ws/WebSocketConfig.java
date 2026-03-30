@@ -18,9 +18,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final String WS_PATH = "/api/ws";
 
     public WebSocketConfig(
-            PlainWebSocketHandler plainWebSocketHandler,
-            JWTTokenComponent jwtComponent,
-            UserRepository userRepository
+        PlainWebSocketHandler plainWebSocketHandler,
+        JWTTokenComponent jwtComponent,
+        UserRepository userRepository
     ) {
         this.plainWebSocketHandler = plainWebSocketHandler;
         this.jwtComponent = jwtComponent;
@@ -30,10 +30,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry
-                .addHandler(this.plainWebSocketHandler, this.WS_PATH)
-                .addInterceptors(
-                        new JWTHandshakeInterceptor(this.jwtComponent, this.userRepository)
-                )
-                .setAllowedOriginPatterns("*");
+            .addHandler(this.plainWebSocketHandler, this.WS_PATH)
+            .addInterceptors(new JWTHandshakeInterceptor(this.jwtComponent, this.userRepository))
+            .setAllowedOriginPatterns("*");
     }
 }

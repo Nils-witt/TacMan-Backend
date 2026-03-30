@@ -10,6 +10,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -17,12 +22,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Log4j2
 @Component
@@ -33,9 +32,9 @@ public class JwtFilter extends OncePerRequestFilter {
     private final SecurityGroupRepository securityGroupRepository;
 
     public JwtFilter(
-            JWTTokenComponent jwtUtil,
-            UserRepository userRepository,
-            SecurityGroupRepository securityGroupRepository
+        JWTTokenComponent jwtUtil,
+        UserRepository userRepository,
+        SecurityGroupRepository securityGroupRepository
     ) {
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
@@ -44,9 +43,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
+        HttpServletRequest request,
+        @NonNull HttpServletResponse response,
+        @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
 
@@ -64,12 +63,11 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
                 User user = jwtUtil.getUserFromToken(token);
 
-                AbstractAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                user,
-                                token,
-                                user.getAuthorities()
-                        );
+                AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    user,
+                    token,
+                    user.getAuthorities()
+                );
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 filterChain.doFilter(request, response);
                 return;
@@ -85,15 +83,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 if (userOpt.isPresent()) {
                     User newUser = userOpt.get();
-                    ArrayList<String> cGroups = (ArrayList<String>) claims.get(
-                            "groups",
-                            ArrayList.class
-                    );
+                    ArrayList<String> cGroups = (ArrayList<String>) claims.get("groups", ArrayList.class);
                     Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
                     cGroups.forEach(cGroup -> {
-                        List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(
-                                cGroup
-                        );
+                        List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(cGroup);
                         securityGroups.addAll(sg);
                     });
 
@@ -107,19 +100,13 @@ public class JwtFilter extends OncePerRequestFilter {
                         newUser.setEmail(claims.get("email", String.class));
                         newUser.setFirstName(claims.get("given_name", String.class));
                         newUser.setLastName(claims.get("name", String.class));
-                        ArrayList<String> cGroups = (ArrayList<String>) claims.get(
-                                "groups",
-                                ArrayList.class
-                        );
+                        ArrayList<String> cGroups = (ArrayList<String>) claims.get("groups", ArrayList.class);
                         Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
                         cGroups.forEach(cGroup -> {
-                            List<SecurityGroup> sg =
-                                    securityGroupRepository.findBySsoGroupName(cGroup);
+                            List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(cGroup);
                             securityGroups.addAll(sg);
                         });
-                        securityGroupRepository
-                                .findByName("Everyone")
-                                .ifPresent(securityGroups::add);
+                        securityGroupRepository.findByName("Everyone").ifPresent(securityGroups::add);
 
                         newUser.setSecurityGroups(securityGroups);
                         user = userRepository.save(newUser);
@@ -128,12 +115,11 @@ public class JwtFilter extends OncePerRequestFilter {
                     }
                 }
 
-                AbstractAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                user,
-                                token,
-                                user.getAuthorities()
-                        );
+                AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    user,
+                    token,
+                    user.getAuthorities()
+                );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
                 log.debug("SSO JWT validation failed: {}", e.getMessage());

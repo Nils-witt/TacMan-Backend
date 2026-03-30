@@ -9,15 +9,14 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Entity
 @EntityListeners(EntityEventListener.class)
@@ -89,20 +88,20 @@ public class SecurityGroup extends AbstractEntity {
 
     public List<SimpleGrantedAuthority> getGrantedAuthorities() {
         return this.roles.stream()
-                .map(a -> new SimpleGrantedAuthority("ROLE_" + a))
-                .toList();
+            .map(a -> new SimpleGrantedAuthority("ROLE_" + a))
+            .toList();
     }
 
     public SecurityGroupDto toDto() {
         return new SecurityGroupDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName(),
-                this.getRoles().stream().toList(),
-                this.getSsoGroupName()
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName(),
+            this.getRoles().stream().toList(),
+            this.getSsoGroupName()
         );
     }
 }

@@ -5,11 +5,6 @@ import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
@@ -17,6 +12,10 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
+import javax.crypto.SecretKey;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
@@ -29,10 +28,10 @@ public class JWTTokenComponent {
     private PublicKey ssoJWKS = null;
 
     public JWTTokenComponent(
-            UserRepository userRepository,
-            @Value("${application.security.jwt_secret}") String secret,
-            @Value("${application.security.jwt_expiration_ms:10}") long expirationMs,
-            @Value("${application.openid.jwks}") String jwks
+        UserRepository userRepository,
+        @Value("${application.security.jwt_secret}") String secret,
+        @Value("${application.security.jwt_expiration_ms:10}") long expirationMs,
+        @Value("${application.openid.jwks}") String jwks
     ) {
         this.userRepository = userRepository;
         this.EXPIRATION_MS = expirationMs;
@@ -50,28 +49,19 @@ public class JWTTokenComponent {
 
     public String generateToken(User user) {
         HashMap<String, Object> claims = new HashMap<>();
-        log.debug(
-                "Generating token for user {}: claims={}",
-                user.getUsername(),
-                claims
-        );
+        log.debug("Generating token for user {}: claims={}", user.getUsername(), claims);
         return Jwts.builder()
-                .subject(user.getId().toString())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-                .claims(claims)
-                .signWith(this.secretKey, Jwts.SIG.HS512)
-                .compact();
+            .subject(user.getId().toString())
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+            .claims(claims)
+            .signWith(this.secretKey, Jwts.SIG.HS512)
+            .compact();
     }
 
     public UUID extractUserId(String token) {
         return UUID.fromString(
-                Jwts.parser()
-                        .verifyWith(secretKey)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload()
-                        .getSubject()
+            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getSubject()
         );
     }
 
@@ -83,11 +73,11 @@ public class JWTTokenComponent {
     public String getUsernameFromSSOToken(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(this.ssoJWKS)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .get("preferred_username", String.class);
+                .verifyWith(this.ssoJWKS)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("preferred_username", String.class);
         } catch (Exception e) {
             // log.error(e.getMessage(), e);
         }
@@ -96,11 +86,7 @@ public class JWTTokenComponent {
 
     public Claims getClaimsFromSSOToken(String token) {
         try {
-            return Jwts.parser()
-                    .verifyWith(this.ssoJWKS)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+            return Jwts.parser().verifyWith(this.ssoJWKS).build().parseSignedClaims(token).getPayload();
         } catch (Exception e) {
             // log.error(e.getMessage(), e);
         }

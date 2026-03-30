@@ -9,32 +9,31 @@
 name: Maven Tests PR
 
 on:
-  pull_request:
-    branches: [ "main" ]
-
+    pull_request:
+        branches: ["main"]
 
 env:
-  REGISTRY: ghcr.io
-  JAVA_VERSION: "25"
-  JAVA_DISTRIBUTION: "temurin"
-  IMAGE_NAME: ${{ github.repository }}
+    REGISTRY: ghcr.io
+    JAVA_VERSION: "25"
+    JAVA_DISTRIBUTION: "temurin"
+    IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
-    permissions:
-      contents: read
+    build:
+        permissions:
+            contents: read
 
-    runs-on: ubuntu-latest
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: ${{ env.JAVA_DISTRIBUTION }}
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-    - name: Test with Maven
-      run: mvn -B test --file pom.xml
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up JDK ${{ env.JAVA_VERSION }}
+              uses: actions/setup-java@v4
+              with:
+                  java-version: ${{ env.JAVA_VERSION }}
+                  distribution: ${{ env.JAVA_DISTRIBUTION }}
+                  cache: maven
+            - name: Build with Maven
+              run: mvn -B package --file pom.xml
+            - name: Test with Maven
+              run: mvn -B test --file pom.xml

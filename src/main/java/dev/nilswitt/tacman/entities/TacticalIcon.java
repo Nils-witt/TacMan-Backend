@@ -115,9 +115,7 @@ public class TacticalIcon {
         FAHRZEUG("fahrzeug"),
         KRAFTFAHRZEUG_LANDGEBUNDEN("kraftfahrzeug-landgebunden"),
         KRAFTFAHRZEUG_GELAENDEGAENGIG("kraftfahrzeug-gelaendegaengig"),
-        KRAFTFAHRZEUG_GELAENDEGAENGIG_KATEGORIE3(
-                "kraftfahrzeug-gelaendegaengig-kategorie3"
-        ),
+        KRAFTFAHRZEUG_GELAENDEGAENGIG_KATEGORIE3("kraftfahrzeug-gelaendegaengig-kategorie3"),
         AMPHIBIENFAHRZEUG("amphibienfahrzeug"),
         WECHSELLADER("wechsellader"),
         WECHSELLADER_WECHSELBEHAELTER("wechsellader-wechselbehaelter"),

@@ -1,10 +1,9 @@
 package dev.nilswitt.tacman.api.dtos;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -17,16 +16,16 @@ public class UnitDto extends AbstractEntityDto {
     private boolean speakRequest = false;
 
     public UnitDto(
-            UUID id,
-            Instant createdAt,
-            Instant updatedAt,
-            String createdBy,
-            String modifiedBy,
-            String name,
-            TacticalIconDto icon,
-            EmbeddedPositionDto position,
-            boolean speakRequest,
-            int status
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String createdBy,
+        String modifiedBy,
+        String name,
+        TacticalIconDto icon,
+        EmbeddedPositionDto position,
+        boolean speakRequest,
+        int status
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.name = name;

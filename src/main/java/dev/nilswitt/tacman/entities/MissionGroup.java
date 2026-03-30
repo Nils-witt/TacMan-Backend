@@ -7,13 +7,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @EntityListeners(EntityEventListener.class)
@@ -38,9 +37,9 @@ public class MissionGroup extends AbstractEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "mission_group_map_group",
-            joinColumns = @JoinColumn(name = "mission_group_id"),
-            inverseJoinColumns = @JoinColumn(name = "map_group_id")
+        name = "mission_group_map_group",
+        joinColumns = @JoinColumn(name = "mission_group_id"),
+        inverseJoinColumns = @JoinColumn(name = "map_group_id")
     )
     private Set<MapGroup> mapGroups = new LinkedHashSet<>();
 
@@ -63,17 +62,17 @@ public class MissionGroup extends AbstractEntity {
         }
 
         return new MissionGroupDto(
-                this.getId(),
-                this.getCreatedAt(),
-                this.getUpdatedAt(),
-                this.getCreatedBy(),
-                this.getModifiedBy(),
-                this.getName(),
-                this.getStartTime(),
-                this.getEndTime(),
-                units.stream().map(Unit::getId).collect(Collectors.toSet()),
-                mapGroups.stream().map(MapGroup::getId).collect(Collectors.toSet()),
-                positionDto
+            this.getId(),
+            this.getCreatedAt(),
+            this.getUpdatedAt(),
+            this.getCreatedBy(),
+            this.getModifiedBy(),
+            this.getName(),
+            this.getStartTime(),
+            this.getEndTime(),
+            units.stream().map(Unit::getId).collect(Collectors.toSet()),
+            mapGroups.stream().map(MapGroup::getId).collect(Collectors.toSet()),
+            positionDto
         );
     }
 
@@ -97,23 +96,23 @@ public class MissionGroup extends AbstractEntity {
     @Override
     public String toString() {
         return (
-                "MissionGroup{" +
-                        "name='" +
-                        name +
-                        '\'' +
-                        ", startTime=" +
-                        startTime +
-                        ", endTime=" +
-                        endTime +
-                        ", position=" +
-                        position +
-                        ", mapGroups=" +
-                        mapGroups +
-                        ", units=" +
-                        units +
-                        ", id=" +
-                        id +
-                        '}'
+            "MissionGroup{" +
+            "name='" +
+            name +
+            '\'' +
+            ", startTime=" +
+            startTime +
+            ", endTime=" +
+            endTime +
+            ", position=" +
+            position +
+            ", mapGroups=" +
+            mapGroups +
+            ", units=" +
+            units +
+            ", id=" +
+            id +
+            '}'
         );
     }
 }

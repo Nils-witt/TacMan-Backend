@@ -2,35 +2,30 @@ package dev.nilswitt.tacman.api.ws;
 
 import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 @Log4j2
 @Component
 public class WebSocketSessionRegistry {
 
-    private final Map<String, WebSocketSession> sessions =
-            new ConcurrentHashMap<>();
+    private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<User, Set<String>> userSessions = new ConcurrentHashMap<>();
-    private final Map<String, Set<String>> topicSubscriptions =
-            new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> topicSubscriptions = new ConcurrentHashMap<>();
 
     public void add(WebSocketSession session) {
         sessions.put(session.getId(), session);
         Object userObj = session.getAttributes().get("user");
         if (userObj instanceof User user) {
-            userSessions
-                    .computeIfAbsent(user, k -> ConcurrentHashMap.newKeySet())
-                    .add(session.getId());
+            userSessions.computeIfAbsent(user, k -> ConcurrentHashMap.newKeySet()).add(session.getId());
         }
     }
 
@@ -43,11 +38,7 @@ public class WebSocketSessionRegistry {
                     session.sendMessage(new TextMessage("ping"));
                 }
             } catch (Exception e) {
-                log.warn(
-                        "Failed to send keepalive ping to session {}: {}",
-                        session.getId(),
-                        e.getMessage()
-                );
+                log.warn("Failed to send keepalive ping to session {}: {}", session.getId(), e.getMessage());
             }
         }
     }
@@ -59,17 +50,12 @@ public class WebSocketSessionRegistry {
         sessions.remove(session.getId());
         Object userObj = session.getAttributes().get("user");
         if (userObj instanceof User user) {
-            userSessions
-                    .computeIfAbsent(user, k -> ConcurrentHashMap.newKeySet())
-                    .remove(session.getId());
+            userSessions.computeIfAbsent(user, k -> ConcurrentHashMap.newKeySet()).remove(session.getId());
         }
     }
 
-    public void subscribe(WebSocketSession session, String topic)
-            throws ForbiddenException {
-        topicSubscriptions
-                .computeIfAbsent(topic, k -> ConcurrentHashMap.newKeySet())
-                .add(session.getId());
+    public void subscribe(WebSocketSession session, String topic) throws ForbiddenException {
+        topicSubscriptions.computeIfAbsent(topic, k -> ConcurrentHashMap.newKeySet()).add(session.getId());
         log.info("Session {} subscribed to topic {}", session.getId(), topic);
     }
 
@@ -94,11 +80,7 @@ public class WebSocketSessionRegistry {
         if (sessionIds == null) {
             return Set.of();
         }
-        return sessionIds
-                .stream()
-                .map(sessions::get)
-                .filter(Objects::nonNull)
-                .toList();
+        return sessionIds.stream().map(sessions::get).filter(Objects::nonNull).toList();
     }
 
     public Iterable<WebSocketSession> getSessionsForTopic(String topic) {
@@ -106,10 +88,6 @@ public class WebSocketSessionRegistry {
         if (sessionIds == null) {
             return Set.of();
         }
-        return sessionIds
-                .stream()
-                .map(sessions::get)
-                .filter(Objects::nonNull)
-                .toList();
+        return sessionIds.stream().map(sessions::get).filter(Objects::nonNull).toList();
     }
 }
