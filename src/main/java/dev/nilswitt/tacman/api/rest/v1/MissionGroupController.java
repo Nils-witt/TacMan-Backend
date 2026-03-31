@@ -4,10 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import dev.nilswitt.tacman.api.dtos.MissionGroupDto;
-import dev.nilswitt.tacman.entities.EmbeddedPosition;
-import dev.nilswitt.tacman.entities.MissionGroup;
-import dev.nilswitt.tacman.entities.SecurityGroup;
-import dev.nilswitt.tacman.entities.User;
+import dev.nilswitt.tacman.entities.*;
 import dev.nilswitt.tacman.entities.repositories.MapGroupRepository;
 import dev.nilswitt.tacman.entities.repositories.MissionGroupRepository;
 import dev.nilswitt.tacman.entities.repositories.UnitRepository;
@@ -132,6 +129,16 @@ public class MissionGroupController {
         entity.setUnits(new HashSet<>(unitRepository.findAllById(newEntity.getUnitIds())));
         entity.setMapGroups(new HashSet<>(mapGroupRepository.findAllById(newEntity.getMapGroupIds())));
 
+        for (Unit unit : entity.getUnits()) {
+            unit.setMissionGroup(entity);
+            unitRepository.save(unit);
+        }
+        unitRepository
+            .findAllByMissionGroup(entity)
+            .forEach(unit -> {
+                unit.setMissionGroup(null);
+                unitRepository.save(unit);
+            });
         MissionGroup saved = this.repository.save(entity);
         MissionGroupDto dto = saved.toDto();
         dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
