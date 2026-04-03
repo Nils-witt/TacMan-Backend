@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -24,9 +23,4 @@ public class UserUnitAssignment extends AbstractEntity {
 
     @Column
     private Instant endTime;
-
-    @Override
-    public AbstractEntityDto toDto() {
-        return null;
-    }
 }

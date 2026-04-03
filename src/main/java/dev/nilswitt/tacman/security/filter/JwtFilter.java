@@ -2,9 +2,9 @@ package dev.nilswitt.tacman.security.filter;
 
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.SecurityGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.security.JWTTokenComponent;
+import dev.nilswitt.tacman.services.SecurityGroupService;
+import dev.nilswitt.tacman.services.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,17 +28,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JWTTokenComponent jwtUtil;
-    private final UserRepository userRepository;
-    private final SecurityGroupRepository securityGroupRepository;
+    private final UserService userService;
+    private final SecurityGroupService securityGroupService;
 
     public JwtFilter(
         JWTTokenComponent jwtUtil,
-        UserRepository userRepository,
-        SecurityGroupRepository securityGroupRepository
+        UserService userService,
+        SecurityGroupService securityGroupService
     ) {
         this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-        this.securityGroupRepository = securityGroupRepository;
+        this.userService = userService;
+        this.securityGroupService = securityGroupService;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 User user = null;
 
                 String username = jwtUtil.getUsernameFromSSOToken(token);
-                Optional<User> userOpt = userRepository.findByUsername(username);
+                Optional<User> userOpt = userService.findByUsername(username);
                 Claims claims = jwtUtil.getClaimsFromSSOToken(token);
 
                 if (userOpt.isPresent()) {
@@ -86,12 +86,12 @@ public class JwtFilter extends OncePerRequestFilter {
                     ArrayList<String> cGroups = (ArrayList<String>) claims.get("groups", ArrayList.class);
                     Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
                     cGroups.forEach(cGroup -> {
-                        List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(cGroup);
+                        List<SecurityGroup> sg = securityGroupService.findBySsoGroupName(cGroup);
                         securityGroups.addAll(sg);
                     });
 
                     newUser.setSecurityGroups(securityGroups);
-                    user = userRepository.save(newUser);
+                    user = userService.save(newUser);
                 } else {
                     log.info("Create new User: " + username);
                     try {
@@ -103,13 +103,13 @@ public class JwtFilter extends OncePerRequestFilter {
                         ArrayList<String> cGroups = (ArrayList<String>) claims.get("groups", ArrayList.class);
                         Set<SecurityGroup> securityGroups = newUser.getSecurityGroups();
                         cGroups.forEach(cGroup -> {
-                            List<SecurityGroup> sg = securityGroupRepository.findBySsoGroupName(cGroup);
+                            List<SecurityGroup> sg = securityGroupService.findBySsoGroupName(cGroup);
                             securityGroups.addAll(sg);
                         });
-                        securityGroupRepository.findByName("Everyone").ifPresent(securityGroups::add);
+                        securityGroupService.findByName("Everyone").ifPresent(securityGroups::add);
 
                         newUser.setSecurityGroups(securityGroups);
-                        user = userRepository.save(newUser);
+                        user = userService.save(newUser);
                     } catch (Exception e) {
                         log.warn("User creation failed: {}", e.getMessage());
                     }

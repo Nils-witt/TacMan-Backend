@@ -1,9 +1,9 @@
 package dev.nilswitt.tacman.api.rest.v1;
 
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.UnauthorizedException;
 import dev.nilswitt.tacman.security.JWTTokenComponent;
+import dev.nilswitt.tacman.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
@@ -17,16 +17,16 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final JWTTokenComponent jwtHandler;
 
     public AuthController(
         PasswordEncoder passwordEncoder,
-        UserRepository userRepository,
+        UserService userService,
         JWTTokenComponent jwtHandler
     ) {
         this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.jwtHandler = jwtHandler;
     }
 
@@ -50,7 +50,7 @@ public class AuthController {
 
     @PostMapping
     Map<String, Object> obtain(@RequestBody AuthRequest authRequest) {
-        Optional<User> userOpt = userRepository.findByUsername(authRequest.username);
+        Optional<User> userOpt = userService.findByUsername(authRequest.username);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (

@@ -4,7 +4,9 @@ import dev.nilswitt.tacman.api.dtos.EntityPermissionsDto;
 import dev.nilswitt.tacman.api.dtos.GroupPermissionEntryDto;
 import dev.nilswitt.tacman.api.dtos.UserPermissionEntryDto;
 import dev.nilswitt.tacman.entities.*;
-import dev.nilswitt.tacman.entities.repositories.*;
+import dev.nilswitt.tacman.entities.repositories.SecurityGroupPermissionsRepository;
+import dev.nilswitt.tacman.entities.repositories.UserPermissionsRepository;
+import dev.nilswitt.tacman.services.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,56 +19,56 @@ public class PermissionManagementService {
 
     private final UserPermissionsRepository userPermRepo;
     private final SecurityGroupPermissionsRepository groupPermRepo;
-    private final UserRepository userRepo;
-    private final SecurityGroupRepository groupRepo;
-    private final UnitRepository unitRepo;
-    private final MapOverlayRepository mapOverlayRepo;
-    private final MapBaseLayerRepository mapBaseLayerRepo;
-    private final MapItemRepository mapItemRepo;
-    private final MapGroupRepository mapGroupRepo;
-    private final MissionGroupRepository missionGroupRepo;
-    private final PhotoRepository photoRepo;
+    private final UserService userService;
+    private final SecurityGroupService securityGroupService;
+    private final UnitService unitService;
+    private final MapOverlayService mapOverlayService;
+    private final MapBaseLayerService mapBaseLayerService;
+    private final MapItemService mapItemService;
+    private final MapGroupService mapGroupService;
+    private final MissionGroupService missionGroupService;
+    private final PhotoService photoService;
 
     public PermissionManagementService(
         UserPermissionsRepository userPermRepo,
         SecurityGroupPermissionsRepository groupPermRepo,
-        UserRepository userRepo,
-        SecurityGroupRepository groupRepo,
-        UnitRepository unitRepo,
-        MapOverlayRepository mapOverlayRepo,
-        MapBaseLayerRepository mapBaseLayerRepo,
-        MapItemRepository mapItemRepo,
-        MapGroupRepository mapGroupRepo,
-        MissionGroupRepository missionGroupRepo,
-        PhotoRepository photoRepo
+        UserService userService,
+        SecurityGroupService securityGroupService,
+        UnitService unitService,
+        MapOverlayService mapOverlayService,
+        MapBaseLayerService mapBaseLayerService,
+        MapItemService mapItemService,
+        MapGroupService mapGroupService,
+        MissionGroupService missionGroupService,
+        PhotoService photoService
     ) {
         this.userPermRepo = userPermRepo;
         this.groupPermRepo = groupPermRepo;
-        this.userRepo = userRepo;
-        this.groupRepo = groupRepo;
-        this.unitRepo = unitRepo;
-        this.mapOverlayRepo = mapOverlayRepo;
-        this.mapBaseLayerRepo = mapBaseLayerRepo;
-        this.mapItemRepo = mapItemRepo;
-        this.mapGroupRepo = mapGroupRepo;
-        this.missionGroupRepo = missionGroupRepo;
-        this.photoRepo = photoRepo;
+        this.userService = userService;
+        this.securityGroupService = securityGroupService;
+        this.unitService = unitService;
+        this.mapOverlayService = mapOverlayService;
+        this.mapBaseLayerService = mapBaseLayerService;
+        this.mapItemService = mapItemService;
+        this.mapGroupService = mapGroupService;
+        this.missionGroupService = missionGroupService;
+        this.photoService = photoService;
     }
 
     public AbstractEntity findEntity(String entityType, UUID entityId) {
         return switch (entityType.toLowerCase()) {
-            case "unit" -> unitRepo.findById(entityId).orElseThrow(() -> notFound("Unit", entityId));
-            case "user" -> userRepo.findById(entityId).orElseThrow(() -> notFound("User", entityId));
-            case "mapoverlay" -> mapOverlayRepo.findById(entityId).orElseThrow(() -> notFound("MapOverlay", entityId));
-            case "mapbaselayer" -> mapBaseLayerRepo
+            case "unit" -> unitService.findById(entityId).orElseThrow(() -> notFound("Unit", entityId));
+            case "user" -> userService.findById(entityId).orElseThrow(() -> notFound("User", entityId));
+            case "mapoverlay" -> mapOverlayService.findById(entityId).orElseThrow(() -> notFound("MapOverlay", entityId));
+            case "mapbaselayer" -> mapBaseLayerService
                 .findById(entityId)
                 .orElseThrow(() -> notFound("MapBaseLayer", entityId));
-            case "mapitem" -> mapItemRepo.findById(entityId).orElseThrow(() -> notFound("MapItem", entityId));
-            case "mapgroup" -> mapGroupRepo.findById(entityId).orElseThrow(() -> notFound("MapGroup", entityId));
-            case "missiongroup" -> missionGroupRepo
+            case "mapitem" -> mapItemService.findById(entityId).orElseThrow(() -> notFound("MapItem", entityId));
+            case "mapgroup" -> mapGroupService.findById(entityId).orElseThrow(() -> notFound("MapGroup", entityId));
+            case "missiongroup" -> missionGroupService
                 .findById(entityId)
                 .orElseThrow(() -> notFound("MissionGroup", entityId));
-            case "photo" -> photoRepo.findById(entityId).orElseThrow(() -> notFound("Photo", entityId));
+            case "photo" -> photoService.findById(entityId).orElseThrow(() -> notFound("Photo", entityId));
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown entity type: " + entityType);
         };
     }
@@ -109,7 +111,7 @@ public class PermissionManagementService {
     }
 
     public void grantUserPermission(AbstractEntity entity, UUID userId, SecurityGroup.UserRoleScopeEnum scope) {
-        User user = userRepo.findById(userId).orElseThrow(() -> notFound("User", userId));
+        User user = userService.findById(userId).orElseThrow(() -> notFound("User", userId));
         UserPermission perm = findUserPermissionForEntity(user, entity).orElseGet(UserPermission::new);
         perm.setUser(user);
         perm.setScope(scope);
@@ -118,12 +120,12 @@ public class PermissionManagementService {
     }
 
     public void revokeUserPermission(AbstractEntity entity, UUID userId) {
-        User user = userRepo.findById(userId).orElseThrow(() -> notFound("User", userId));
+        User user = userService.findById(userId).orElseThrow(() -> notFound("User", userId));
         findUserPermissionForEntity(user, entity).ifPresent(userPermRepo::delete);
     }
 
     public void grantGroupPermission(AbstractEntity entity, UUID groupId, SecurityGroup.UserRoleScopeEnum scope) {
-        SecurityGroup group = groupRepo.findById(groupId).orElseThrow(() -> notFound("SecurityGroup", groupId));
+        SecurityGroup group = securityGroupService.findById(groupId).orElseThrow(() -> notFound("SecurityGroup", groupId));
         SecurityGroupPermission perm = findGroupPermissionForEntity(group, entity).orElseGet(
             SecurityGroupPermission::new
         );
@@ -134,7 +136,7 @@ public class PermissionManagementService {
     }
 
     public void revokeGroupPermission(AbstractEntity entity, UUID groupId) {
-        SecurityGroup group = groupRepo.findById(groupId).orElseThrow(() -> notFound("SecurityGroup", groupId));
+        SecurityGroup group = securityGroupService.findById(groupId).orElseThrow(() -> notFound("SecurityGroup", groupId));
         findGroupPermissionForEntity(group, entity).ifPresent(groupPermRepo::delete);
     }
 

@@ -3,8 +3,8 @@ package dev.nilswitt.tacman.email;
 import dev.nilswitt.tacman.entities.PasswordResetToken;
 import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.entities.repositories.PasswordResetTokenRepository;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.InvalidPasswordResetTokenException;
+import dev.nilswitt.tacman.services.UserService;
 import dev.nilswitt.tacman.records.PasswordResetConfig;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -21,20 +21,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PasswordResetService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final SmtpPasswordResetEmailSender passwordResetEmailSender;
     private final PasswordResetConfig passwordResetConfig;
 
     public PasswordResetService(
-        UserRepository userRepository,
+        UserService userService,
         PasswordResetTokenRepository passwordResetTokenRepository,
         PasswordEncoder passwordEncoder,
         SmtpPasswordResetEmailSender passwordResetEmailSender,
         PasswordResetConfig passwordResetConfig
     ) {
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordResetEmailSender = passwordResetEmailSender;
@@ -43,7 +43,7 @@ public class PasswordResetService {
 
     @Transactional
     public void requestPasswordReset(String email) {
-        Optional<User> optionalUser = this.userRepository.findByEmail(email);
+        Optional<User> optionalUser = this.userService.findByEmail(email);
         if (optionalUser.isEmpty()) {
             return;
         }
@@ -85,7 +85,7 @@ public class PasswordResetService {
 
         User user = token.getUser();
         user.setPassword(this.passwordEncoder.encode(newPassword));
-        this.userRepository.save(user);
+        this.userService.save(user);
 
         this.passwordResetTokenRepository.save(token);
         this.passwordResetTokenRepository.deleteByUser(user);

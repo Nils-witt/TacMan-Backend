@@ -5,14 +5,13 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import dev.nilswitt.tacman.api.dtos.TacticalIconDto;
 import dev.nilswitt.tacman.api.dtos.UnitDto;
+import dev.nilswitt.tacman.api.dtos.UnitPositionLogDto;
 import dev.nilswitt.tacman.api.dtos.UnitStatusDto;
 import dev.nilswitt.tacman.entities.*;
-import dev.nilswitt.tacman.entities.repositories.UnitPositionLogRepository;
-import dev.nilswitt.tacman.entities.repositories.UnitRepository;
-import dev.nilswitt.tacman.entities.repositories.UnitStatusUpdateRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.UnitNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.UnitService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,29 +32,23 @@ import tools.jackson.databind.ObjectMapper;
 @Log4j2
 public class UnitController {
 
-    private final UnitRepository repository;
+    private final UnitService unitService;
     private final UnitModelAssembler assembler;
     private final UnitStatusUpdateModelAssembler unitStatusUpdateModelAssembler;
     private final UnitPositionLogModelAssembler unitPositionLogModelAssembler;
     private final PermissionVerifier permissionVerifier;
-    private final UnitStatusUpdateRepository unitStatusUpdateRepository;
-    private final UnitPositionLogRepository unitPositionLogRepository;
 
     public UnitController(
-        UnitRepository userRepository,
+        UnitService unitService,
         UnitModelAssembler assembler,
         UnitStatusUpdateModelAssembler unitStatusUpdateModelAssembler,
         PermissionVerifier permissionVerifier,
-        UnitStatusUpdateRepository unitStatusUpdateRepository,
-        UnitPositionLogRepository unitPositionLogRepository,
         UnitPositionLogModelAssembler unitPositionLogModelAssembler
     ) {
-        this.repository = userRepository;
+        this.unitService = unitService;
         this.assembler = assembler;
         this.permissionVerifier = permissionVerifier;
-        this.unitStatusUpdateRepository = unitStatusUpdateRepository;
         this.unitStatusUpdateModelAssembler = unitStatusUpdateModelAssembler;
-        this.unitPositionLogRepository = unitPositionLogRepository;
         this.unitPositionLogModelAssembler = unitPositionLogModelAssembler;
     }
 
@@ -68,13 +61,9 @@ public class UnitController {
                 SecurityGroup.UserRoleTypeEnum.UNIT
             )
         ) {
-            List<EntityModel<UnitDto>> entities = this.repository.findAll()
+            List<EntityModel<UnitDto>> entities = this.unitService.findAll()
                 .stream()
-                .map(unit -> {
-                    UnitDto dto = unit.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(unit, userDetails));
-                    return dto;
-                })
+                .map(unit -> this.unitService.toDto(unit, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(UnitController.class).all(null)).withSelfRel());
@@ -83,11 +72,7 @@ public class UnitController {
         return CollectionModel.of(
             this.permissionVerifier.getUnitsForUser(userDetails)
                 .stream()
-                .map(unit -> {
-                    UnitDto dto = unit.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(unit, userDetails));
-                    return dto;
-                })
+                .map(unit -> this.unitService.toDto(unit, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList()),
             linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
@@ -95,7 +80,10 @@ public class UnitController {
     }
 
     @PostMapping("")
-    EntityModel<UnitDto> newEntity(@RequestBody UnitDto newEntity, @AuthenticationPrincipal User userDetails) {
+    EntityModel<UnitDto> newEntity(
+        @RequestBody UnitCreatePayload newEntity,
+        @AuthenticationPrincipal User userDetails
+    ) {
         if (
             !this.permissionVerifier.hasAccess(
                 userDetails,
@@ -106,32 +94,25 @@ public class UnitController {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
 
-        Unit unit = this.repository.save(Unit.of(newEntity));
+        Unit unit = new Unit();
+        unit.setName(newEntity.name());
 
-        UnitStatusUpdate statusUpdate = UnitStatusUpdate.builder()
-            .status(newEntity.getStatus())
-            .acknowledged(false)
-            .unit(unit)
-            .build();
+        unit = this.unitService.save(unit);
+        UnitStatusUpdate statusUpdate = UnitStatusUpdate.builder().status(6).acknowledged(false).unit(unit).build();
 
-        unitStatusUpdateRepository.save(statusUpdate);
+        this.unitService.saveStatusUpdate(statusUpdate);
 
-        UnitDto dto = unit.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(unit, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.unitService.toDto(unit, userDetails));
     }
 
     @GetMapping("{id}")
     EntityModel<UnitDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        Unit entity = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
+        Unit entity = this.unitService.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
 
-        Unit unit = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
-        UnitDto dto = unit.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(unit, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.unitService.toDto(entity, userDetails));
     }
 
     @PatchMapping("{id}")
@@ -140,7 +121,7 @@ public class UnitController {
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        Unit entity = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
+        Unit entity = this.unitService.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             // When it is an Unit user allow some self updates
@@ -202,7 +183,7 @@ public class UnitController {
                             }
                             entity.setPosition(position);
                             UnitPositionLog logEntry = new UnitPositionLog(entity, position);
-                            unitPositionLogRepository.save(logEntry);
+                            this.unitService.savePositionLog(logEntry);
                         } catch (Exception e) {
                             /* Pass */
                             log.error(e.getMessage(), e);
@@ -224,7 +205,7 @@ public class UnitController {
                     entity.setStatus(newStatus);
                 }
                 log.info("Commited status update: {}", entity.getStatus());
-                unitStatusUpdateRepository.save(
+                this.unitService.saveStatusUpdate(
                     UnitStatusUpdate.builder().status(entity.getStatus()).acknowledged(false).unit(entity).build()
                 );
             }
@@ -235,23 +216,19 @@ public class UnitController {
         } catch (Exception e) {
             log.error("Failed to parse JSON body: {}", e.getMessage(), e);
         }
-        Unit unit = this.repository.save(entity);
-        UnitDto dto = unit.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(unit, userDetails));
-        return this.assembler.toModel(dto);
+        Unit unit = this.unitService.save(entity);
+        return this.assembler.toModel(this.unitService.toDto(unit, userDetails));
     }
 
     @DeleteMapping("{id}")
     @Transactional
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        Unit entity = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
+        Unit entity = this.unitService.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
             throw new ForbiddenException("User does not have permission to delete overlays.");
         }
-        this.unitPositionLogRepository.deleteByUnit(entity);
-        this.unitStatusUpdateRepository.deleteByUnit(entity);
-        this.repository.deleteById(id);
+        this.unitService.delete(entity);
     }
 
     @GetMapping("{id}/status/history")
@@ -259,14 +236,14 @@ public class UnitController {
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        Unit entity = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
+        Unit entity = this.unitService.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view that unit.");
         }
         return CollectionModel.of(
-            this.unitStatusUpdateRepository.findByUnit(entity)
+            this.unitService.findStatusUpdatesByUnit(entity)
                 .stream()
-                .map(UnitStatusUpdate::toDto)
+                .map(UnitStatusDto::new)
                 .map(this.unitStatusUpdateModelAssembler::toModel)
                 .toList(),
             linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
@@ -280,17 +257,14 @@ public class UnitController {
         @RequestParam(required = false) String format,
         @AuthenticationPrincipal User userDetails
     ) {
-        Unit entity = this.repository.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
+        Unit entity = this.unitService.findById(id).orElseThrow(() -> new UnitNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view that unit.");
         }
         if (format != null && format.equals("simple")) {
             ArrayList<TimedPosition> coordinates = new ArrayList<>();
             if (since != null) {
-                this.unitPositionLogRepository.findByUnitAndPosition_TimestampAfter(
-                        entity,
-                        Instant.ofEpochSecond(since)
-                    )
+                this.unitService.findPositionLogsByUnitAfter(entity, Instant.ofEpochSecond(since))
                     .stream()
                     .sorted(Comparator.comparing(UnitPositionLog::getCreatedAt))
                     .forEach(log ->
@@ -303,7 +277,7 @@ public class UnitController {
                         )
                     );
             } else {
-                this.unitPositionLogRepository.findByUnit(entity)
+                this.unitService.findPositionLogsByUnit(entity)
                     .stream()
                     .sorted(Comparator.comparing(UnitPositionLog::getCreatedAt))
                     .forEach(log ->
@@ -322,9 +296,9 @@ public class UnitController {
 
         if (since == null) {
             return CollectionModel.of(
-                this.unitPositionLogRepository.findByUnit(entity)
+                this.unitService.findPositionLogsByUnit(entity)
                     .stream()
-                    .map(UnitPositionLog::toDto)
+                    .map(UnitPositionLogDto::new)
                     .map(this.unitPositionLogModelAssembler::toModel)
                     .toList(),
                 linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
@@ -332,9 +306,9 @@ public class UnitController {
         } else {
             Instant sinceInstant = Instant.ofEpochSecond(since);
             return CollectionModel.of(
-                this.unitPositionLogRepository.findByUnitAndPosition_TimestampAfter(entity, sinceInstant)
+                this.unitService.findPositionLogsByUnitAfter(entity, sinceInstant)
                     .stream()
-                    .map(UnitPositionLog::toDto)
+                    .map(UnitPositionLogDto::new)
                     .map(this.unitPositionLogModelAssembler::toModel)
                     .toList(),
                 linkTo(methodOn(UnitController.class).all(null)).withSelfRel()
@@ -343,4 +317,6 @@ public class UnitController {
     }
 
     public record TimedPosition(double longitude, double latitude, Instant timestamp) {}
+
+    public record UnitCreatePayload(String name) {}
 }

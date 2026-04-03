@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.UnitDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -40,32 +39,5 @@ public class Unit extends AbstractEntity {
             position = new EmbeddedPosition();
         }
         return position;
-    }
-
-    public UnitDto toDto() {
-        return new UnitDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName(),
-            getIcon() != null ? this.getIcon().toDto() : null,
-            this.getPosition() != null ? this.getPosition().toDto() : null,
-            this.isSpeakRequest(),
-            this.status
-        );
-    }
-
-    public static Unit of(UnitDto dto) {
-        Unit unit = new Unit();
-        unit.setName(dto.getName());
-        unit.setIcon(TacticalIcon.of(dto.getIcon()));
-        unit.setSpeakRequest(dto.isSpeakRequest());
-        unit.setStatus(dto.getStatus());
-        if (dto.getPosition() != null) {
-            unit.setPosition(EmbeddedPosition.of(dto.getPosition()));
-        }
-        return unit;
     }
 }

@@ -5,6 +5,7 @@ import dev.nilswitt.tacman.entities.*;
 import dev.nilswitt.tacman.events.ChangeType;
 import dev.nilswitt.tacman.events.EntityChangedEvent;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.*;
 import java.util.*;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
@@ -32,10 +33,40 @@ public class EntityUpdateNotifier {
     private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     private final String baseTopic = "entities";
+    private final UserService userService;
+    private final MapBaseLayerService mapBaseLayerService;
+    private final MapItemService mapItemService;
+    private final MapGroupService mapGroupService;
+    private final MapOverlayService mapOverlayService;
+    private final MissionGroupService missionGroupService;
+    private final PhotoService photoService;
+    private final SecurityGroupService securityGroupService;
+    private final UnitService unitService;
 
-    public EntityUpdateNotifier(WebSocketSessionRegistry registry, PermissionVerifier permissionVerifier) {
+    public EntityUpdateNotifier(
+        WebSocketSessionRegistry registry,
+        PermissionVerifier permissionVerifier,
+        UserService userService,
+        MapBaseLayerService mapBaseLayerService,
+        MapItemService mapItemService,
+        MapGroupService mapGroupService,
+        MapOverlayService mapOverlayService,
+        MissionGroupService missionGroupService,
+        PhotoService photoService,
+        SecurityGroupService securityGroupService,
+        UnitService unitService
+    ) {
         this.registry = registry;
         this.permissionVerifier = permissionVerifier;
+        this.userService = userService;
+        this.mapBaseLayerService = mapBaseLayerService;
+        this.mapItemService = mapItemService;
+        this.mapGroupService = mapGroupService;
+        this.mapOverlayService = mapOverlayService;
+        this.missionGroupService = missionGroupService;
+        this.photoService = photoService;
+        this.securityGroupService = securityGroupService;
+        this.unitService = unitService;
     }
 
     @EventListener
@@ -127,8 +158,19 @@ public class EntityUpdateNotifier {
     }
 
     private EntityUpdatedPayload buildPayload(EntityChangedEvent<? extends AbstractEntity> event, User user) {
-        AbstractEntityDto dto = event.entity().toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(event.entity(), user));
+        AbstractEntityDto dto;
+        switch (event.entity()) {
+            case User user1 -> dto = userService.toDto(user1, user);
+            case MapBaseLayer mapBaseLayer -> dto = mapBaseLayerService.toDto(mapBaseLayer, user);
+            case MapItem mapItem -> dto = mapItemService.toDto(mapItem, user);
+            case MapGroup mapGroup -> dto = mapGroupService.toDto(mapGroup, user);
+            case MapOverlay mapOverlay -> dto = mapOverlayService.toDto(mapOverlay, user);
+            case MissionGroup missionGroup -> dto = missionGroupService.toDto(missionGroup, user);
+            case Photo photo -> dto = photoService.toDto(photo, user);
+            case SecurityGroup securityGroup -> dto = securityGroupService.toDto(securityGroup, user);
+            case Unit unit -> dto = unitService.toDto(unit, user);
+            default -> throw new IllegalStateException("Unexpected value: " + event.entity());
+        }
 
         return EntityUpdatedPayload.builder()
             .entity(dto)

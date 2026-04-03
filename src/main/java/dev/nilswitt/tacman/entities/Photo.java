@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.PhotoDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -34,27 +33,5 @@ public class Photo extends AbstractEntity {
     public Photo(String name, String path) {
         this.name = name;
         this.path = path;
-    }
-
-    @Override
-    public PhotoDto toDto() {
-        return new PhotoDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName(),
-            this.getPosition() != null ? this.getPosition().toDto() : null,
-            this.getAuthor().getId(),
-            this.getMissionGroup() != null ? this.getMissionGroup().getId() : null
-        );
-    }
-
-    public static Photo fromDto(PhotoDto dto) {
-        Photo photo = new Photo();
-        photo.setName(dto.getName());
-        photo.setPosition(dto.getPosition() != null ? EmbeddedPosition.of(dto.getPosition()) : null);
-        return photo;
     }
 }

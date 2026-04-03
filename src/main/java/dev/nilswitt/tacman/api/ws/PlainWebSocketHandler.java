@@ -4,10 +4,10 @@ import dev.nilswitt.tacman.api.dtos.UnitDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.Unit;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.UnitRepository;
 import dev.nilswitt.tacman.events.ChangeType;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.UnitService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     private static final String PONG_PAYLOAD = "pong";
 
     private final WebSocketSessionRegistry sessionRegistry;
-    private final UnitRepository unitRepository;
+    private final UnitService unitService;
     private final PermissionVerifier permissionsUtil;
     private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
@@ -42,11 +42,11 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
 
     public PlainWebSocketHandler(
         WebSocketSessionRegistry sessionRegistry,
-        UnitRepository unitRepository,
+        UnitService unitService,
         PermissionVerifier permissionsUtil
     ) {
         this.sessionRegistry = sessionRegistry;
-        this.unitRepository = unitRepository;
+        this.unitService = unitService;
         this.permissionsUtil = permissionsUtil;
     }
 
@@ -86,16 +86,14 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
             String topic = payload.substring(4).trim().toLowerCase();
 
             if (topic.equals("/entities/units")) {
-                List<Unit> units = unitRepository.findAll();
+                List<Unit> units = unitService.findAll();
                 for (Unit unit : units) {
                     EntityUpdateNotifier.DownstreamMessage downstreamMessage =
                         new EntityUpdateNotifier.DownstreamMessage();
                     downstreamMessage.topic = topic;
-
-                    UnitDto dto = unit.toDto();
                     User userObj = (User) session.getAttributes().get("user");
-                    dto.setPermissions(this.permissionsUtil.getScopes(unit, userObj));
 
+                    UnitDto dto = unitService.toDto(unit, userObj);
                     if (dto.getPermissions().contains(SecurityGroup.UserRoleScopeEnum.VIEW)) {
                         downstreamMessage.payload = EntityUpdateNotifier.EntityUpdatedPayload.builder()
                             .entity(dto)

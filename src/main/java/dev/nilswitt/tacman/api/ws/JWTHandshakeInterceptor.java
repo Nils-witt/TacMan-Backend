@@ -1,8 +1,8 @@
 package dev.nilswitt.tacman.api.ws;
 
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.security.JWTTokenComponent;
+import dev.nilswitt.tacman.services.UserService;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.jspecify.annotations.NonNull;
@@ -16,11 +16,11 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 public class JWTHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JWTTokenComponent jwtComponent;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    JWTHandshakeInterceptor(JWTTokenComponent jwtComponent, UserRepository userRepository) {
+    JWTHandshakeInterceptor(JWTTokenComponent jwtComponent, UserService userService) {
         this.jwtComponent = jwtComponent;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     private User getUser(String token) {
@@ -33,7 +33,7 @@ public class JWTHandshakeInterceptor implements HandshakeInterceptor {
 
         try {
             String username = jwtComponent.getUsernameFromSSOToken(token);
-            return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+            return userService.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
         } catch (Exception e) {
             /* */
         }

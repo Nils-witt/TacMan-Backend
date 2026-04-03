@@ -1,7 +1,7 @@
 package dev.nilswitt.tacman.api.ws;
 
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.security.JWTTokenComponent;
+import dev.nilswitt.tacman.services.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -13,25 +13,25 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final PlainWebSocketHandler plainWebSocketHandler;
     private final JWTTokenComponent jwtComponent;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     private final String WS_PATH = "/api/ws";
 
     public WebSocketConfig(
         PlainWebSocketHandler plainWebSocketHandler,
         JWTTokenComponent jwtComponent,
-        UserRepository userRepository
+        UserService userService
     ) {
         this.plainWebSocketHandler = plainWebSocketHandler;
         this.jwtComponent = jwtComponent;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry
             .addHandler(this.plainWebSocketHandler, this.WS_PATH)
-            .addInterceptors(new JWTHandshakeInterceptor(this.jwtComponent, this.userRepository))
+            .addInterceptors(new JWTHandshakeInterceptor(this.jwtComponent, this.userService))
             .setAllowedOriginPatterns("*");
     }
 }

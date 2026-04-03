@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.MapBaseLayerDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,25 +25,4 @@ public class MapBaseLayer extends AbstractEntity {
 
     @Column
     private String cacheUrl;
-
-    public MapBaseLayerDto toDto() {
-        return new MapBaseLayerDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName(),
-            this.getUrl(),
-            this.getCacheUrl()
-        );
-    }
-
-    public static MapBaseLayer of(MapBaseLayerDto dto) {
-        MapBaseLayer layer = new MapBaseLayer();
-        layer.setName(dto.getName());
-        layer.setUrl(dto.getUrl());
-        layer.setCacheUrl(dto.getCacheUrl());
-        return layer;
-    }
 }

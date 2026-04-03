@@ -1,14 +1,12 @@
 package dev.nilswitt.tacman.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.nilswitt.tacman.api.dtos.UserDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -182,35 +180,6 @@ public class User extends AbstractEntity implements UserDetails {
             ", updatedAt=" +
             this.getUpdatedAt() +
             '}'
-        );
-    }
-
-    public static User of(UserDto userDto) {
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEnabled(userDto.isEnabled());
-        user.setLocked(userDto.isLocked());
-        return user;
-    }
-
-    public UserDto toDto() {
-        return new UserDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getUsername(),
-            this.getEmail(),
-            this.getFirstName(),
-            this.getLastName(),
-            this.isEnabled(),
-            this.isLocked(),
-            this.getUnit() != null ? this.getUnit().getId() : null,
-            this.securityGroups.stream().map(SecurityGroup::getId).collect(Collectors.toSet())
         );
     }
 }

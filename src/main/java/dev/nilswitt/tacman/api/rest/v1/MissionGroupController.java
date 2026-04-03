@@ -3,14 +3,19 @@ package dev.nilswitt.tacman.api.rest.v1;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import dev.nilswitt.tacman.api.dtos.EmbeddedPositionDto;
 import dev.nilswitt.tacman.api.dtos.MissionGroupDto;
-import dev.nilswitt.tacman.entities.*;
-import dev.nilswitt.tacman.entities.repositories.MapGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.MissionGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.UnitRepository;
+import dev.nilswitt.tacman.entities.EmbeddedPosition;
+import dev.nilswitt.tacman.entities.MissionGroup;
+import dev.nilswitt.tacman.entities.SecurityGroup;
+import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.MissionGroupNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.MapGroupService;
+import dev.nilswitt.tacman.services.MissionGroupService;
+import dev.nilswitt.tacman.services.UnitService;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -24,24 +29,24 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/missiongroups")
 public class MissionGroupController {
 
-    private final MissionGroupRepository repository;
+    private final MissionGroupService missionGroupService;
     private final MissionGroupModelAssembler assembler;
     private final PermissionVerifier permissionVerifier;
-    private final UnitRepository unitRepository;
-    private final MapGroupRepository mapGroupRepository;
+    private final UnitService unitService;
+    private final MapGroupService mapGroupService;
 
     public MissionGroupController(
-        MissionGroupRepository repository,
+        MissionGroupService missionGroupService,
         MissionGroupModelAssembler assembler,
         PermissionVerifier permissionVerifier,
-        UnitRepository unitRepository,
-        MapGroupRepository mapGroupRepository
+        UnitService unitService,
+        MapGroupService mapGroupService
     ) {
-        this.repository = repository;
+        this.missionGroupService = missionGroupService;
         this.assembler = assembler;
         this.permissionVerifier = permissionVerifier;
-        this.unitRepository = unitRepository;
-        this.mapGroupRepository = mapGroupRepository;
+        this.unitService = unitService;
+        this.mapGroupService = mapGroupService;
     }
 
     @GetMapping("")
@@ -53,13 +58,9 @@ public class MissionGroupController {
                 SecurityGroup.UserRoleTypeEnum.MAPOVERLAY
             )
         ) {
-            List<EntityModel<MissionGroupDto>> entities = this.repository.findAll()
+            List<EntityModel<MissionGroupDto>> entities = this.missionGroupService.findAll()
                 .stream()
-                .map(missionGroup -> {
-                    MissionGroupDto dto = missionGroup.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(missionGroup, userDetails));
-                    return dto;
-                })
+                .map(missionGroup -> this.missionGroupService.toDto(missionGroup, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MissionGroupController.class).all(null)).withSelfRel());
@@ -68,11 +69,7 @@ public class MissionGroupController {
         return CollectionModel.of(
             this.permissionVerifier.getMissionGroupsForUser(userDetails)
                 .stream()
-                .map(missionGroup -> {
-                    MissionGroupDto dto = missionGroup.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(missionGroup, userDetails));
-                    return dto;
-                })
+                .map(missionGroup -> this.missionGroupService.toDto(missionGroup, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList()),
             linkTo(methodOn(MissionGroupController.class).all(null)).withSelfRel()
@@ -81,7 +78,7 @@ public class MissionGroupController {
 
     @PostMapping("")
     EntityModel<MissionGroupDto> newEntity(
-        @RequestBody MissionGroup newEntity,
+        @RequestBody MissionGroupCreatePayload newEntity,
         @AuthenticationPrincipal User userDetails
     ) {
         if (
@@ -93,65 +90,73 @@ public class MissionGroupController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        MissionGroup entity = this.repository.save(newEntity);
-        MissionGroupDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+
+        MissionGroup entity = new MissionGroup();
+        entity.setName(newEntity.name());
+        entity.setStartTime(newEntity.startTime());
+        entity.setEndTime(newEntity.endTime());
+        entity.setPosition(EmbeddedPosition.of(newEntity.position()));
+        entity.setUnits(new HashSet<>(unitService.findAllById(newEntity.unitIds())));
+        entity.setMapGroups(new HashSet<>(mapGroupService.findAllById(newEntity.mapGroupIds())));
+
+        entity = this.missionGroupService.save(entity);
+        return this.assembler.toModel(this.missionGroupService.toDto(entity, userDetails));
     }
 
     @GetMapping("{id}")
     EntityModel<MissionGroupDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        MissionGroup entity = this.repository.findById(id).orElseThrow(() -> new MissionGroupNotFoundException(id));
+        MissionGroup entity = this.missionGroupService.findById(id).orElseThrow(() ->
+            new MissionGroupNotFoundException(id)
+        );
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
-        MissionGroupDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.missionGroupService.toDto(entity, userDetails));
     }
 
     @PutMapping("{id}")
     EntityModel<MissionGroupDto> replaceEntity(
-        @RequestBody MissionGroupDto newEntity,
+        @RequestBody MissionGroupCreatePayload newEntity,
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        MissionGroup entity = this.repository.findById(id).orElseThrow(() -> new MissionGroupNotFoundException(id));
+        MissionGroup entity = this.missionGroupService.findById(id).orElseThrow(() ->
+            new MissionGroupNotFoundException(id)
+        );
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setName(newEntity.getName());
-        entity.setStartTime(newEntity.getStartTime());
-        entity.setEndTime(newEntity.getEndTime());
-        entity.setPosition(EmbeddedPosition.of(newEntity.getPosition()));
-        entity.setUnits(new HashSet<>(unitRepository.findAllById(newEntity.getUnitIds())));
-        entity.setMapGroups(new HashSet<>(mapGroupRepository.findAllById(newEntity.getMapGroupIds())));
+        entity.setName(newEntity.name());
+        entity.setStartTime(newEntity.startTime());
+        entity.setEndTime(newEntity.endTime());
+        entity.setPosition(EmbeddedPosition.of(newEntity.position()));
+        entity.setUnits(new HashSet<>(unitService.findAllById(newEntity.unitIds())));
+        entity.setMapGroups(new HashSet<>(mapGroupService.findAllById(newEntity.mapGroupIds())));
 
-        for (Unit unit : entity.getUnits()) {
-            unit.setMissionGroup(entity);
-            unitRepository.save(unit);
-        }
-        unitRepository
-            .findAllByMissionGroup(entity)
-            .forEach(unit -> {
-                unit.setMissionGroup(null);
-                unitRepository.save(unit);
-            });
-        MissionGroup saved = this.repository.save(entity);
-        MissionGroupDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+        MissionGroup saved = this.missionGroupService.save(entity);
+        return this.assembler.toModel(this.missionGroupService.toDto(saved, userDetails));
     }
 
     @DeleteMapping("{id}")
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        MissionGroup entity = this.repository.findById(id).orElseThrow(() -> new MissionGroupNotFoundException(id));
+        MissionGroup entity = this.missionGroupService.findById(id).orElseThrow(() ->
+            new MissionGroupNotFoundException(id)
+        );
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
             throw new ForbiddenException("User does not have permission to delete overlays.");
         }
-        this.repository.deleteById(id);
+        this.missionGroupService.deleteById(id);
     }
+
+    public record MissionGroupCreatePayload(
+        String name,
+        Instant startTime,
+        Instant endTime,
+        List<UUID> unitIds,
+        List<UUID> mapGroupIds,
+        EmbeddedPositionDto position
+    ) {}
 }

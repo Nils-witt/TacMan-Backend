@@ -2,7 +2,6 @@ package dev.nilswitt.tacman.entities;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.nilswitt.tacman.api.dtos.MapOverlayDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -67,31 +66,5 @@ public class MapOverlay extends AbstractEntity {
         }
 
         return (baseUrl + basePath + this.getId() + "/" + this.layerVersion + tilePathPattern);
-    }
-
-    public MapOverlayDto toDto() {
-        return new MapOverlayDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName(),
-            this.getBaseUrl(),
-            this.getBasePath(),
-            this.getTilePathPattern(),
-            this.getLayerVersion(),
-            this.getMapGroup() != null ? this.getMapGroup().getId() : null
-        );
-    }
-
-    public static MapOverlay of(MapOverlayDto dto) {
-        MapOverlay mapOverlay = new MapOverlay();
-        mapOverlay.setName(dto.getName());
-        mapOverlay.setBaseUrl(dto.getBaseUrl());
-        mapOverlay.setBasePath(dto.getBasePath());
-        mapOverlay.setTilePathPattern(dto.getTilePathPattern());
-        mapOverlay.setLayerVersion(dto.getLayerVersion());
-        return mapOverlay;
     }
 }

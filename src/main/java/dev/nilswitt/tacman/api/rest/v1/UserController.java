@@ -6,12 +6,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import dev.nilswitt.tacman.api.dtos.UserDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.SecurityGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.UnitRepository;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.UserNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.SecurityGroupService;
+import dev.nilswitt.tacman.services.UnitService;
+import dev.nilswitt.tacman.services.UserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -30,26 +30,26 @@ import tools.jackson.databind.ObjectMapper;
 @RequestMapping("api/users")
 public class UserController {
 
-    private final UserRepository repository;
+    private final UserService userService;
     private final UserModelAssembler assembler;
     private final PermissionVerifier permissionVerifier;
-    private final UnitRepository unitRepository;
-    private final SecurityGroupRepository securityGroupRepository;
+    private final UnitService unitService;
+    private final SecurityGroupService securityGroupService;
     private final PasswordEncoder passwordEncoder;
 
     public UserController(
-        UserRepository repository,
+        UserService userService,
         UserModelAssembler assembler,
         PermissionVerifier permissionVerifier,
-        UnitRepository unitRepository,
-        SecurityGroupRepository securityGroupRepository,
+        UnitService unitService,
+        SecurityGroupService securityGroupService,
         PasswordEncoder passwordEncoder
     ) {
-        this.repository = repository;
+        this.userService = userService;
         this.assembler = assembler;
         this.permissionVerifier = permissionVerifier;
-        this.unitRepository = unitRepository;
-        this.securityGroupRepository = securityGroupRepository;
+        this.unitService = unitService;
+        this.securityGroupService = securityGroupService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -62,13 +62,9 @@ public class UserController {
                 SecurityGroup.UserRoleTypeEnum.USER
             )
         ) {
-            List<EntityModel<UserDto>> entities = this.repository.findAll()
+            List<EntityModel<UserDto>> entities = this.userService.findAll()
                 .stream()
-                .map(user -> {
-                    UserDto dto = user.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(user, userDetails));
-                    return dto;
-                })
+                .map(user -> this.userService.toDto(user, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(UserController.class).all(null)).withSelfRel());
@@ -77,11 +73,7 @@ public class UserController {
         return CollectionModel.of(
             this.permissionVerifier.getUsersForUser(userDetails)
                 .stream()
-                .map(user -> {
-                    UserDto dto = user.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(user, userDetails));
-                    return dto;
-                })
+                .map(user -> this.userService.toDto(user, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList()),
             linkTo(methodOn(UserController.class).all(null)).withSelfRel()
@@ -99,26 +91,22 @@ public class UserController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        User newUser = User.of(newEntity);
-        securityGroupRepository.findByName("Everyone").ifPresent(newUser::addSecurityGroup);
-        newUser = this.repository.save(newUser);
+        User newUser = this.userService.fromDto(newEntity);
+        newUser = this.userService.save(newUser);
 
-        UserDto dto = newUser.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(newUser, userDetails));
+        UserDto dto = this.userService.toDto(newUser, userDetails);
 
         return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
     public EntityModel<UserDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User entity = this.userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view users.");
         }
 
-        UserDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.userService.toDto(entity, userDetails));
     }
 
     @PutMapping("{id}")
@@ -127,7 +115,7 @@ public class UserController {
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User entity = this.userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to edit overlays.");
@@ -140,7 +128,7 @@ public class UserController {
         entity.setLocked(newEntity.isLocked());
         entity.setEnabled(newEntity.isEnabled());
         if (newEntity.getUnitId() != null) {
-            entity.setUnit(unitRepository.findById(newEntity.getUnitId()).orElse(null));
+            entity.setUnit(unitService.findById(newEntity.getUnitId()).orElse(null));
         } else {
             entity.setUnit(null);
         }
@@ -150,16 +138,14 @@ public class UserController {
                 newEntity
                     .getSecurityGroups()
                     .stream()
-                    .map(uuid -> securityGroupRepository.findById(uuid).orElse(null))
+                    .map(uuid -> securityGroupService.findById(uuid).orElse(null))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet())
             );
         }
-        User saved = this.repository.save(entity);
+        User saved = this.userService.save(entity);
 
-        UserDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.userService.toDto(saved, userDetails));
     }
 
     @PatchMapping("{id}")
@@ -168,7 +154,7 @@ public class UserController {
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User entity = this.userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to edit overlays.");
@@ -194,7 +180,7 @@ public class UserController {
             if (data.has("unitId")) {
                 try {
                     String unitId = data.get("unitId").asString();
-                    entity.setUnit(unitRepository.findById(UUID.fromString(unitId)).orElse(null));
+                    entity.setUnit(unitService.findById(UUID.fromString(unitId)).orElse(null));
                 } catch (Exception e) {
                     entity.setUnit(null);
                 }
@@ -202,20 +188,18 @@ public class UserController {
         } catch (Exception e) {
             log.error("Failed to parse JSON body: {}", e.getMessage(), e);
         }
-        User saved = this.repository.save(entity);
-        UserDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+        User saved = this.userService.save(entity);
+        return this.assembler.toModel(this.userService.toDto(saved, userDetails));
     }
 
     @DeleteMapping("{id}")
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User entity = this.userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
             throw new ForbiddenException("User does not have permission to delete overlays.");
         }
-        this.repository.deleteById(id);
+        this.userService.deleteById(id);
     }
 
     @PostMapping("{id}/password")
@@ -224,14 +208,15 @@ public class UserController {
         @RequestBody PasswordPayload body,
         @AuthenticationPrincipal User userDetails
     ) {
-        User entity = this.repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User entity = this.userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         log.info("Changing password for user {}", entity.getUsername());
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to set User Passwords.");
         }
         entity.setPassword(passwordEncoder.encode(body.password()));
-        this.repository.save(entity);
-        return this.assembler.toModel(entity.toDto());
+        entity = this.userService.save(entity);
+
+        return this.assembler.toModel(this.userService.toDto(entity, userDetails));
     }
 
     private record PasswordPayload(String password) {}

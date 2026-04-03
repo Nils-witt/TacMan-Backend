@@ -14,21 +14,21 @@ public final class PermissionVerifier {
     private final UserPermissionsRepository userPermissionsRepository;
     private final SecurityGroupPermissionsRepository securityGroupPermissionsRepository;
     private final MapOverlayRepository mapOverlayRepository;
-    private final PhotoRepository photoRepository;
     private final MapItemRepository mapItemRepository;
+    private final PhotoRepository photoRepository;
 
     private PermissionVerifier(
         UserPermissionsRepository userPermissionsRepository,
         SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
         MapOverlayRepository mapOverlayRepository,
-        PhotoRepository photoRepository,
-        MapItemRepository mapItemRepository
+        MapItemRepository mapItemRepository,
+        PhotoRepository photoRepository
     ) {
         this.userPermissionsRepository = userPermissionsRepository;
         this.securityGroupPermissionsRepository = securityGroupPermissionsRepository;
         this.mapOverlayRepository = mapOverlayRepository;
-        this.photoRepository = photoRepository;
         this.mapItemRepository = mapItemRepository;
+        this.photoRepository = photoRepository;
     }
 
     public static boolean testScope(

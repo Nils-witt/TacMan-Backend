@@ -54,16 +54,6 @@ public class EmbeddedPosition implements PositionInterface {
         );
     }
 
-    public EmbeddedPositionDto toDto() {
-        EmbeddedPositionDto dto = new EmbeddedPositionDto();
-        dto.setLatitude(latitude);
-        dto.setLongitude(longitude);
-        dto.setAltitude(altitude);
-        dto.setAccuracy(accuracy);
-        dto.setTimestamp(timestamp);
-        return dto;
-    }
-
     @Override
     public String toString() {
         return (

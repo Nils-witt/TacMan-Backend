@@ -1,7 +1,6 @@
 package dev.nilswitt.tacman.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.nilswitt.tacman.api.dtos.SecurityGroupDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,6 +52,23 @@ public class SecurityGroup extends AbstractEntity {
         this.roles = roles;
     }
 
+    public static List<String> availableRoles() {
+        ArrayList<String> roles = new ArrayList<>();
+        for (SecurityGroup.UserRoleTypeEnum type : SecurityGroup.UserRoleTypeEnum.values()) {
+            for (SecurityGroup.UserRoleScopeEnum scope : SecurityGroup.UserRoleScopeEnum.values()) {
+                String roleName = type.name() + "_" + scope.name();
+                roles.add(roleName);
+            }
+        }
+        return roles;
+    }
+
+    public List<SimpleGrantedAuthority> getGrantedAuthorities() {
+        return this.roles.stream()
+            .map(a -> new SimpleGrantedAuthority("ROLE_" + a))
+            .toList();
+    }
+
     public enum UserRoleScopeEnum {
         VIEW,
         EDIT,
@@ -73,35 +89,5 @@ public class SecurityGroup extends AbstractEntity {
         PHOTO,
         MISSIONGROUP,
         MISSION,
-    }
-
-    public static List<String> availableRoles() {
-        ArrayList<String> roles = new ArrayList<>();
-        for (SecurityGroup.UserRoleTypeEnum type : SecurityGroup.UserRoleTypeEnum.values()) {
-            for (SecurityGroup.UserRoleScopeEnum scope : SecurityGroup.UserRoleScopeEnum.values()) {
-                String roleName = type.name() + "_" + scope.name();
-                roles.add(roleName);
-            }
-        }
-        return roles;
-    }
-
-    public List<SimpleGrantedAuthority> getGrantedAuthorities() {
-        return this.roles.stream()
-            .map(a -> new SimpleGrantedAuthority("ROLE_" + a))
-            .toList();
-    }
-
-    public SecurityGroupDto toDto() {
-        return new SecurityGroupDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName(),
-            this.getRoles().stream().toList(),
-            this.getSsoGroupName()
-        );
     }
 }

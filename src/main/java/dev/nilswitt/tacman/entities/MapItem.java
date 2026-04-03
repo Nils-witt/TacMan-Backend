@@ -1,7 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.EmbeddedPositionDto;
-import dev.nilswitt.tacman.api.dtos.MapItemDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -35,38 +33,6 @@ public class MapItem extends AbstractEntity {
             position = new EmbeddedPosition();
         }
         return position;
-    }
-
-    public MapItemDto toDto() {
-        EmbeddedPositionDto positionDto = new EmbeddedPositionDto();
-        positionDto.setLatitude(getPosition().getLatitude());
-        positionDto.setLongitude(getPosition().getLongitude());
-        positionDto.setAltitude(getPosition().getAltitude());
-        positionDto.setTimestamp(getPosition().getTimestamp());
-
-        return new MapItemDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName(),
-            positionDto,
-            this.getMapGroup() != null ? this.getMapGroup().getId() : null,
-            this.getZoomLevel()
-        );
-    }
-
-    public static MapItem of(MapItemDto dto) {
-        MapItem mapItem = new MapItem();
-
-        mapItem.setName(dto.getName());
-        mapItem.setZoomLevel(dto.getZoomLevel());
-        if (dto.getPosition() != null) {
-            mapItem.setPosition(EmbeddedPosition.of(dto.getPosition()));
-        }
-
-        return mapItem;
     }
 
     @Override

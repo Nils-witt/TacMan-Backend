@@ -1,5 +1,6 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.MapItem;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
@@ -30,5 +31,19 @@ public class MapItemDto extends AbstractEntityDto {
         this.position = position;
         this.mapGroupId = mapGroupId;
         this.zoomLevel = zoomLevel;
+    }
+
+    public MapItemDto(MapItem mapItem) {
+        super(
+            mapItem.getId(),
+            mapItem.getCreatedAt(),
+            mapItem.getUpdatedAt(),
+            mapItem.getCreatedBy(),
+            mapItem.getModifiedBy()
+        );
+        this.name = mapItem.getName();
+        this.position = new EmbeddedPositionDto(mapItem.getPosition());
+        this.mapGroupId = mapItem.getMapGroup() != null ? mapItem.getMapGroup().getId() : null;
+        this.zoomLevel = mapItem.getZoomLevel();
     }
 }

@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
@@ -39,6 +38,4 @@ public abstract class AbstractEntity {
     @Column(name = "modified_by")
     @LastModifiedBy
     private String modifiedBy;
-
-    public abstract AbstractEntityDto toDto();
 }

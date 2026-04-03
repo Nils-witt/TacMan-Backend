@@ -2,9 +2,9 @@ package dev.nilswitt.tacman;
 
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.SecurityGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.records.DatabaseInitAdminUserRecord;
+import dev.nilswitt.tacman.services.SecurityGroupService;
+import dev.nilswitt.tacman.services.UserService;
 import java.util.HashSet;
 import java.util.Optional;
 import org.springframework.boot.CommandLineRunner;
@@ -17,8 +17,8 @@ class LoadDatabase {
 
     @Bean
     CommandLineRunner initDatabase(
-        UserRepository repository,
-        SecurityGroupRepository securityGroupRepository,
+        UserService repository,
+        SecurityGroupService securityGroupRepository,
         DatabaseInitAdminUserRecord adminUserRecord,
         PasswordEncoder passwordEncoder
     ) {

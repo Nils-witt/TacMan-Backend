@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import java.time.Instant;
@@ -34,15 +33,5 @@ public class Position extends AbstractEntity implements PositionInterface {
     public Position(Double latitude, Double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
-    }
-
-    public AbstractEntityDto toDto() {
-        return new AbstractEntityDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy()
-        );
     }
 }

@@ -5,12 +5,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import dev.nilswitt.tacman.api.dtos.PhotoDto;
 import dev.nilswitt.tacman.entities.*;
-import dev.nilswitt.tacman.entities.repositories.MissionGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.PhotoRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.PhotoNotFoundException;
 import dev.nilswitt.tacman.records.PictureConfig;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.MissionGroupService;
+import dev.nilswitt.tacman.services.PhotoService;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,23 +40,23 @@ import tools.jackson.databind.ObjectMapper;
 public class PhotoController {
 
     private final PhotoModelAssembler assembler;
-    private final PhotoRepository photoRepository;
+    private final PhotoService photoService;
     private final PictureConfig pictureConfig;
     private final PermissionVerifier permissionVerifier;
-    private final MissionGroupRepository missionGroupRepository;
+    private final MissionGroupService missionGroupService;
 
     public PhotoController(
         PhotoModelAssembler assembler,
-        PhotoRepository photoRepository,
+        PhotoService photoService,
         PictureConfig pictureConfig,
         PermissionVerifier permissionVerifier,
-        MissionGroupRepository missionGroupRepository
+        MissionGroupService missionGroupService
     ) {
         this.assembler = assembler;
-        this.photoRepository = photoRepository;
+        this.photoService = photoService;
         this.pictureConfig = pictureConfig;
         this.permissionVerifier = permissionVerifier;
-        this.missionGroupRepository = missionGroupRepository;
+        this.missionGroupService = missionGroupService;
     }
 
     @GetMapping("")
@@ -68,13 +68,9 @@ public class PhotoController {
                 SecurityGroup.UserRoleTypeEnum.PHOTO
             )
         ) {
-            List<EntityModel<PhotoDto>> entities = this.photoRepository.findAll()
+            List<EntityModel<PhotoDto>> entities = this.photoService.findAll()
                 .stream()
-                .map(photo -> {
-                    PhotoDto dto = photo.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(photo, userDetails));
-                    return dto;
-                })
+                .map(entity -> this.photoService.toDto(entity, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(PhotoController.class).all(null)).withSelfRel());
@@ -83,11 +79,7 @@ public class PhotoController {
         return CollectionModel.of(
             this.permissionVerifier.getPhotosForUser(userDetails)
                 .stream()
-                .map(entity -> {
-                    PhotoDto dto = entity.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-                    return dto;
-                })
+                .map(entity -> this.photoService.toDto(entity, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList()),
             linkTo(methodOn(PhotoController.class).all(null)).withSelfRel()
@@ -105,7 +97,7 @@ public class PhotoController {
         if (missionGroupId == null) {
             throw new RuntimeException("Mission Group ID is required to upload a photo.");
         }
-        MissionGroup missionGroup = this.missionGroupRepository.findById(missionGroupId).orElseThrow(() ->
+        MissionGroup missionGroup = this.missionGroupService.findById(missionGroupId).orElseThrow(() ->
             new PhotoNotFoundException(missionGroupId)
         );
 
@@ -144,9 +136,9 @@ public class PhotoController {
 
         Photo newPhoto = new Photo();
         newPhoto.setAuthor(userDetails);
-        newPhoto.setMissionGroup(missionGroupRepository.findById(missionGroupId).orElse(null));
+        newPhoto.setMissionGroup(missionGroupService.findById(missionGroupId).orElse(null));
         newPhoto.setPosition(position);
-        newPhoto = this.photoRepository.save(newPhoto);
+        newPhoto = this.photoService.save(newPhoto);
         String fileExtension = Objects.requireNonNull(file.getOriginalFilename()).substring(
             file.getOriginalFilename().lastIndexOf(".")
         );
@@ -177,10 +169,9 @@ public class PhotoController {
             );
             newPhoto.setName("Photo " + newPhoto.getId());
 
-            photoRepository.save(newPhoto);
-            PhotoDto dto = newPhoto.toDto();
-            dto.setPermissions(this.permissionVerifier.getScopes(newPhoto, userDetails));
-            return this.assembler.toModel(dto);
+            newPhoto = photoService.save(newPhoto);
+
+            return this.assembler.toModel(this.photoService.toDto(newPhoto, userDetails));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -193,7 +184,7 @@ public class PhotoController {
         @RequestBody String rawBody,
         @AuthenticationPrincipal User userDetails
     ) throws IOException {
-        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        Photo entity = this.photoService.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode data = mapper.readTree(rawBody);
@@ -224,27 +215,23 @@ public class PhotoController {
             log.error(e.getMessage(), e);
         }
 
-        Photo saved = photoRepository.save(entity);
-        PhotoDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+        Photo saved = photoService.save(entity);
+        return this.assembler.toModel(this.photoService.toDto(saved, userDetails));
     }
 
     @GetMapping("{id}")
     EntityModel<PhotoDto> getEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        Photo entity = this.photoService.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view photos.");
         }
 
-        PhotoDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.photoService.toDto(entity, userDetails));
     }
 
     @GetMapping("{id}/image")
     ResponseEntity<Resource> getEntityPhoto(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        Photo entity = this.photoService.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view photos.");
         }
@@ -264,7 +251,7 @@ public class PhotoController {
 
     @DeleteMapping("{id}")
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        Photo entity = this.photoRepository.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
+        Photo entity = this.photoService.findById(id).orElseThrow(() -> new PhotoNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
             throw new ForbiddenException("User does not have permission to delete photos.");
@@ -274,6 +261,6 @@ public class PhotoController {
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
-        this.photoRepository.deleteById(id);
+        this.photoService.deleteById(id);
     }
 }

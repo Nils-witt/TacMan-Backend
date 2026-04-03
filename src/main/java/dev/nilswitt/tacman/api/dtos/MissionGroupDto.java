@@ -1,8 +1,12 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.MapGroup;
+import dev.nilswitt.tacman.entities.MissionGroup;
+import dev.nilswitt.tacman.entities.Unit;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -37,5 +41,21 @@ public class MissionGroupDto extends AbstractEntityDto {
         this.unitIds = unitIds;
         this.mapGroupIds = mapGroupIds;
         this.position = position;
+    }
+
+    public MissionGroupDto(MissionGroup missionGroup) {
+        super(
+            missionGroup.getId(),
+            missionGroup.getCreatedAt(),
+            missionGroup.getUpdatedAt(),
+            missionGroup.getCreatedBy(),
+            missionGroup.getModifiedBy()
+        );
+        this.name = missionGroup.getName();
+        this.startTime = missionGroup.getStartTime();
+        this.endTime = missionGroup.getEndTime();
+        this.unitIds = missionGroup.getUnits().stream().map(Unit::getId).collect(Collectors.toSet());
+        this.mapGroupIds = missionGroup.getMapGroups().stream().map(MapGroup::getId).collect(Collectors.toSet());
+        this.position = missionGroup.getPosition() != null ? new EmbeddedPositionDto(missionGroup.getPosition()) : null;
     }
 }

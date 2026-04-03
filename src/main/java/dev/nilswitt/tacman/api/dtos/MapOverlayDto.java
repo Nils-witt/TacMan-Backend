@@ -1,6 +1,7 @@
 package dev.nilswitt.tacman.api.dtos;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import dev.nilswitt.tacman.entities.MapOverlay;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
@@ -37,6 +38,22 @@ public class MapOverlayDto extends AbstractEntityDto {
         this.tilePathPattern = tilePathPattern;
         this.layerVersion = layerVersion;
         this.mapGroupId = mapGroupId;
+    }
+
+    public MapOverlayDto(MapOverlay overlay) {
+        super(
+            overlay.getId(),
+            overlay.getCreatedAt(),
+            overlay.getUpdatedAt(),
+            overlay.getCreatedBy(),
+            overlay.getModifiedBy()
+        );
+        this.name = overlay.getName();
+        this.baseUrl = overlay.getBaseUrl();
+        this.basePath = overlay.getBasePath();
+        this.tilePathPattern = overlay.getTilePathPattern();
+        this.layerVersion = overlay.getLayerVersion();
+        this.mapGroupId = overlay.getMapGroup() != null ? overlay.getMapGroup().getId() : null;
     }
 
     @JsonGetter("fullTileUrl")

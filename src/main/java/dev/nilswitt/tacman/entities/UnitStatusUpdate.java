@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.UnitStatusDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -24,19 +23,6 @@ public class UnitStatusUpdate extends AbstractEntity {
 
     @ManyToOne(optional = false)
     private Unit unit;
-
-    public UnitStatusDto toDto() {
-        return new UnitStatusDto(
-            this.id,
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.status,
-            this.acknowledged,
-            this.unit.getId()
-        );
-    }
 
     public UnitStatusUpdate() {}
 }

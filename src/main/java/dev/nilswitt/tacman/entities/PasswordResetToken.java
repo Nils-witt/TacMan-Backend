@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;
@@ -30,10 +29,5 @@ public class PasswordResetToken extends AbstractEntity {
 
     public boolean isExpired() {
         return this.expiresAt != null && this.expiresAt.isBefore(Instant.now());
-    }
-
-    @Override
-    public AbstractEntityDto toDto() {
-        return null;
     }
 }

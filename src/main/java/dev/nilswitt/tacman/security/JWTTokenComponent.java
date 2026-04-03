@@ -1,7 +1,7 @@
 package dev.nilswitt.tacman.security;
 
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.UserRepository;
+import dev.nilswitt.tacman.services.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -23,17 +23,17 @@ public class JWTTokenComponent {
 
     private final long EXPIRATION_MS;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final SecretKey secretKey;
     private PublicKey ssoJWKS = null;
 
     public JWTTokenComponent(
-        UserRepository userRepository,
+        UserService userService,
         @Value("${application.security.jwt_secret}") String secret,
         @Value("${application.security.jwt_expiration_ms:10}") long expirationMs,
         @Value("${application.openid.jwks}") String jwks
     ) {
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.EXPIRATION_MS = expirationMs;
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         try {
@@ -67,7 +67,7 @@ public class JWTTokenComponent {
 
     public User getUserFromToken(String token) {
         UUID uuid = extractUserId(token);
-        return userRepository.findById(uuid).orElse(null);
+        return userService.findById(uuid).orElse(null);
     }
 
     public String getUsernameFromSSOToken(String token) {

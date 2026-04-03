@@ -1,8 +1,11 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.SecurityGroup;
+import dev.nilswitt.tacman.entities.User;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -46,5 +49,17 @@ public class UserDto extends AbstractEntityDto {
         this.locked = locked;
         this.unitId = unitId;
         this.securityGroups = securityGroups;
+    }
+
+    public UserDto(User user) {
+        super(user.getId(), user.getCreatedAt(), user.getUpdatedAt(), user.getCreatedBy(), user.getModifiedBy());
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.enabled = user.isEnabled();
+        this.locked = user.isLocked();
+        this.unitId = user.getUnit() != null ? user.getUnit().getId() : null;
+        this.securityGroups = user.getSecurityGroups().stream().map(SecurityGroup::getId).collect(Collectors.toSet());
     }
 }

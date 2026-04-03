@@ -29,22 +29,7 @@ public class TacticalIcon {
      * @return The Entity as DTO
      */
     public TacticalIconDto toDto() {
-        TacticalIconDto dto = new TacticalIconDto();
-        try {
-            dto.setName(getName());
-            dto.setOrganisationName(getOrganisationName());
-            dto.setTyp(getTyp());
-            dto.setText(getText());
-            dto.setEinheit(einheit.getId());
-            dto.setFachaufgabe(fachaufgabe.getId());
-            dto.setGrundzeichen(grundzeichen.getId());
-            dto.setOrganisation(organisation.getId());
-            dto.setSymbol(symbol.getId());
-            dto.setFunktion(funktion.getId());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        return dto;
+        return new TacticalIconDto(this);
     }
 
     /**

@@ -1,5 +1,6 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.UnitPositionLog;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
@@ -24,5 +25,11 @@ public class UnitPositionLogDto extends AbstractEntityDto {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.unitId = unitId;
         this.position = position;
+    }
+
+    public UnitPositionLogDto(UnitPositionLog log) {
+        super(log.getId(), log.getCreatedAt(), log.getUpdatedAt(), log.getCreatedBy(), log.getModifiedBy());
+        this.unitId = log.getUnit().getId();
+        this.position = new EmbeddedPositionDto(log.getPosition());
     }
 }

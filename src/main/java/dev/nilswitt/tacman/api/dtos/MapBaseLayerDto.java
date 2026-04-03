@@ -1,5 +1,6 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.MapBaseLayer;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
@@ -27,5 +28,12 @@ public class MapBaseLayerDto extends AbstractEntityDto {
         this.name = name;
         this.url = url;
         this.cacheUrl = cacheUrl;
+    }
+
+    public MapBaseLayerDto(MapBaseLayer layer) {
+        super(layer.getId(), layer.getCreatedAt(), layer.getUpdatedAt(), layer.getCreatedBy(), layer.getModifiedBy());
+        this.name = layer.getName();
+        this.url = layer.getUrl();
+        this.cacheUrl = layer.getCacheUrl();
     }
 }

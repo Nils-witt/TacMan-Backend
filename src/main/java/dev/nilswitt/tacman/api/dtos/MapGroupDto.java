@@ -1,5 +1,6 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.MapGroup;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
@@ -21,5 +22,16 @@ public class MapGroupDto extends AbstractEntityDto {
     ) {
         super(id, createdAt, updatedAt, createdBy, modifiedBy);
         this.name = name;
+    }
+
+    public MapGroupDto(MapGroup mapGroup) {
+        super(
+            mapGroup.getId(),
+            mapGroup.getCreatedAt(),
+            mapGroup.getUpdatedAt(),
+            mapGroup.getCreatedBy(),
+            mapGroup.getModifiedBy()
+        );
+        this.name = mapGroup.getName();
     }
 }

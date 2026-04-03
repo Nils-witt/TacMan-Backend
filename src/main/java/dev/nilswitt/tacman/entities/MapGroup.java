@@ -1,6 +1,5 @@
 package dev.nilswitt.tacman.entities;
 
-import dev.nilswitt.tacman.api.dtos.MapGroupDto;
 import dev.nilswitt.tacman.entities.eventListeners.EntityEventListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,21 +28,4 @@ public class MapGroup extends AbstractEntity {
 
     @OneToMany(mappedBy = "mapGroup", orphanRemoval = true)
     private Set<MapOverlay> mapOverlays = new LinkedHashSet<>();
-
-    public MapGroupDto toDto() {
-        return new MapGroupDto(
-            this.getId(),
-            this.getCreatedAt(),
-            this.getUpdatedAt(),
-            this.getCreatedBy(),
-            this.getModifiedBy(),
-            this.getName()
-        );
-    }
-
-    public static MapGroup of(MapGroupDto dto) {
-        MapGroup mapGroup = new MapGroup();
-        mapGroup.setName(dto.getName());
-        return mapGroup;
-    }
 }

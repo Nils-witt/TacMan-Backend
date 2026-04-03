@@ -3,16 +3,17 @@ package dev.nilswitt.tacman.api.rest.v1.map;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import dev.nilswitt.tacman.api.dtos.EmbeddedPositionDto;
 import dev.nilswitt.tacman.api.dtos.MapItemDto;
 import dev.nilswitt.tacman.entities.EmbeddedPosition;
 import dev.nilswitt.tacman.entities.MapItem;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.MapGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.MapItemRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.MapItemNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.MapGroupService;
+import dev.nilswitt.tacman.services.MapItemService;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,21 +26,21 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/map/items")
 public class MapItemController {
 
-    private final MapItemRepository repository;
+    private final MapItemService mapItemService;
     private final MapItemModelAssembler assembler;
     private final PermissionVerifier permissionVerifier;
-    private final MapGroupRepository mapGroupRepository;
+    private final MapGroupService mapGroupService;
 
     public MapItemController(
-        MapItemRepository repository,
+        MapItemService mapItemService,
         MapItemModelAssembler assembler,
         PermissionVerifier permissionVerifier,
-        MapGroupRepository mapGroupRepository
+        MapGroupService mapGroupService
     ) {
-        this.repository = repository;
+        this.mapItemService = mapItemService;
         this.permissionVerifier = permissionVerifier;
         this.assembler = assembler;
-        this.mapGroupRepository = mapGroupRepository;
+        this.mapGroupService = mapGroupService;
     }
 
     @GetMapping("")
@@ -51,13 +52,9 @@ public class MapItemController {
                 SecurityGroup.UserRoleTypeEnum.MAPITEM
             )
         ) {
-            List<EntityModel<MapItemDto>> entities = this.repository.findAll()
+            List<EntityModel<MapItemDto>> entities = this.mapItemService.findAll()
                 .stream()
-                .map(mapItem -> {
-                    MapItemDto dto = mapItem.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(mapItem, userDetails));
-                    return dto;
-                })
+                .map(mapItem -> this.mapItemService.toDto(mapItem, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MapItemController.class).all(null)).withSelfRel());
@@ -66,11 +63,7 @@ public class MapItemController {
         return CollectionModel.of(
             this.permissionVerifier.getMapItemsForUser(userDetails)
                 .stream()
-                .map(mapItem -> {
-                    MapItemDto dto = mapItem.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(mapItem, userDetails));
-                    return dto;
-                })
+                .map(mapItem -> this.mapItemService.toDto(mapItem, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList()),
             linkTo(methodOn(MapItemController.class).all(null)).withSelfRel()
@@ -78,7 +71,10 @@ public class MapItemController {
     }
 
     @PostMapping("")
-    EntityModel<MapItemDto> newEntity(@RequestBody MapItemDto newEntity, @AuthenticationPrincipal User userDetails) {
+    EntityModel<MapItemDto> newEntity(
+        @RequestBody MapItemCreatePayload newEntity,
+        @AuthenticationPrincipal User userDetails
+    ) {
         if (
             !this.permissionVerifier.hasAccess(
                 userDetails,
@@ -88,59 +84,63 @@ public class MapItemController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        MapItem saved = this.repository.save(MapItem.of(newEntity));
-        MapItemDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+
+        MapItem newMapItem = new MapItem();
+        newMapItem.setName(newEntity.name());
+        newMapItem.setPosition(EmbeddedPosition.of(newEntity.position()));
+        newMapItem.setZoomLevel(newEntity.zoomLevel());
+        newMapItem.setMapGroup(
+            newEntity.mapGroupId() != null ? mapGroupService.findById(newEntity.mapGroupId()).orElse(null) : null
+        );
+
+        newMapItem = this.mapItemService.save(newMapItem);
+
+        return this.assembler.toModel(this.mapItemService.toDto(newMapItem, userDetails));
     }
 
     @GetMapping("{id}")
     EntityModel<MapItemDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        MapItem entity = this.repository.findById(id).orElseThrow(() -> new MapItemNotFoundException(id));
+        MapItem entity = this.mapItemService.findById(id).orElseThrow(() -> new MapItemNotFoundException(id));
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
 
-        MapItemDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.mapItemService.toDto(entity, userDetails));
     }
 
     @PutMapping("{id}")
     EntityModel<MapItemDto> replaceEntity(
-        @RequestBody MapItemDto newEntity,
+        @RequestBody MapItemCreatePayload newEntity,
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        MapItem entity = this.repository.findById(id).orElseThrow(() -> new MapItemNotFoundException(id));
+        MapItem entity = this.mapItemService.findById(id).orElseThrow(() -> new MapItemNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setName(newEntity.getName());
-        entity.setPosition(EmbeddedPosition.of(newEntity.getPosition()));
-        entity.setZoomLevel(newEntity.getZoomLevel());
+        entity.setName(newEntity.name());
+        entity.setPosition(EmbeddedPosition.of(newEntity.position()));
+        entity.setZoomLevel(newEntity.zoomLevel());
+        entity.setMapGroup(
+            newEntity.mapGroupId() != null ? mapGroupService.findById(newEntity.mapGroupId()).orElse(null) : null
+        );
 
-        if (newEntity.getMapGroupId() != null) {
-            entity.setMapGroup(mapGroupRepository.findById(newEntity.getMapGroupId()).orElseThrow());
-        } else {
-            entity.setMapGroup(null);
-        }
+        entity = this.mapItemService.save(entity);
 
-        MapItem saved = this.repository.save(entity);
-        MapItemDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+        return this.assembler.toModel(this.mapItemService.toDto(entity, userDetails));
     }
 
     @DeleteMapping("{id}")
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        MapItem entity = this.repository.findById(id).orElseThrow(() -> new MapItemNotFoundException(id));
+        MapItem entity = this.mapItemService.findById(id).orElseThrow(() -> new MapItemNotFoundException(id));
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
             throw new ForbiddenException("User does not have permission to delete overlays.");
         }
-        this.repository.deleteById(id);
+        this.mapItemService.deleteById(id);
     }
+
+    public record MapItemCreatePayload(String name, EmbeddedPositionDto position, Integer zoomLevel, UUID mapGroupId) {}
 }

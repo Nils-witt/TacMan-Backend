@@ -7,10 +7,10 @@ import dev.nilswitt.tacman.api.dtos.MapBaseLayerDto;
 import dev.nilswitt.tacman.entities.MapBaseLayer;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.MapBaseLayerRepository;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.MapBaseLayerNotFoundException;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import dev.nilswitt.tacman.services.MapBaseLayerService;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,16 +25,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/map/baselayers")
 public class MapBaseLayerController {
 
-    private final MapBaseLayerRepository repository;
+    private final MapBaseLayerService mapBaseLayerService;
     private final MapBaseLayerModelAssembler assembler;
     private final PermissionVerifier permissionVerifier;
 
     public MapBaseLayerController(
-        MapBaseLayerRepository repository,
+        MapBaseLayerService mapBaseLayerService,
         MapBaseLayerModelAssembler assembler,
         PermissionVerifier permissionVerifier
     ) {
-        this.repository = repository;
+        this.mapBaseLayerService = mapBaseLayerService;
         this.assembler = assembler;
         this.permissionVerifier = permissionVerifier;
     }
@@ -48,13 +48,9 @@ public class MapBaseLayerController {
                 SecurityGroup.UserRoleTypeEnum.MAPOVERLAY
             )
         ) {
-            List<EntityModel<MapBaseLayerDto>> entities = this.repository.findAll()
+            List<EntityModel<MapBaseLayerDto>> entities = this.mapBaseLayerService.findAll()
                 .stream()
-                .map(mapBaseLayer -> {
-                    MapBaseLayerDto dto = mapBaseLayer.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(mapBaseLayer, userDetails));
-                    return dto;
-                })
+                .map(mapBaseLayer -> this.mapBaseLayerService.toDto(mapBaseLayer, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel());
@@ -66,11 +62,7 @@ public class MapBaseLayerController {
         return CollectionModel.of(
             this.permissionVerifier.getMapBaseLayersForUser(userDetails)
                 .stream()
-                .map(mapBaseLayer -> {
-                    MapBaseLayerDto dto = mapBaseLayer.toDto();
-                    dto.setPermissions(this.permissionVerifier.getScopes(mapBaseLayer, userDetails));
-                    return dto;
-                })
+                .map(mapBaseLayer -> this.mapBaseLayerService.toDto(mapBaseLayer, userDetails))
                 .map(this.assembler::toModel)
                 .collect(Collectors.toList()),
             linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel()
@@ -79,7 +71,7 @@ public class MapBaseLayerController {
 
     @PostMapping("")
     EntityModel<MapBaseLayerDto> newEntity(
-        @RequestBody MapBaseLayerDto newEntity,
+        @RequestBody MapBaseLayerCreatePayload newEntity,
         @AuthenticationPrincipal User userDetails
     ) {
         if (
@@ -91,52 +83,60 @@ public class MapBaseLayerController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        MapBaseLayer entity = this.repository.save(MapBaseLayer.of(newEntity));
-        MapBaseLayerDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+        MapBaseLayer newBaseLayer = new MapBaseLayer();
+        newBaseLayer.setName(newEntity.name());
+        newBaseLayer.setCacheUrl(newEntity.cacheUrl());
+        newBaseLayer.setUrl(newEntity.url());
+        newBaseLayer = this.mapBaseLayerService.save(newBaseLayer);
+
+        return this.assembler.toModel(this.mapBaseLayerService.toDto(newBaseLayer, userDetails));
     }
 
     @GetMapping("{id}")
     EntityModel<MapBaseLayerDto> one(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        MapBaseLayer entity = this.repository.findById(id).orElseThrow(() -> new MapBaseLayerNotFoundException(id));
+        MapBaseLayer entity = this.mapBaseLayerService.findById(id).orElseThrow(() ->
+            new MapBaseLayerNotFoundException(id)
+        );
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.VIEW, entity)) {
             throw new ForbiddenException("User does not have permission to view overlays.");
         }
-        MapBaseLayerDto dto = entity.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(entity, userDetails));
-        return this.assembler.toModel(dto);
+
+        return this.assembler.toModel(this.mapBaseLayerService.toDto(entity, userDetails));
     }
 
     @PutMapping("{id}")
     EntityModel<MapBaseLayerDto> replaceEntity(
-        @RequestBody MapBaseLayerDto newEntity,
+        @RequestBody MapBaseLayerCreatePayload newEntity,
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
-        MapBaseLayer entity = this.repository.findById(id).orElseThrow(() -> new MapBaseLayerNotFoundException(id));
+        MapBaseLayer entity = this.mapBaseLayerService.findById(id).orElseThrow(() ->
+            new MapBaseLayerNotFoundException(id)
+        );
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.EDIT, entity)) {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setName(newEntity.getName());
-        entity.setUrl(newEntity.getUrl());
-        entity.setCacheUrl(newEntity.getCacheUrl());
+        entity.setName(newEntity.name());
+        entity.setCacheUrl(newEntity.cacheUrl());
+        entity.setUrl(newEntity.url());
 
-        MapBaseLayer saved = this.repository.save(entity);
-        MapBaseLayerDto dto = saved.toDto();
-        dto.setPermissions(this.permissionVerifier.getScopes(saved, userDetails));
-        return this.assembler.toModel(dto);
+        entity = this.mapBaseLayerService.save(entity);
+        return this.assembler.toModel(this.mapBaseLayerService.toDto(entity, userDetails));
     }
 
     @DeleteMapping("{id}")
     void deleteEntity(@PathVariable UUID id, @AuthenticationPrincipal User userDetails) {
-        MapBaseLayer entity = this.repository.findById(id).orElseThrow(() -> new MapBaseLayerNotFoundException(id));
+        MapBaseLayer entity = this.mapBaseLayerService.findById(id).orElseThrow(() ->
+            new MapBaseLayerNotFoundException(id)
+        );
 
         if (!this.permissionVerifier.hasAccess(userDetails, SecurityGroup.UserRoleScopeEnum.DELETE, entity)) {
             throw new ForbiddenException("User does not have permission to delete overlays.");
         }
-        this.repository.deleteById(id);
+        this.mapBaseLayerService.deleteById(id);
     }
+
+    public record MapBaseLayerCreatePayload(String name, String url, String cacheUrl) {}
 }

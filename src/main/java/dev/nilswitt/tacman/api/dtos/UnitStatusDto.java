@@ -1,5 +1,6 @@
 package dev.nilswitt.tacman.api.dtos;
 
+import dev.nilswitt.tacman.entities.UnitStatusUpdate;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
@@ -27,5 +28,18 @@ public class UnitStatusDto extends AbstractEntityDto {
         this.status = status;
         this.unitId = unitId;
         this.acknowledged = acknowledged;
+    }
+
+    public UnitStatusDto(UnitStatusUpdate statusUpdate) {
+        super(
+            statusUpdate.getId(),
+            statusUpdate.getCreatedAt(),
+            statusUpdate.getUpdatedAt(),
+            statusUpdate.getCreatedBy(),
+            statusUpdate.getModifiedBy()
+        );
+        this.status = statusUpdate.getStatus();
+        this.acknowledged = statusUpdate.isAcknowledged();
+        this.unitId = statusUpdate.getUnit().getId();
     }
 }
