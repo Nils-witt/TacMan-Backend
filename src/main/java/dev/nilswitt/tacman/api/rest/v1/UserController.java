@@ -81,7 +81,10 @@ public class UserController {
     }
 
     @PostMapping("")
-    EntityModel<UserDto> newEmployee(@RequestBody UserDto newEntity, @AuthenticationPrincipal User userDetails) {
+    EntityModel<UserDto> newEmployee(
+        @RequestBody UserCreatePayload newEntity,
+        @AuthenticationPrincipal User userDetails
+    ) {
         if (
             !this.permissionVerifier.hasAccess(
                 userDetails,
@@ -91,7 +94,15 @@ public class UserController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        User newUser = this.userService.fromDto(newEntity);
+        User newUser = new User();
+        newUser.setEnabled(true);
+        newUser.setLocked(false);
+        newUser.setUsername(newEntity.username());
+        newUser.setEmail(newEntity.email());
+        newUser.setFirstName(newEntity.firstName());
+        newUser.setLastName(newEntity.lastName());
+        newUser.setUnit(newEntity.unitId() != null ? this.unitService.findById(newEntity.unitId()).orElse(null) : null);
+
         newUser = this.userService.save(newUser);
 
         UserDto dto = this.userService.toDto(newUser, userDetails);
@@ -220,4 +231,6 @@ public class UserController {
     }
 
     private record PasswordPayload(String password) {}
+
+    private record UserCreatePayload(String username, String email, String firstName, String lastName, UUID unitId) {}
 }
