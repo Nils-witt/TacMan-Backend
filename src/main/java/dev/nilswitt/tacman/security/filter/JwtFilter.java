@@ -31,11 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final SecurityGroupService securityGroupService;
 
-    public JwtFilter(
-        JWTTokenComponent jwtUtil,
-        UserService userService,
-        SecurityGroupService securityGroupService
-    ) {
+    public JwtFilter(JWTTokenComponent jwtUtil, UserService userService, SecurityGroupService securityGroupService) {
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.securityGroupService = securityGroupService;
@@ -60,24 +56,33 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (token != null && !token.isBlank()) {
+            boolean isAuthenticated = false;
             try {
                 User user = jwtUtil.getUserFromToken(token);
-
                 AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     user,
                     token,
                     user.getAuthorities()
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                filterChain.doFilter(request, response);
-                return;
+                isAuthenticated = true;
+                log.info("Authenticated user: " + user.getUsername());
             } catch (Exception e) {
                 log.warn("Local JWT validation failed: {}", e.getMessage());
+            }
+            if (isAuthenticated) {
+                filterChain.doFilter(request, response);
+                return;
             }
             try {
                 User user = null;
 
                 String username = jwtUtil.getUsernameFromSSOToken(token);
+                if (username == null || username.isBlank()) {
+                    log.warn("SSO JWT does not contain a valid username");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 Optional<User> userOpt = userService.findByUsername(username);
                 Claims claims = jwtUtil.getClaimsFromSSOToken(token);
 
