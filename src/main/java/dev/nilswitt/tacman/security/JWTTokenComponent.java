@@ -47,9 +47,10 @@ public class JWTTokenComponent {
         }
     }
 
-    public String generateToken(User user) {
+    public String generateToken(User user, UUID tokenId) {
         HashMap<String, Object> claims = new HashMap<>();
         log.debug("Generating token for user {}: claims={}", user.getUsername(), claims);
+        claims.put("token_id", tokenId);
         return Jwts.builder()
             .subject(user.getId().toString())
             .issuedAt(new Date())

@@ -12,6 +12,7 @@ import dev.nilswitt.tacman.security.PermissionVerifier;
 import dev.nilswitt.tacman.services.SecurityGroupService;
 import dev.nilswitt.tacman.services.UnitService;
 import dev.nilswitt.tacman.services.UserService;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -183,6 +184,25 @@ public class UserController {
                     entity.setUnit(unitService.findById(UUID.fromString(unitId)).orElse(null));
                 } catch (Exception e) {
                     entity.setUnit(null);
+                }
+            }
+            if (data.has("securityGroups")) {
+                try {
+                    List<UUID> securityGroupIds = mapper.convertValue(
+                        data.get("securityGroups"),
+                        mapper.getTypeFactory().constructCollectionType(List.class, UUID.class)
+                    );
+                    entity.setSecurityGroups(
+                        new HashSet<>(
+                            securityGroupIds
+                                .stream()
+                                .map(uuid -> securityGroupService.findById(uuid).orElse(null))
+                                .filter(Objects::nonNull)
+                                .toList()
+                        )
+                    );
+                } catch (Exception e) {
+                    log.error("Failed to parse securityGroups: {}", e.getMessage(), e);
                 }
             }
         } catch (Exception e) {

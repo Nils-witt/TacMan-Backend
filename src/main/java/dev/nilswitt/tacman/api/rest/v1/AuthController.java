@@ -7,6 +7,7 @@ import dev.nilswitt.tacman.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +21,7 @@ public class AuthController {
     private final UserService userService;
     private final JWTTokenComponent jwtHandler;
 
-    public AuthController(
-        PasswordEncoder passwordEncoder,
-        UserService userService,
-        JWTTokenComponent jwtHandler
-    ) {
+    public AuthController(PasswordEncoder passwordEncoder, UserService userService, JWTTokenComponent jwtHandler) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.jwtHandler = jwtHandler;
@@ -58,7 +55,8 @@ public class AuthController {
                 !user.isLocked() &&
                 passwordEncoder.matches(authRequest.password, user.getPassword())
             ) {
-                String token = this.jwtHandler.generateToken(user);
+                UUID tokenId = UUID.randomUUID();
+                String token = this.jwtHandler.generateToken(user, tokenId);
                 return Map.of("token", token, "userId", user.getId());
             }
         }

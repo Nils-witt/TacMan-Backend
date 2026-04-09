@@ -386,8 +386,44 @@ public final class PermissionVerifier {
             case MapItem mapItem -> getScopes(mapItem, user);
             case MapBaseLayer mapBaseLayer -> getScopes(mapBaseLayer, user);
             case MapGroup mapGroup -> getScopes(mapGroup, user);
+            case Patient patient -> getScopes(patient, user);
+            case UHS uhs -> getScopes(uhs, user);
             case null, default -> Set.of();
         };
+    }
+
+    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, Patient patient) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.PATIENT, requiredScope)) {
+            return true;
+        }
+        return getScopes(patient, user).contains(requiredScope);
+    }
+
+    public Set<SecurityGroup.UserRoleScopeEnum> getScopes(Patient patient, User user) {
+        HashSet<SecurityGroup.UserRoleScopeEnum> scopes = new HashSet<>();
+        for (SecurityGroup.UserRoleScopeEnum scope : SecurityGroup.UserRoleScopeEnum.values()) {
+            if (hasScope(user, SecurityGroup.UserRoleTypeEnum.PATIENT, scope)) {
+                scopes.add(scope);
+            }
+        }
+        return scopes;
+    }
+
+    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, UHS uhs) {
+        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.UHS, requiredScope)) {
+            return true;
+        }
+        return getScopes(uhs, user).contains(requiredScope);
+    }
+
+    public Set<SecurityGroup.UserRoleScopeEnum> getScopes(UHS uhs, User user) {
+        HashSet<SecurityGroup.UserRoleScopeEnum> scopes = new HashSet<>();
+        for (SecurityGroup.UserRoleScopeEnum scope : SecurityGroup.UserRoleScopeEnum.values()) {
+            if (hasScope(user, SecurityGroup.UserRoleTypeEnum.UHS, scope)) {
+                scopes.add(scope);
+            }
+        }
+        return scopes;
     }
 
     public Set<SecurityGroup.UserRoleScopeEnum> getScopes(Unit unit, User user) {

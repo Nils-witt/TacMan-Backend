@@ -89,5 +89,7 @@ public class SecurityGroup extends AbstractEntity {
         PHOTO,
         MISSIONGROUP,
         MISSION,
+        PATIENT,
+        UHS,
     }
 }
