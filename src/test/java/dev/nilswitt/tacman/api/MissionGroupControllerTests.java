@@ -46,7 +46,9 @@ class MissionGroupControllerTests {
         String body = """
             {
               "name": "Mission_%s",
-              "startTime": "2024-01-01T00:00:00Z"
+              "startTime": "2024-01-01T00:00:00Z",
+              "unitIds": [],
+              "mapGroupIds": []
             }
             """.formatted(unique);
 
@@ -70,7 +72,9 @@ class MissionGroupControllerTests {
         String body = """
             {
               "name": "Mission_%s",
-              "startTime": "2024-01-01T00:00:00Z"
+              "startTime": "2024-01-01T00:00:00Z",
+              "unitIds": [],
+              "mapGroupIds": []
             }
             """.formatted(unique);
 
@@ -98,7 +102,9 @@ class MissionGroupControllerTests {
         String createBody = """
             {
               "name": "Mission_%s",
-              "startTime": "2024-01-01T00:00:00Z"
+              "startTime": "2024-01-01T00:00:00Z",
+              "unitIds": [],
+              "mapGroupIds": []
             }
             """.formatted(unique);
 
@@ -134,7 +140,9 @@ class MissionGroupControllerTests {
         String body = """
             {
               "name": "Mission_%s",
-              "startTime": "2024-01-01T00:00:00Z"
+              "startTime": "2024-01-01T00:00:00Z",
+              "unitIds": [],
+              "mapGroupIds": []
             }
             """.formatted(unique);
 

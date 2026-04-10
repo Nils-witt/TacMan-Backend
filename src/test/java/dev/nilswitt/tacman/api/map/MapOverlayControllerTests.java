@@ -48,7 +48,8 @@ class MapOverlayControllerTests {
               "name": "Overlay_%s",
               "baseUrl": "https://overlay.example.com",
               "basePath": "tiles",
-              "tilePathPattern": "{z}/{x}/{y}.png"
+              "tilePathPattern": "{z}/{x}/{y}.png",
+              "layerVersion": 0
             }
             """.formatted(unique);
 
@@ -74,7 +75,8 @@ class MapOverlayControllerTests {
               "name": "Overlay_%s",
               "baseUrl": "https://overlay.example.com",
               "basePath": "tiles",
-              "tilePathPattern": "{z}/{x}/{y}.png"
+              "tilePathPattern": "{z}/{x}/{y}.png",
+              "layerVersion": 0
             }
             """.formatted(unique);
 
@@ -104,7 +106,8 @@ class MapOverlayControllerTests {
               "name": "Overlay_%s",
               "baseUrl": "https://overlay.example.com",
               "basePath": "tiles",
-              "tilePathPattern": "{z}/{x}/{y}.png"
+              "tilePathPattern": "{z}/{x}/{y}.png",
+              "layerVersion": 0
             }
             """.formatted(unique);
 
@@ -120,7 +123,8 @@ class MapOverlayControllerTests {
               "name": "Overlay_%s_updated",
               "baseUrl": "https://updated.example.com",
               "basePath": "newtiles",
-              "tilePathPattern": "{z}/{x}/{y}.jpg"
+              "tilePathPattern": "{z}/{x}/{y}.jpg",
+              "layerVersion": 0
             }
             """.formatted(unique);
 
@@ -143,7 +147,8 @@ class MapOverlayControllerTests {
               "name": "Overlay_%s",
               "baseUrl": "https://overlay.example.com",
               "basePath": "tiles",
-              "tilePathPattern": "{z}/{x}/{y}.png"
+              "tilePathPattern": "{z}/{x}/{y}.png",
+              "layerVersion": 0
             }
             """.formatted(unique);
 
@@ -172,7 +177,7 @@ class MapOverlayControllerTests {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
-                        {"name": "x", "baseUrl": "https://example.com", "basePath": "", "tilePathPattern": "{z}/{x}/{y}.png"}
+                        {"name": "x", "baseUrl": "https://example.com", "basePath": "", "tilePathPattern": "{z}/{x}/{y}.png", "layerVersion": 0}
                         """
                     )
             )

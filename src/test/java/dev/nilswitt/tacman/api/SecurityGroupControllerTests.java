@@ -47,7 +47,7 @@ class SecurityGroupControllerTests {
             {
               "name": "Group_%s",
               "ssoGroupName": "",
-              "roles": ["UNIT_VIEW"]
+              "roles": ["VIEW"]
             }
             """.formatted(unique);
 
@@ -56,7 +56,7 @@ class SecurityGroupControllerTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.name").value("Group_" + unique))
-            .andExpect(jsonPath("$.roles[0]").value("UNIT_VIEW"))
+            .andExpect(jsonPath("$.roles[0]").value("VIEW"))
             .andReturn();
 
         String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
@@ -117,7 +117,7 @@ class SecurityGroupControllerTests {
             {
               "name": "Group_%s_updated",
               "ssoGroupName": "sso-group",
-              "roles": ["UNIT_VIEW", "UNIT_EDIT"]
+              "roles": ["VIEW", "EDIT"]
             }
             """.formatted(unique);
 
