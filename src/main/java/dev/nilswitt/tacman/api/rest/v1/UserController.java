@@ -12,10 +12,8 @@ import dev.nilswitt.tacman.security.PermissionVerifier;
 import dev.nilswitt.tacman.services.SecurityGroupService;
 import dev.nilswitt.tacman.services.UnitService;
 import dev.nilswitt.tacman.services.UserService;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +81,10 @@ public class UserController {
     }
 
     @PostMapping("")
-    EntityModel<UserDto> newEmployee(@RequestBody UserPayload newEntity, @AuthenticationPrincipal User userDetails) {
+    EntityModel<UserDto> newEmployee(
+        @RequestBody UserCreatePayload newEntity,
+        @AuthenticationPrincipal User userDetails
+    ) {
         if (
             !this.permissionVerifier.hasAccess(
                 userDetails,
@@ -93,18 +94,20 @@ public class UserController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        User newUser = new User(newEntity.username(), newEntity.email(), newEntity.firstName(), newEntity.lastName());
-        if (newEntity.securityGroups() != null) {
-            newEntity.securityGroups().forEach(groupId ->
-                securityGroupService.findById(groupId).ifPresent(newUser::addSecurityGroup)
-            );
-        }
-        securityGroupService.findByName("Everyone").ifPresent(newUser::addSecurityGroup);
-        if (newEntity.unitId() != null) {
-            newUser.setUnit(unitService.findById(newEntity.unitId()).orElse(null));
-        }
-        User saved = this.userService.save(newUser);
-        return this.assembler.toModel(this.userService.toDto(saved, userDetails));
+        User newUser = new User();
+        newUser.setEnabled(true);
+        newUser.setLocked(false);
+        newUser.setUsername(newEntity.username());
+        newUser.setEmail(newEntity.email());
+        newUser.setFirstName(newEntity.firstName());
+        newUser.setLastName(newEntity.lastName());
+        newUser.setUnit(newEntity.unitId() != null ? this.unitService.findById(newEntity.unitId()).orElse(null) : null);
+
+        newUser = this.userService.save(newUser);
+
+        UserDto dto = this.userService.toDto(newUser, userDetails);
+
+        return this.assembler.toModel(dto);
     }
 
     @GetMapping("{id}")
@@ -119,7 +122,7 @@ public class UserController {
 
     @PutMapping("{id}")
     EntityModel<UserDto> replaceEntity(
-        @RequestBody UserPayload newEntity,
+        @RequestBody UserDto newEntity,
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
@@ -129,19 +132,22 @@ public class UserController {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setUsername(newEntity.username());
-        entity.setEmail(newEntity.email());
-        entity.setFirstName(newEntity.firstName());
-        entity.setLastName(newEntity.lastName());
-        entity.setLocked(newEntity.locked());
-        entity.setEnabled(newEntity.enabled());
-        entity.setUnit(
-            newEntity.unitId() != null ? unitService.findById(newEntity.unitId()).orElse(null) : null
-        );
+        entity.setUsername(newEntity.getUsername());
+        entity.setEmail(newEntity.getEmail());
+        entity.setFirstName(newEntity.getFirstName());
+        entity.setLastName(newEntity.getLastName());
+        entity.setLocked(newEntity.isLocked());
+        entity.setEnabled(newEntity.isEnabled());
+        if (newEntity.getUnitId() != null) {
+            entity.setUnit(unitService.findById(newEntity.getUnitId()).orElse(null));
+        } else {
+            entity.setUnit(null);
+        }
 
-        if (newEntity.securityGroups() != null) {
+        if (newEntity.getSecurityGroups() != null) {
             entity.setSecurityGroups(
-                newEntity.securityGroups()
+                newEntity
+                    .getSecurityGroups()
                     .stream()
                     .map(uuid -> securityGroupService.findById(uuid).orElse(null))
                     .filter(Objects::nonNull)
@@ -190,25 +196,6 @@ public class UserController {
                     entity.setUnit(null);
                 }
             }
-            if (data.has("securityGroups")) {
-                try {
-                    List<UUID> securityGroupIds = mapper.convertValue(
-                        data.get("securityGroups"),
-                        mapper.getTypeFactory().constructCollectionType(List.class, UUID.class)
-                    );
-                    entity.setSecurityGroups(
-                        new HashSet<>(
-                            securityGroupIds
-                                .stream()
-                                .map(uuid -> securityGroupService.findById(uuid).orElse(null))
-                                .filter(Objects::nonNull)
-                                .toList()
-                        )
-                    );
-                } catch (Exception e) {
-                    log.error("Failed to parse securityGroups: {}", e.getMessage(), e);
-                }
-            }
         } catch (Exception e) {
             log.error("Failed to parse JSON body: {}", e.getMessage(), e);
         }
@@ -245,14 +232,5 @@ public class UserController {
 
     private record PasswordPayload(String password) {}
 
-    public record UserPayload(
-        String username,
-        String email,
-        String firstName,
-        String lastName,
-        boolean enabled,
-        boolean locked,
-        UUID unitId,
-        Set<UUID> securityGroups
-    ) {}
+    private record UserCreatePayload(String username, String email, String firstName, String lastName, UUID unitId) {}
 }
