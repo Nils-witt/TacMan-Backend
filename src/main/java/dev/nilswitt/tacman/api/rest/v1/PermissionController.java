@@ -2,7 +2,6 @@ package dev.nilswitt.tacman.api.rest.v1;
 
 import dev.nilswitt.tacman.api.PermissionManagementService;
 import dev.nilswitt.tacman.api.dtos.EntityPermissionsDto;
-import dev.nilswitt.tacman.api.dtos.PermissionRequestDto;
 import dev.nilswitt.tacman.entities.AbstractEntity;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
@@ -41,7 +40,7 @@ public class PermissionController {
     public void grantUserPermission(
         @PathVariable String entityType,
         @PathVariable UUID entityId,
-        @RequestBody PermissionRequestDto request,
+        @RequestBody PermissionPayload request,
         @AuthenticationPrincipal User currentUser
     ) {
         requireAdmin(currentUser, entityType);
@@ -65,7 +64,7 @@ public class PermissionController {
     public void grantGroupPermission(
         @PathVariable String entityType,
         @PathVariable UUID entityId,
-        @RequestBody PermissionRequestDto request,
+        @RequestBody PermissionPayload request,
         @AuthenticationPrincipal User currentUser
     ) {
         requireAdmin(currentUser, entityType);
@@ -91,4 +90,6 @@ public class PermissionController {
             throw new ForbiddenException("Admin access required to manage permissions for " + entityType + ".");
         }
     }
+
+    public record PermissionPayload(UUID subjectId, SecurityGroup.UserRoleScopeEnum scope) {}
 }

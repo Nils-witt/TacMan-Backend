@@ -15,6 +15,7 @@ import dev.nilswitt.tacman.services.UserService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +83,7 @@ public class UserController {
     }
 
     @PostMapping("")
-    EntityModel<UserDto> newEmployee(@RequestBody UserDto newEntity, @AuthenticationPrincipal User userDetails) {
+    EntityModel<UserDto> newEmployee(@RequestBody UserPayload newEntity, @AuthenticationPrincipal User userDetails) {
         if (
             !this.permissionVerifier.hasAccess(
                 userDetails,
@@ -92,12 +93,18 @@ public class UserController {
         ) {
             throw new ForbiddenException("User does not have permission to create overlays.");
         }
-        User newUser = this.userService.fromDto(newEntity);
-        newUser = this.userService.save(newUser);
-
-        UserDto dto = this.userService.toDto(newUser, userDetails);
-
-        return this.assembler.toModel(dto);
+        User newUser = new User(newEntity.username(), newEntity.email(), newEntity.firstName(), newEntity.lastName());
+        if (newEntity.securityGroups() != null) {
+            newEntity.securityGroups().forEach(groupId ->
+                securityGroupService.findById(groupId).ifPresent(newUser::addSecurityGroup)
+            );
+        }
+        securityGroupService.findByName("Everyone").ifPresent(newUser::addSecurityGroup);
+        if (newEntity.unitId() != null) {
+            newUser.setUnit(unitService.findById(newEntity.unitId()).orElse(null));
+        }
+        User saved = this.userService.save(newUser);
+        return this.assembler.toModel(this.userService.toDto(saved, userDetails));
     }
 
     @GetMapping("{id}")
@@ -112,7 +119,7 @@ public class UserController {
 
     @PutMapping("{id}")
     EntityModel<UserDto> replaceEntity(
-        @RequestBody UserDto newEntity,
+        @RequestBody UserPayload newEntity,
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
@@ -122,22 +129,19 @@ public class UserController {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setUsername(newEntity.getUsername());
-        entity.setEmail(newEntity.getEmail());
-        entity.setFirstName(newEntity.getFirstName());
-        entity.setLastName(newEntity.getLastName());
-        entity.setLocked(newEntity.isLocked());
-        entity.setEnabled(newEntity.isEnabled());
-        if (newEntity.getUnitId() != null) {
-            entity.setUnit(unitService.findById(newEntity.getUnitId()).orElse(null));
-        } else {
-            entity.setUnit(null);
-        }
+        entity.setUsername(newEntity.username());
+        entity.setEmail(newEntity.email());
+        entity.setFirstName(newEntity.firstName());
+        entity.setLastName(newEntity.lastName());
+        entity.setLocked(newEntity.locked());
+        entity.setEnabled(newEntity.enabled());
+        entity.setUnit(
+            newEntity.unitId() != null ? unitService.findById(newEntity.unitId()).orElse(null) : null
+        );
 
-        if (newEntity.getSecurityGroups() != null) {
+        if (newEntity.securityGroups() != null) {
             entity.setSecurityGroups(
-                newEntity
-                    .getSecurityGroups()
+                newEntity.securityGroups()
                     .stream()
                     .map(uuid -> securityGroupService.findById(uuid).orElse(null))
                     .filter(Objects::nonNull)
@@ -240,4 +244,15 @@ public class UserController {
     }
 
     private record PasswordPayload(String password) {}
+
+    public record UserPayload(
+        String username,
+        String email,
+        String firstName,
+        String lastName,
+        boolean enabled,
+        boolean locked,
+        UUID unitId,
+        Set<UUID> securityGroups
+    ) {}
 }

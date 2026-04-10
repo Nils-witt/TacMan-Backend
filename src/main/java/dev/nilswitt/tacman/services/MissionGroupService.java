@@ -42,6 +42,7 @@ public class MissionGroupService {
     }
 
     public MissionGroup save(MissionGroup missionGroup) {
+        missionGroupRepository.save(missionGroup);
         this.unitRepository.findAllByMissionGroup(missionGroup).forEach(unit -> {
             if (!missionGroup.getUnits().contains(unit)) {
                 unit.setMissionGroup(null);
