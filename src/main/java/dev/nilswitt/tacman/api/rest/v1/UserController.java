@@ -14,6 +14,7 @@ import dev.nilswitt.tacman.services.UnitService;
 import dev.nilswitt.tacman.services.UserService;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +123,7 @@ public class UserController {
 
     @PutMapping("{id}")
     EntityModel<UserDto> replaceEntity(
-        @RequestBody UserDto newEntity,
+        @RequestBody UserUpdatePayload newEntity,
         @PathVariable UUID id,
         @AuthenticationPrincipal User userDetails
     ) {
@@ -132,22 +133,22 @@ public class UserController {
             throw new ForbiddenException("User does not have permission to edit overlays.");
         }
 
-        entity.setUsername(newEntity.getUsername());
-        entity.setEmail(newEntity.getEmail());
-        entity.setFirstName(newEntity.getFirstName());
-        entity.setLastName(newEntity.getLastName());
-        entity.setLocked(newEntity.isLocked());
-        entity.setEnabled(newEntity.isEnabled());
-        if (newEntity.getUnitId() != null) {
-            entity.setUnit(unitService.findById(newEntity.getUnitId()).orElse(null));
+        entity.setUsername(newEntity.username());
+        entity.setEmail(newEntity.email());
+        entity.setFirstName(newEntity.firstName());
+        entity.setLastName(newEntity.lastName());
+        entity.setLocked(newEntity.locked());
+        entity.setEnabled(newEntity.enabled());
+        if (newEntity.unitId() != null) {
+            entity.setUnit(unitService.findById(newEntity.unitId()).orElse(null));
         } else {
             entity.setUnit(null);
         }
 
-        if (newEntity.getSecurityGroups() != null) {
+        if (newEntity.securityGroups() != null) {
             entity.setSecurityGroups(
                 newEntity
-                    .getSecurityGroups()
+                    .securityGroups()
                     .stream()
                     .map(uuid -> securityGroupService.findById(uuid).orElse(null))
                     .filter(Objects::nonNull)
@@ -233,4 +234,15 @@ public class UserController {
     private record PasswordPayload(String password) {}
 
     private record UserCreatePayload(String username, String email, String firstName, String lastName, UUID unitId) {}
+
+    private record UserUpdatePayload(
+        String username,
+        String email,
+        String firstName,
+        String lastName,
+        boolean enabled,
+        boolean locked,
+        UUID unitId,
+        Set<UUID> securityGroups
+    ) {}
 }
