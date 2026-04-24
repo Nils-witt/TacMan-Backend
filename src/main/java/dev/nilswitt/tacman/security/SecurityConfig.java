@@ -3,7 +3,7 @@ package dev.nilswitt.tacman.security;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 import dev.nilswitt.tacman.security.filter.CorsFilter;
-import dev.nilswitt.tacman.security.filter.JwtFilter;
+import dev.nilswitt.tacman.security.jwt.SpringSecurityJwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -22,11 +22,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
+    private final SpringSecurityJwtFilter jwtFilter;
 
     private final CorsFilter corsFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter, CorsFilter corsFilter) {
+    public SecurityConfig(SpringSecurityJwtFilter jwtFilter, CorsFilter corsFilter) {
         this.jwtFilter = jwtFilter;
         this.corsFilter = corsFilter;
     }
@@ -68,7 +68,7 @@ class SecurityConfig {
             })
             .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(corsFilter, JwtFilter.class)
+            .addFilterBefore(corsFilter, SpringSecurityJwtFilter.class)
             .exceptionHandling(exception ->
                 exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )

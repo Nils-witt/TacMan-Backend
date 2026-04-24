@@ -18,8 +18,8 @@ public class CorsFilter extends OncePerRequestFilter {
     private final boolean corsEnabled;
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public CorsFilter(@Value("${application.logging.requests:true}") boolean loggingEnabled) {
-        this.corsEnabled = true;
+    public CorsFilter(@Value("${application.cors:false}") boolean corsEnabled) {
+        this.corsEnabled = corsEnabled;
     }
 
     @Override

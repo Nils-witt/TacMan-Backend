@@ -1,6 +1,6 @@
 package dev.nilswitt.tacman.api.ws;
 
-import dev.nilswitt.tacman.security.JWTTokenComponent;
+import dev.nilswitt.tacman.security.jwt.JWTTokenComponent;
 import dev.nilswitt.tacman.services.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;

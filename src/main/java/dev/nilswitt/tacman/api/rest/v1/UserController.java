@@ -12,10 +12,7 @@ import dev.nilswitt.tacman.security.PermissionVerifier;
 import dev.nilswitt.tacman.services.SecurityGroupService;
 import dev.nilswitt.tacman.services.UnitService;
 import dev.nilswitt.tacman.services.UserService;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
@@ -25,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 @Slf4j
 @RestController
@@ -195,6 +193,29 @@ public class UserController {
                     entity.setUnit(unitService.findById(UUID.fromString(unitId)).orElse(null));
                 } catch (Exception e) {
                     entity.setUnit(null);
+                }
+            }
+            if (data.has("securityGroups")) {
+                try {
+                    ArrayNode node = data.get("securityGroups").asArray();
+                    Set<SecurityGroup> securityGroups = node
+                        .elements()
+                        .stream()
+                        .map(JsonNode::asText)
+                        .filter(Objects::nonNull)
+                        .map(uuid -> {
+                            try {
+                                return securityGroupService.findById(UUID.fromString(uuid)).orElse(null);
+                            } catch (Exception e) {
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                    entity.setSecurityGroups(securityGroups);
+                } catch (Exception e) {
+                    entity.setSecurityGroups(new HashSet<>());
+                    // ignore invalid security group ids
                 }
             }
         } catch (Exception e) {
