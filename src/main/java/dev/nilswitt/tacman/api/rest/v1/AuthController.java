@@ -2,7 +2,7 @@ package dev.nilswitt.tacman.api.rest.v1;
 
 import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.exceptions.UnauthorizedException;
-import dev.nilswitt.tacman.security.JWTTokenComponent;
+import dev.nilswitt.tacman.security.jwt.JWTTokenComponent;
 import dev.nilswitt.tacman.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;

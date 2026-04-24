@@ -1,8 +1,10 @@
-package dev.nilswitt.tacman.security;
+package dev.nilswitt.tacman.security.jwt;
 
+import dev.nilswitt.tacman.entities.JWTTokenRegistration;
 import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.services.UserService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.security.KeyFactory;
@@ -25,14 +27,17 @@ public class JWTTokenComponent {
 
     private final UserService userService;
     private final SecretKey secretKey;
+    private final JWTRegistry jwtRegistry;
     private PublicKey ssoJWKS = null;
 
     public JWTTokenComponent(
         UserService userService,
+        JWTRegistry jwtRegistry,
         @Value("${application.security.jwt_secret}") String secret,
         @Value("${application.security.jwt_expiration_ms:10}") long expirationMs,
         @Value("${application.openid.jwks}") String jwks
     ) {
+        this.jwtRegistry = jwtRegistry;
         this.userService = userService;
         this.EXPIRATION_MS = expirationMs;
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
@@ -48,22 +53,38 @@ public class JWTTokenComponent {
     }
 
     public String generateToken(User user, UUID tokenId) {
+        return generateToken(user, tokenId, true);
+    }
+
+    public String generateToken(User user, UUID tokenId, boolean addToRegistry) {
         HashMap<String, Object> claims = new HashMap<>();
         log.debug("Generating token for user {}: claims={}", user.getUsername(), claims);
         claims.put("token_id", tokenId);
+        Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_MS);
+        if (addToRegistry) {
+            jwtRegistry.addToken(new JWTTokenRegistration(tokenId, user.getId(), expirationDate.toInstant()));
+        }
         return Jwts.builder()
             .subject(user.getId().toString())
             .issuedAt(new Date())
-            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+            .expiration(expirationDate)
             .claims(claims)
             .signWith(this.secretKey, Jwts.SIG.HS512)
             .compact();
     }
 
-    public UUID extractUserId(String token) {
-        return UUID.fromString(
-            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getSubject()
-        );
+    public UUID extractUserId(String token) throws ExpiredJwtException {
+        try {
+            Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+            UUID tokenId = UUID.fromString((String) claims.get("token_id"));
+            if (!this.jwtRegistry.isValid(tokenId)) {
+                throw new ExpiredJwtException(null, null, "Token has been revoked");
+            }
+
+            return UUID.fromString(claims.getSubject());
+        } catch (IllegalArgumentException e) {
+            throw new ExpiredJwtException(null, null, "Invalid JWT token: " + e.getMessage());
+        }
     }
 
     public User getUserFromToken(String token) {

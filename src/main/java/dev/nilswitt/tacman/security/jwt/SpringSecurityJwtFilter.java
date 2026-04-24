@@ -1,8 +1,7 @@
-package dev.nilswitt.tacman.security.filter;
+package dev.nilswitt.tacman.security.jwt;
 
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.security.JWTTokenComponent;
 import dev.nilswitt.tacman.services.SecurityGroupService;
 import dev.nilswitt.tacman.services.UserService;
 import io.jsonwebtoken.Claims;
@@ -25,13 +24,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Log4j2
 @Component
-public class JwtFilter extends OncePerRequestFilter {
+public class SpringSecurityJwtFilter extends OncePerRequestFilter {
 
     private final JWTTokenComponent jwtUtil;
     private final UserService userService;
     private final SecurityGroupService securityGroupService;
 
-    public JwtFilter(JWTTokenComponent jwtUtil, UserService userService, SecurityGroupService securityGroupService) {
+    public SpringSecurityJwtFilter(
+        JWTTokenComponent jwtUtil,
+        UserService userService,
+        SecurityGroupService securityGroupService
+    ) {
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.securityGroupService = securityGroupService;
@@ -66,7 +69,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 isAuthenticated = true;
-                log.info("Authenticated user: " + user.getUsername());
+                // log.info("Authenticated user: " + user.getUsername());
             } catch (Exception e) {
                 log.warn("Local JWT validation failed: {}", e.getMessage());
             }

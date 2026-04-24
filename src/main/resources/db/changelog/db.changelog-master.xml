@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <include file="db/changelog/2026/02/14-01-changelog.xml"/>
@@ -26,4 +26,6 @@
     <include file="db/changelog/2026/03/17-01-changelog.xml"/>
     <include file="db/changelog/2026/03/24-01-changelog.xml"/>
     <include file="db/changelog/2026/03/25-02-changelog.xml"/>
+    <include file="db/changelog/2026/04/13-01-changelog.xml"/>
+    <include file="db/changelog/2026/04/24-01-changelog.xml"/>
 </databaseChangeLog>
