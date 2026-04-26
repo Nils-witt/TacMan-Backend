@@ -108,7 +108,7 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
             } else {
                 session.sendMessage(new TextMessage("Unknown topic: " + topic));
             }
-            log.info("Session {} requested data for topic {}", session.getId(), topic);
+            log.debug("Session {} requested data for topic {}", session.getId(), topic);
         } else if (payload.equals(PING_PAYLOAD)) {
             session.sendMessage(new TextMessage(PONG_PAYLOAD));
             return;
@@ -119,9 +119,9 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) throws Exception {
         sessionRegistry.add(session);
-        log.info("WebSocket connection established: {} {}", session.getPrincipal(), session.getId());
+        log.debug("WebSocket connection established: {} {}", session.getPrincipal(), session.getId());
         if (session.getAttributes().containsKey("user")) {
-            log.info("WebSocket session user attribute: {}", session.getAttributes().get("user"));
+            log.debug("WebSocket session user attribute: {}", session.getAttributes().get("user"));
         }
     }
 

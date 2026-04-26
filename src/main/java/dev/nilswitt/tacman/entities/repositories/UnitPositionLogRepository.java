@@ -13,4 +13,6 @@ public interface UnitPositionLogRepository extends JpaRepository<UnitPositionLog
     List<UnitPositionLog> findByUnitAndPosition_TimestampAfter(Unit unit, Instant timestamp);
 
     long deleteByUnit(Unit unit);
+
+    long deleteByCreatedAtBefore(Instant cutoff);
 }

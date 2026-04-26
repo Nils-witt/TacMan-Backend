@@ -136,7 +136,7 @@ public class UnitController {
                         } else {
                             entity.setStatus(newStatus);
                         }
-                        log.info("Commited status update: {}", entity.getStatus());
+                        log.debug("Commited status update: {}", entity.getStatus());
                     }
                 } catch (Exception e) {
                     log.error("Failed to parse JSON body: {}", e.getMessage(), e);

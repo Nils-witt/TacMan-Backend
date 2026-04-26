@@ -40,7 +40,7 @@ public class AuthController {
             User user = this.jwtHandler.getUserFromToken(token.trim());
             return Map.of("valid", true, "user", user);
         } catch (Exception e) {
-            log.info("Token validation failed: {}", e.getMessage());
+            log.debug("Token validation failed: {}", e.getMessage());
         }
         throw new UnauthorizedException();
     }

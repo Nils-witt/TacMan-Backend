@@ -55,7 +55,7 @@ public class MapBaseLayerController {
                 .collect(Collectors.toList());
             return CollectionModel.of(entities, linkTo(methodOn(MapBaseLayerController.class).all(null)).withSelfRel());
         }
-        log.info(
+        log.debug(
             "User {} does not have permission to view all baselayers, returning only those with permissions.",
             userDetails.getUsername()
         );

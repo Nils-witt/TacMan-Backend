@@ -71,7 +71,7 @@ public class SpringSecurityJwtFilter extends OncePerRequestFilter {
                 isAuthenticated = true;
                 // log.info("Authenticated user: " + user.getUsername());
             } catch (Exception e) {
-                log.warn("Local JWT validation failed: {}", e.getMessage());
+                log.debug("Local JWT validation failed: {}", e.getMessage());
             }
             if (isAuthenticated) {
                 filterChain.doFilter(request, response);
@@ -82,7 +82,7 @@ public class SpringSecurityJwtFilter extends OncePerRequestFilter {
 
                 String username = jwtUtil.getUsernameFromSSOToken(token);
                 if (username == null || username.isBlank()) {
-                    log.warn("SSO JWT does not contain a valid username");
+                    log.debug("SSO JWT does not contain a valid username");
                     filterChain.doFilter(request, response);
                     return;
                 }

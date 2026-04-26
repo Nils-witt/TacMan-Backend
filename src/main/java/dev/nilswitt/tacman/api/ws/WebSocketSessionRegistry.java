@@ -56,7 +56,7 @@ public class WebSocketSessionRegistry {
 
     public void subscribe(WebSocketSession session, String topic) throws ForbiddenException {
         topicSubscriptions.computeIfAbsent(topic, k -> ConcurrentHashMap.newKeySet()).add(session.getId());
-        log.info("Session {} subscribed to topic {}", session.getId(), topic);
+        log.debug("Session {} subscribed to topic {}", session.getId(), topic);
     }
 
     public void unsubscribe(WebSocketSession session, String topic) {
@@ -64,7 +64,7 @@ public class WebSocketSessionRegistry {
             v.remove(session.getId());
             return v.isEmpty() ? null : v;
         });
-        log.info("Session {} unsubscribed from topic {}", session.getId(), topic);
+        log.debug("Session {} unsubscribed from topic {}", session.getId(), topic);
     }
 
     public Iterable<WebSocketSession> getSessions() {
