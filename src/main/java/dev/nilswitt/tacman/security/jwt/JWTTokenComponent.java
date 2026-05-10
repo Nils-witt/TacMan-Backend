@@ -2,7 +2,7 @@ package dev.nilswitt.tacman.security.jwt;
 
 import dev.nilswitt.tacman.entities.JWTTokenRegistration;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.services.UserService;
+import dev.nilswitt.tacman.entities.services.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

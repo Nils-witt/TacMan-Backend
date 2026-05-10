@@ -1,9 +1,11 @@
 package dev.nilswitt.tacman.security;
 
 import dev.nilswitt.tacman.entities.*;
-import dev.nilswitt.tacman.entities.repositories.*;
+import dev.nilswitt.tacman.entities.services.*;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -11,24 +13,27 @@ import org.springframework.stereotype.Component;
 @Component
 public final class PermissionVerifier {
 
-    private final UserPermissionsRepository userPermissionsRepository;
-    private final SecurityGroupPermissionsRepository securityGroupPermissionsRepository;
-    private final MapOverlayRepository mapOverlayRepository;
-    private final MapItemRepository mapItemRepository;
-    private final PhotoRepository photoRepository;
+    private final UserPermissionService userPermissionService;
+    private final SecurityGroupPermissionService securityGroupPermissionService;
+
+    @Lazy
+    @Autowired
+    private MapOverlayService mapOverlayService;
+
+    @Lazy
+    @Autowired
+    private MapItemService mapItemService;
+
+    @Lazy
+    @Autowired
+    private PhotoService photoService;
 
     private PermissionVerifier(
-        UserPermissionsRepository userPermissionsRepository,
-        SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
-        MapOverlayRepository mapOverlayRepository,
-        MapItemRepository mapItemRepository,
-        PhotoRepository photoRepository
+        UserPermissionService userPermissionService,
+        SecurityGroupPermissionService securityGroupPermissionService
     ) {
-        this.userPermissionsRepository = userPermissionsRepository;
-        this.securityGroupPermissionsRepository = securityGroupPermissionsRepository;
-        this.mapOverlayRepository = mapOverlayRepository;
-        this.mapItemRepository = mapItemRepository;
-        this.photoRepository = photoRepository;
+        this.userPermissionService = userPermissionService;
+        this.securityGroupPermissionService = securityGroupPermissionService;
     }
 
     public static boolean testScope(
@@ -202,14 +207,14 @@ public final class PermissionVerifier {
 
     public List<MapOverlay> getMapOverlaysForUser(User userDetails) {
         ArrayList<MapOverlay> permittedOverlays = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndMapOverlayNotNull(userDetails)
+            this.userPermissionService.findByUserAndMapOverlayNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getMapOverlay)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndMapOverlayNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndMapOverlayNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getMapOverlay)
                     .toList()
@@ -222,7 +227,7 @@ public final class PermissionVerifier {
                     .getMissionGroup()
                     .getMapGroups()
                     .stream()
-                    .forEach(group -> permittedOverlays.addAll(mapOverlayRepository.findByMapGroup(group)));
+                    .forEach(group -> permittedOverlays.addAll(mapOverlayService.findByMapGroup(group)));
             }
         }
         return permittedOverlays.stream().distinct().toList();
@@ -230,14 +235,14 @@ public final class PermissionVerifier {
 
     public List<Unit> getUnitsForUser(User userDetails) {
         ArrayList<Unit> permittedUnits = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndUnitNotNull(userDetails)
+            this.userPermissionService.findByUserAndUnitNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getUnit)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedUnits.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndUnitNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndUnitNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getUnit)
                     .toList()
@@ -251,14 +256,14 @@ public final class PermissionVerifier {
 
     public List<MapItem> getMapItemsForUser(User userDetails) {
         ArrayList<MapItem> permittedItems = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndMapItemNotNull(userDetails)
+            this.userPermissionService.findByUserAndMapItemNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getMapItem)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedItems.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndMapItemNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndMapItemNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getMapItem)
                     .toList()
@@ -266,21 +271,21 @@ public final class PermissionVerifier {
         }
         List<MapGroup> permittedGroups = getMapGroupsForUser(userDetails);
         for (MapGroup mg : permittedGroups) {
-            permittedItems.addAll(mapItemRepository.findByMapGroup(mg));
+            permittedItems.addAll(mapItemService.findByMapGroup(mg));
         }
         return permittedItems.stream().distinct().toList();
     }
 
     public List<MapGroup> getMapGroupsForUser(User userDetails) {
         ArrayList<MapGroup> permittedGroups = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndMapGroupNotNull(userDetails)
+            this.userPermissionService.findByUserAndMapGroupNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getMapGroup)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedGroups.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndMapGroupNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndMapGroupNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getMapGroup)
                     .toList()
@@ -296,14 +301,14 @@ public final class PermissionVerifier {
 
     public List<MapBaseLayer> getMapBaseLayersForUser(User userDetails) {
         ArrayList<MapBaseLayer> permittedOverlays = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndBaseLayerNotNull(userDetails)
+            this.userPermissionService.findByUserAndBaseLayerNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getBaseLayer)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndBaseLayerNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndBaseLayerNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getBaseLayer)
                     .toList()
@@ -314,14 +319,14 @@ public final class PermissionVerifier {
 
     public List<User> getUsersForUser(User userDetails) {
         ArrayList<User> permittedOverlays = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndEntityUserNotNull(userDetails)
+            this.userPermissionService.findByUserAndEntityUserNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getEntityUser)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedOverlays.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndEntityUserNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndEntityUserNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getEntityUser)
                     .toList()
@@ -333,14 +338,14 @@ public final class PermissionVerifier {
 
     public List<Photo> getPhotosForUser(User userDetails) {
         ArrayList<Photo> permittedPhotos = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndPhotoNotNull(userDetails)
+            this.userPermissionService.findByUserAndPhotoNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getPhoto)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedPhotos.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndPhotoNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndPhotoNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getPhoto)
                     .toList()
@@ -348,21 +353,21 @@ public final class PermissionVerifier {
         }
 
         getMissionGroupsForUser(userDetails).forEach(group ->
-            permittedPhotos.addAll(photoRepository.findByMissionGroup(group))
+            permittedPhotos.addAll(photoService.findByMissionGroup(group))
         );
         return permittedPhotos.stream().distinct().toList();
     }
 
     public List<MissionGroup> getMissionGroupsForUser(User userDetails) {
         ArrayList<MissionGroup> permittedMissionGroups = new ArrayList<>(
-            this.userPermissionsRepository.findByUserAndMissionGroupNotNull(userDetails)
+            this.userPermissionService.findByUserAndMissionGroupNotNull(userDetails)
                 .stream()
                 .map(UserPermission::getMissionGroup)
                 .toList()
         );
         for (SecurityGroup sg : userDetails.getSecurityGroups()) {
             permittedMissionGroups.addAll(
-                this.securityGroupPermissionsRepository.findBySecurityGroupAndMissionGroupNotNull(sg)
+                this.securityGroupPermissionService.findBySecurityGroupAndMissionGroupNotNull(sg)
                     .stream()
                     .map(SecurityGroupPermission::getMissionGroup)
                     .toList()
@@ -386,44 +391,8 @@ public final class PermissionVerifier {
             case MapItem mapItem -> getScopes(mapItem, user);
             case MapBaseLayer mapBaseLayer -> getScopes(mapBaseLayer, user);
             case MapGroup mapGroup -> getScopes(mapGroup, user);
-            case Patient patient -> getScopes(patient, user);
-            case UHS uhs -> getScopes(uhs, user);
             case null, default -> Set.of();
         };
-    }
-
-    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, Patient patient) {
-        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.PATIENT, requiredScope)) {
-            return true;
-        }
-        return getScopes(patient, user).contains(requiredScope);
-    }
-
-    public Set<SecurityGroup.UserRoleScopeEnum> getScopes(Patient patient, User user) {
-        HashSet<SecurityGroup.UserRoleScopeEnum> scopes = new HashSet<>();
-        for (SecurityGroup.UserRoleScopeEnum scope : SecurityGroup.UserRoleScopeEnum.values()) {
-            if (hasScope(user, SecurityGroup.UserRoleTypeEnum.PATIENT, scope)) {
-                scopes.add(scope);
-            }
-        }
-        return scopes;
-    }
-
-    public boolean hasAccess(User user, SecurityGroup.UserRoleScopeEnum requiredScope, UHS uhs) {
-        if (hasScope(user, SecurityGroup.UserRoleTypeEnum.UHS, requiredScope)) {
-            return true;
-        }
-        return getScopes(uhs, user).contains(requiredScope);
-    }
-
-    public Set<SecurityGroup.UserRoleScopeEnum> getScopes(UHS uhs, User user) {
-        HashSet<SecurityGroup.UserRoleScopeEnum> scopes = new HashSet<>();
-        for (SecurityGroup.UserRoleScopeEnum scope : SecurityGroup.UserRoleScopeEnum.values()) {
-            if (hasScope(user, SecurityGroup.UserRoleTypeEnum.UHS, scope)) {
-                scopes.add(scope);
-            }
-        }
-        return scopes;
     }
 
     public Set<SecurityGroup.UserRoleScopeEnum> getScopes(Unit unit, User user) {
@@ -439,9 +408,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndUnit(user, unit).ifPresent(perm -> scopes.add(perm.getScope()));
+        this.userPermissionService.findByUserAndUnit(user, unit).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndUnit(sg, unit)
+            this.securityGroupPermissionService.findBySecurityGroupAndUnit(sg, unit)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -460,11 +429,11 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndMissionGroup(user, missionGroup).ifPresent(perm ->
+        this.userPermissionService.findByUserAndMissionGroup(user, missionGroup).ifPresent(perm ->
             scopes.add(perm.getScope())
         );
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndMissionGroup(sg, missionGroup)
+            this.securityGroupPermissionService.findBySecurityGroupAndMissionGroup(sg, missionGroup)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -493,11 +462,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndEntityUser(user, target).ifPresent(perm ->
-            scopes.add(perm.getScope())
-        );
+        this.userPermissionService.findByUserAndEntityUser(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndEntityUser(sg, target)
+            this.securityGroupPermissionService.findBySecurityGroupAndEntityUser(sg, target)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -518,9 +485,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndPhoto(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
+        this.userPermissionService.findByUserAndPhoto(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndPhoto(sg, target)
+            this.securityGroupPermissionService.findBySecurityGroupAndPhoto(sg, target)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -551,11 +518,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndMapOverlay(user, target).ifPresent(perm ->
-            scopes.add(perm.getScope())
-        );
+        this.userPermissionService.findByUserAndMapOverlay(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndMapOverlay(sg, target)
+            this.securityGroupPermissionService.findBySecurityGroupAndMapOverlay(sg, target)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -587,11 +552,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndMapItem(user, target).ifPresent(perm ->
-            scopes.add(perm.getScope())
-        );
+        this.userPermissionService.findByUserAndMapItem(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndMapItem(sg, target)
+            this.securityGroupPermissionService.findBySecurityGroupAndMapItem(sg, target)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -622,11 +585,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndBaseLayer(user, target).ifPresent(perm ->
-            scopes.add(perm.getScope())
-        );
+        this.userPermissionService.findByUserAndBaseLayer(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndBaseLayer(sg, target)
+            this.securityGroupPermissionService.findBySecurityGroupAndBaseLayer(sg, target)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);
@@ -645,11 +606,9 @@ public final class PermissionVerifier {
             }
         }
 
-        this.userPermissionsRepository.findByUserAndMapGroup(user, target).ifPresent(perm ->
-            scopes.add(perm.getScope())
-        );
+        this.userPermissionService.findByUserAndMapGroup(user, target).ifPresent(perm -> scopes.add(perm.getScope()));
         for (SecurityGroup sg : user.getSecurityGroups()) {
-            this.securityGroupPermissionsRepository.findBySecurityGroupAndMapGroup(sg, target)
+            this.securityGroupPermissionService.findBySecurityGroupAndMapGroup(sg, target)
                 .stream()
                 .map(SecurityGroupPermission::getScope)
                 .forEach(scopes::add);

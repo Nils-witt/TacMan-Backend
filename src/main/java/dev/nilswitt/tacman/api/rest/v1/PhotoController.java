@@ -5,12 +5,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import dev.nilswitt.tacman.api.dtos.PhotoDto;
 import dev.nilswitt.tacman.entities.*;
+import dev.nilswitt.tacman.entities.services.MissionGroupService;
+import dev.nilswitt.tacman.entities.services.PhotoService;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
 import dev.nilswitt.tacman.exceptions.PhotoNotFoundException;
 import dev.nilswitt.tacman.records.PictureConfig;
 import dev.nilswitt.tacman.security.PermissionVerifier;
-import dev.nilswitt.tacman.services.MissionGroupService;
-import dev.nilswitt.tacman.services.PhotoService;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;

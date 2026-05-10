@@ -2,8 +2,8 @@ package dev.nilswitt.tacman.security.jwt;
 
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.services.SecurityGroupService;
-import dev.nilswitt.tacman.services.UserService;
+import dev.nilswitt.tacman.entities.services.SecurityGroupService;
+import dev.nilswitt.tacman.entities.services.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,4 +1,4 @@
-package dev.nilswitt.tacman.services;
+package dev.nilswitt.tacman.entities.services;
 
 import dev.nilswitt.tacman.api.dtos.MapGroupDto;
 import dev.nilswitt.tacman.entities.MapGroup;

@@ -1,9 +1,8 @@
-package dev.nilswitt.tacman.services;
+package dev.nilswitt.tacman.entities.services;
 
 import dev.nilswitt.tacman.api.dtos.SecurityGroupDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.SecurityGroupPermissionsRepository;
 import dev.nilswitt.tacman.entities.repositories.SecurityGroupRepository;
 import dev.nilswitt.tacman.security.PermissionVerifier;
 import java.util.HashSet;
@@ -16,16 +15,16 @@ import org.springframework.stereotype.Service;
 public class SecurityGroupService {
 
     private final SecurityGroupRepository securityGroupRepository;
-    private final SecurityGroupPermissionsRepository securityGroupPermissionsRepository;
+    private final SecurityGroupPermissionService securityGroupPermissionService;
     private final PermissionVerifier permissionVerifier;
 
     public SecurityGroupService(
         SecurityGroupRepository securityGroupRepository,
-        SecurityGroupPermissionsRepository securityGroupPermissionsRepository,
+        SecurityGroupPermissionService securityGroupPermissionService,
         PermissionVerifier permissionVerifier
     ) {
         this.securityGroupRepository = securityGroupRepository;
-        this.securityGroupPermissionsRepository = securityGroupPermissionsRepository;
+        this.securityGroupPermissionService = securityGroupPermissionService;
         this.permissionVerifier = permissionVerifier;
     }
 
@@ -54,7 +53,7 @@ public class SecurityGroupService {
     }
 
     public void deletePermissionsBySecurityGroup(SecurityGroup securityGroup) {
-        securityGroupPermissionsRepository.deleteBySecurityGroup(securityGroup);
+        securityGroupPermissionService.deleteBySecurityGroup(securityGroup);
     }
 
     public void removeFromAllUsers(UUID groupId) {

@@ -2,10 +2,10 @@ package dev.nilswitt.tacman.api.ws;
 
 import dev.nilswitt.tacman.api.dtos.AbstractEntityDto;
 import dev.nilswitt.tacman.entities.*;
+import dev.nilswitt.tacman.entities.services.*;
 import dev.nilswitt.tacman.events.ChangeType;
 import dev.nilswitt.tacman.events.EntityChangedEvent;
 import dev.nilswitt.tacman.security.PermissionVerifier;
-import dev.nilswitt.tacman.services.*;
 import java.util.*;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;

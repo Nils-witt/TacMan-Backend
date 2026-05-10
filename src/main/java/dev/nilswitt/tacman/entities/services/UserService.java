@@ -1,9 +1,10 @@
-package dev.nilswitt.tacman.services;
+package dev.nilswitt.tacman.entities.services;
 
 import dev.nilswitt.tacman.api.dtos.UserDto;
 import dev.nilswitt.tacman.entities.User;
 import dev.nilswitt.tacman.entities.repositories.UserRepository;
 import dev.nilswitt.tacman.security.PermissionVerifier;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +36,10 @@ public class UserService {
 
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
+    }
+
+    public List<User> findAllById(Collection<UUID> ids) {
+        return userRepository.findAllById(ids);
     }
 
     public Optional<User> findByUsername(String username) {

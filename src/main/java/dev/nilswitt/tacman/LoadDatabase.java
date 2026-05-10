@@ -2,9 +2,9 @@ package dev.nilswitt.tacman;
 
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.User;
+import dev.nilswitt.tacman.entities.services.SecurityGroupService;
+import dev.nilswitt.tacman.entities.services.UserService;
 import dev.nilswitt.tacman.records.DatabaseInitAdminUserRecord;
-import dev.nilswitt.tacman.services.SecurityGroupService;
-import dev.nilswitt.tacman.services.UserService;
 import java.util.HashSet;
 import java.util.Optional;
 import org.springframework.boot.CommandLineRunner;

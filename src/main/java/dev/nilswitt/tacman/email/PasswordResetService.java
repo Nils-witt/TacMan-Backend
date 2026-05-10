@@ -2,9 +2,9 @@ package dev.nilswitt.tacman.email;
 
 import dev.nilswitt.tacman.entities.PasswordResetToken;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.PasswordResetTokenRepository;
+import dev.nilswitt.tacman.entities.services.PasswordResetTokenService;
+import dev.nilswitt.tacman.entities.services.UserService;
 import dev.nilswitt.tacman.exceptions.InvalidPasswordResetTokenException;
-import dev.nilswitt.tacman.services.UserService;
 import dev.nilswitt.tacman.records.PasswordResetConfig;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,77 +22,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class PasswordResetService {
 
     private final UserService userService;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final PasswordResetTokenService passwordResetTokenService;
     private final PasswordEncoder passwordEncoder;
     private final SmtpPasswordResetEmailSender passwordResetEmailSender;
     private final PasswordResetConfig passwordResetConfig;
 
     public PasswordResetService(
         UserService userService,
-        PasswordResetTokenRepository passwordResetTokenRepository,
+        PasswordResetTokenService passwordResetTokenService,
         PasswordEncoder passwordEncoder,
         SmtpPasswordResetEmailSender passwordResetEmailSender,
         PasswordResetConfig passwordResetConfig
     ) {
         this.userService = userService;
-        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.passwordResetTokenService = passwordResetTokenService;
         this.passwordEncoder = passwordEncoder;
         this.passwordResetEmailSender = passwordResetEmailSender;
         this.passwordResetConfig = passwordResetConfig;
-    }
-
-    @Transactional
-    public void requestPasswordReset(String email) {
-        Optional<User> optionalUser = this.userService.findByEmail(email);
-        if (optionalUser.isEmpty()) {
-            return;
-        }
-
-        User user = optionalUser.get();
-        this.passwordResetTokenRepository.deleteByUser(user);
-
-        String rawToken = generateRawToken();
-        String tokenHash = sha256(rawToken);
-
-        PasswordResetToken passwordResetToken = new PasswordResetToken();
-        passwordResetToken.setUser(user);
-        passwordResetToken.setTokenHash(tokenHash);
-        passwordResetToken.setExpiresAt(Instant.now().plusSeconds(this.passwordResetConfig.ttlMinutes() * 60));
-        this.passwordResetTokenRepository.save(passwordResetToken);
-
-        String resetLink = buildResetLink(rawToken);
-        try {
-            this.passwordResetEmailSender.sendPasswordResetEmail(
-                user.getEmail(),
-                user.getDisplayName(),
-                resetLink,
-                this.passwordResetConfig.ttlMinutes()
-            );
-        } catch (Exception e) {
-            log.error("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage(), e);
-        }
-    }
-
-    @Transactional
-    public void resetPassword(String rawToken, String newPassword) {
-        PasswordResetToken token = this.passwordResetTokenRepository.findByTokenHash(sha256(rawToken)).orElseThrow(() ->
-            new InvalidPasswordResetTokenException("Invalid reset token.")
-        );
-
-        if (token.isExpired()) {
-            throw new InvalidPasswordResetTokenException("Reset token has expired.");
-        }
-
-        User user = token.getUser();
-        user.setPassword(this.passwordEncoder.encode(newPassword));
-        this.userService.save(user);
-
-        this.passwordResetTokenRepository.save(token);
-        this.passwordResetTokenRepository.deleteByUser(user);
-    }
-
-    private String buildResetLink(String rawToken) {
-        return (this.passwordResetConfig.baseUrl() + "/reset-password?token=" + rawToken);
     }
 
     private static String generateRawToken() {
@@ -117,5 +63,59 @@ public class PasswordResetService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 is not available", e);
         }
+    }
+
+    @Transactional
+    public void requestPasswordReset(String email) {
+        Optional<User> optionalUser = this.userService.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            return;
+        }
+
+        User user = optionalUser.get();
+        this.passwordResetTokenService.deleteByUser(user);
+
+        String rawToken = generateRawToken();
+        String tokenHash = sha256(rawToken);
+
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setUser(user);
+        passwordResetToken.setTokenHash(tokenHash);
+        passwordResetToken.setExpiresAt(Instant.now().plusSeconds(this.passwordResetConfig.ttlMinutes() * 60));
+        this.passwordResetTokenService.save(passwordResetToken);
+
+        String resetLink = buildResetLink(rawToken);
+        try {
+            this.passwordResetEmailSender.sendPasswordResetEmail(
+                user.getEmail(),
+                user.getDisplayName(),
+                resetLink,
+                this.passwordResetConfig.ttlMinutes()
+            );
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void resetPassword(String rawToken, String newPassword) {
+        PasswordResetToken token = this.passwordResetTokenService.findByTokenHash(sha256(rawToken)).orElseThrow(() ->
+            new InvalidPasswordResetTokenException("Invalid reset token.")
+        );
+
+        if (token.isExpired()) {
+            throw new InvalidPasswordResetTokenException("Reset token has expired.");
+        }
+
+        User user = token.getUser();
+        user.setPassword(this.passwordEncoder.encode(newPassword));
+        this.userService.save(user);
+
+        this.passwordResetTokenService.save(token);
+        this.passwordResetTokenService.deleteByUser(user);
+    }
+
+    private String buildResetLink(String rawToken) {
+        return (this.passwordResetConfig.baseUrl() + "/reset-password?token=" + rawToken);
     }
 }

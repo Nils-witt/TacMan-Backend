@@ -1,7 +1,7 @@
 package dev.nilswitt.tacman.security.jwt;
 
 import dev.nilswitt.tacman.entities.JWTTokenRegistration;
-import dev.nilswitt.tacman.entities.repositories.JWTTokenRegistrationRepository;
+import dev.nilswitt.tacman.entities.services.JWTTokenRegistrationService;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
 public class JWTRegistry {
 
     private final ConcurrentHashMap<UUID, Boolean> validTokens = new ConcurrentHashMap<>();
-    private final JWTTokenRegistrationRepository repository;
+    private final JWTTokenRegistrationService jwtTokenRegistrationService;
 
-    public JWTRegistry(JWTTokenRegistrationRepository repository) {
-        this.repository = repository;
+    public JWTRegistry(JWTTokenRegistrationService jwtTokenRegistrationService) {
+        this.jwtTokenRegistrationService = jwtTokenRegistrationService;
     }
 
     public boolean isValid(UUID tokenId) {
@@ -23,7 +23,7 @@ public class JWTRegistry {
             return validTokens.get(tokenId);
         }
 
-        if (repository.findByTokenId(tokenId).isPresent()) {
+        if (jwtTokenRegistrationService.findByTokenId(tokenId).isPresent()) {
             validTokens.put(tokenId, true);
             return true;
         }
@@ -31,7 +31,7 @@ public class JWTRegistry {
     }
 
     public void addToken(JWTTokenRegistration token) {
-        this.repository.save(token);
+        this.jwtTokenRegistrationService.save(token);
         this.validTokens.put(token.getTokenId(), true);
     }
 

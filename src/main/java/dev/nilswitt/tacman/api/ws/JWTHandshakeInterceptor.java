@@ -1,8 +1,8 @@
 package dev.nilswitt.tacman.api.ws;
 
 import dev.nilswitt.tacman.entities.User;
+import dev.nilswitt.tacman.entities.services.UserService;
 import dev.nilswitt.tacman.security.jwt.JWTTokenComponent;
-import dev.nilswitt.tacman.services.UserService;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 import org.jspecify.annotations.NonNull;

@@ -1,16 +1,15 @@
-package dev.nilswitt.tacman.services;
+package dev.nilswitt.tacman.entities.services;
 
 import dev.nilswitt.tacman.api.dtos.MissionGroupDto;
 import dev.nilswitt.tacman.entities.MissionGroup;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.MapGroupRepository;
 import dev.nilswitt.tacman.entities.repositories.MissionGroupRepository;
-import dev.nilswitt.tacman.entities.repositories.UnitRepository;
 import dev.nilswitt.tacman.security.PermissionVerifier;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,19 +17,21 @@ public class MissionGroupService {
 
     private final MissionGroupRepository missionGroupRepository;
     private final PermissionVerifier permissionVerifier;
-    private final MapGroupRepository mapGroupRepository;
-    private final UnitRepository unitRepository;
+    private final MapGroupService mapGroupService;
+
+    @Lazy
+    private final UnitService unitService;
 
     public MissionGroupService(
         MissionGroupRepository missionGroupRepository,
         PermissionVerifier permissionVerifier,
-        MapGroupRepository mapGroupRepository,
-        UnitRepository unitRepository
+        MapGroupService mapGroupService,
+        @Lazy UnitService unitService
     ) {
         this.missionGroupRepository = missionGroupRepository;
         this.permissionVerifier = permissionVerifier;
-        this.mapGroupRepository = mapGroupRepository;
-        this.unitRepository = unitRepository;
+        this.mapGroupService = mapGroupService;
+        this.unitService = unitService;
     }
 
     public List<MissionGroup> findAll() {
@@ -43,10 +44,10 @@ public class MissionGroupService {
 
     public MissionGroup save(MissionGroup missionGroup) {
         missionGroupRepository.save(missionGroup);
-        this.unitRepository.findAllByMissionGroup(missionGroup).forEach(unit -> {
+        this.unitService.findAllByMissionGroup(missionGroup).forEach(unit -> {
             if (!missionGroup.getUnits().contains(unit)) {
                 unit.setMissionGroup(null);
-                this.unitRepository.save(unit);
+                this.unitService.save(unit);
             }
         });
 
@@ -54,7 +55,7 @@ public class MissionGroupService {
             .getUnits()
             .forEach(unit -> {
                 unit.setMissionGroup(missionGroup);
-                this.unitRepository.save(unit);
+                this.unitService.save(unit);
             });
 
         return missionGroupRepository.save(missionGroup);
@@ -77,12 +78,12 @@ public class MissionGroupService {
         missionGroup.setEndTime(dto.getEndTime());
         missionGroup.setMapGroups(
             dto.getMapGroupIds() != null
-                ? Set.copyOf(mapGroupRepository.findAllById(List.copyOf(dto.getMapGroupIds())))
+                ? Set.copyOf(mapGroupService.findAllById(List.copyOf(dto.getMapGroupIds())))
                 : Set.of()
         );
         missionGroup.setUnits(
             dto.getUnitIds() != null
-                ? Set.copyOf(this.unitRepository.findAllById(List.copyOf(dto.getUnitIds())))
+                ? Set.copyOf(this.unitService.findAllById(List.copyOf(dto.getUnitIds())))
                 : Set.of()
         );
         return missionGroup;

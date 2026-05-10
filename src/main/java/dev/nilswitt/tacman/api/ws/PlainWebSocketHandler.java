@@ -4,10 +4,9 @@ import dev.nilswitt.tacman.api.dtos.UnitDto;
 import dev.nilswitt.tacman.entities.SecurityGroup;
 import dev.nilswitt.tacman.entities.Unit;
 import dev.nilswitt.tacman.entities.User;
+import dev.nilswitt.tacman.entities.services.UnitService;
 import dev.nilswitt.tacman.events.ChangeType;
 import dev.nilswitt.tacman.exceptions.ForbiddenException;
-import dev.nilswitt.tacman.security.PermissionVerifier;
-import dev.nilswitt.tacman.services.UnitService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +29,6 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
 
     private final WebSocketSessionRegistry sessionRegistry;
     private final UnitService unitService;
-    private final PermissionVerifier permissionsUtil;
     private final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     private final Logger log = LoggerFactory.getLogger(PlainWebSocketHandler.class);
@@ -40,14 +38,9 @@ public class PlainWebSocketHandler extends AbstractWebSocketHandler {
             .toList()
     );
 
-    public PlainWebSocketHandler(
-        WebSocketSessionRegistry sessionRegistry,
-        UnitService unitService,
-        PermissionVerifier permissionsUtil
-    ) {
+    public PlainWebSocketHandler(WebSocketSessionRegistry sessionRegistry, UnitService unitService) {
         this.sessionRegistry = sessionRegistry;
         this.unitService = unitService;
-        this.permissionsUtil = permissionsUtil;
     }
 
     @Override

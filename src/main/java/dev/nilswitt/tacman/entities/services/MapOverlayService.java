@@ -1,10 +1,9 @@
-package dev.nilswitt.tacman.services;
+package dev.nilswitt.tacman.entities.services;
 
 import dev.nilswitt.tacman.api.dtos.MapOverlayDto;
 import dev.nilswitt.tacman.entities.MapGroup;
 import dev.nilswitt.tacman.entities.MapOverlay;
 import dev.nilswitt.tacman.entities.User;
-import dev.nilswitt.tacman.entities.repositories.MapGroupRepository;
 import dev.nilswitt.tacman.entities.repositories.MapOverlayRepository;
 import dev.nilswitt.tacman.security.PermissionVerifier;
 import java.util.List;
@@ -17,16 +16,16 @@ public class MapOverlayService {
 
     private final MapOverlayRepository mapOverlayRepository;
     private final PermissionVerifier permissionVerifier;
-    private final MapGroupRepository mapGroupRepository;
+    private final MapGroupService mapGroupService;
 
     public MapOverlayService(
         MapOverlayRepository mapOverlayRepository,
         PermissionVerifier permissionVerifier,
-        MapGroupRepository mapGroupRepository
+        MapGroupService mapGroupService
     ) {
         this.mapOverlayRepository = mapOverlayRepository;
         this.permissionVerifier = permissionVerifier;
-        this.mapGroupRepository = mapGroupRepository;
+        this.mapGroupService = mapGroupService;
     }
 
     public List<MapOverlay> findAll() {
@@ -62,7 +61,7 @@ public class MapOverlayService {
         mapOverlay.setLayerVersion(dto.getLayerVersion());
         mapOverlay.setTilePathPattern(dto.getTilePathPattern());
         mapOverlay.setMapGroup(
-            dto.getMapGroupId() != null ? mapGroupRepository.findById(dto.getMapGroupId()).orElse(null) : null
+            dto.getMapGroupId() != null ? mapGroupService.findById(dto.getMapGroupId()).orElse(null) : null
         );
         mapOverlay.setBaseUrl(dto.getBaseUrl());
 

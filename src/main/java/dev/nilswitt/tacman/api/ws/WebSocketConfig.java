@@ -1,14 +1,12 @@
 package dev.nilswitt.tacman.api.ws;
 
+import dev.nilswitt.tacman.entities.services.UserService;
 import dev.nilswitt.tacman.security.jwt.JWTTokenComponent;
-import dev.nilswitt.tacman.services.UserService;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-@Configuration
-@EnableWebSocket
+// @Configuration
+// @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final PlainWebSocketHandler plainWebSocketHandler;
